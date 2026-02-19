@@ -5045,6 +5045,9 @@ def world_architekt_at():
         BUNDESLAENDER, OIB_RICHTLINIEN_AT, UWERT_ANFORDERUNGEN,
         UWERT_MATERIALIEN, KOSTENRICHTWERTE_2026, REGIONALE_KOSTENFAKTOREN,
         FOERDERUNGEN, ZEITPLAN_PHASEN, WETTBEWERBER,
+        SCHNEELASTZONEN_AT, WINDLASTZONEN_AT,
+        STAHLPROFILE, BETONKLASSEN, HOLZKLASSEN,
+        BEWEHRUNGSSTAHL, BEWEHRUNGSQUERSCHNITTE,
         berechne_uwert, berechne_kosten, berechne_hwb_grob,
         get_einreichunterlagen, log_architekt_proof
     )
@@ -5052,11 +5055,90 @@ def world_architekt_at():
     uwert_ergebnis = None
     kosten_ergebnis = None
     energie_ergebnis = None
+    statik_balken = None
+    statik_stuetze = None
     gewaehltes_land = request.args.get('bundesland', 'tirol')
 
     if request.method == 'POST':
         aktion = request.form.get('aktion', '')
-        if aktion == 'uwert':
+        if aktion == 'statik_balken':
+            try:
+                L = float(request.form.get('spannweite', 0))
+                q = float(request.form.get('gleichlast', 0))
+                mat = request.form.get('statik_material', 'holz_c24')
+            except ValueError:
+                L = q = 0
+                mat = 'holz_c24'
+            if L > 0 and q > 0:
+                M = q * L**2 / 8
+                V = q * L / 2
+                mat_data = {
+                    'stahl_s235': ('Stahl S235', 235/1.0),
+                    'stahl_s355': ('Stahl S355', 355/1.0),
+                    'beton_c25': ('Beton C25/30', 16.7),
+                    'holz_c24': ('Holz C24', 24/1.3),
+                    'holz_gl24h': ('BSH GL24h', 24/1.3),
+                }
+                name, fd = mat_data.get(mat, ('Holz C24', 18.5))
+                fd_kn_cm2 = fd / 10.0
+                erf_w = (M * 100) / fd_kn_cm2
+                if 'stahl' in mat:
+                    passende = [p for p in STAHLPROFILE if p['wy_cm3'] >= erf_w and 'IPE' in p['typ']]
+                    empf = passende[0]['typ'] if passende else f"IPE > {erf_w:.0f} cm³ nötig"
+                elif 'holz' in mat:
+                    b_cm = 10
+                    h_cm = (6 * erf_w / b_cm) ** 0.5
+                    h_cm = max(10, int(h_cm / 2 + 1) * 2)
+                    empf = f"{b_cm}×{h_cm} cm (b×h) Nadelholz"
+                else:
+                    b_cm = 25
+                    h_cm = (6 * erf_w / b_cm) ** 0.5
+                    h_cm = max(20, int(h_cm / 2 + 1) * 2)
+                    empf = f"{b_cm}×{h_cm} cm Stahlbeton"
+                statik_balken = {
+                    'spannweite': L, 'gleichlast': q,
+                    'moment_knm': M, 'querkraft_kn': V,
+                    'material_name': name, 'erf_w_cm3': erf_w,
+                    'empfehlung': empf
+                }
+                log_architekt_proof("statik_balken", "alle", f"L={L}m, q={q}kN/m, M={M:.1f}kNm")
+        elif aktion == 'statik_stuetze':
+            try:
+                N = float(request.form.get('druckkraft', 0))
+                Lk = float(request.form.get('knicklaenge', 0))
+                mat = request.form.get('stuetze_material', 'holz_c24')
+            except ValueError:
+                N = Lk = 0
+                mat = 'holz_c24'
+            if N > 0 and Lk > 0:
+                mat_data = {
+                    'stahl_s235': ('Stahl S235', 235/1.1),
+                    'holz_c24': ('Holz C24', 21/1.3),
+                    'beton_c25': ('Beton C25/30', 16.7),
+                }
+                name, fd = mat_data.get(mat, ('Holz C24', 16.2))
+                fd_kn_cm2 = fd / 10.0
+                erf_a = N / fd_kn_cm2
+                schlankheit_faktor = 1.0 + 0.05 * Lk
+                erf_a *= schlankheit_faktor
+                if 'stahl' in mat:
+                    passende = [p for p in STAHLPROFILE if p['a_cm2'] >= erf_a and 'HEB' in p['typ']]
+                    empf = passende[0]['typ'] if passende else f"HEB > {erf_a:.0f} cm² nötig"
+                elif 'holz' in mat:
+                    seite = erf_a ** 0.5
+                    seite = max(10, int(seite / 2 + 1) * 2)
+                    empf = f"{seite}×{seite} cm Kantholz"
+                else:
+                    seite = erf_a ** 0.5
+                    seite = max(20, int(seite / 2 + 1) * 2)
+                    empf = f"{seite}×{seite} cm Stahlbetonstütze"
+                statik_stuetze = {
+                    'druckkraft': N, 'knicklaenge': Lk,
+                    'material_name': name, 'erf_a_cm2': erf_a,
+                    'empfehlung': empf
+                }
+                log_architekt_proof("statik_stuetze", "alle", f"N={N}kN, Lk={Lk}m")
+        elif aktion == 'uwert':
             schichten = []
             for i in range(1, 6):
                 mat = request.form.get(f'material_{i}', '')
@@ -5129,7 +5211,9 @@ a:hover{text-decoration:underline}
 #tab6:checked~.panels .p6,
 #tab7:checked~.panels .p7,
 #tab8:checked~.panels .p8,
-#tab9:checked~.panels .p9{display:block}
+#tab9:checked~.panels .p9,
+#tab10:checked~.panels .p10,
+#tab11:checked~.panels .p11{display:block}
 .card{background:#161616;border:1px solid #222;border-radius:8px;padding:20px;margin-bottom:16px}
 .card h3{color:#00ff88;margin-bottom:12px;font-size:1.1em}
 .card h4{color:#00cc6a;margin:12px 0 8px;font-size:0.95em}
@@ -5184,10 +5268,15 @@ tr.highlight td{font-weight:600}
 <span style="color:#444">ORION · Architekt Österreich</span>
 <a href="/world/architekt" style="color:#888;text-decoration:none">Tirol-Assistent →</a>
 </div>
-<div class="header">
-<h1>⊘∞⧈∞⊘ ORION ARCHITEKT ÖSTERREICH</h1>
-<p>Alle 9 Bundesländer · OIB-Richtlinien 2023 · U-Wert · Kosten · Energie · Förderungen</p>
-<p style="color:#555;font-size:0.75em;margin-top:4px">Erstellt von Elisabeth Steurer & Gerhard Hirschmann — Stand Februar 2026 — Orientierungshilfe, ersetzt KEINE Beratung durch befugte Planer</p>
+<div class="header" style="position:relative">
+<div style="display:flex;align-items:center;justify-content:center;gap:16px;flex-wrap:wrap">
+<img src="/static/images/orion_architekt_logo.png" alt="ORION Architekt Logo" style="width:64px;height:64px;border-radius:8px">
+<div>
+<h1 style="margin:0">⊘∞⧈∞⊘ ORION ARCHITEKT ÖSTERREICH</h1>
+<p style="margin:4px 0 0">Alle 9 Bundesländer · OIB-RL 1-6 · U-Wert · Kosten · Energie · Förderungen · Statik · Bautabellen</p>
+</div>
+</div>
+<p style="color:#555;font-size:0.75em;margin-top:8px">Erstellt von Elisabeth Steurer & Gerhard Hirschmann — Stand Februar 2026 — Orientierungshilfe, ersetzt KEINE Beratung durch befugte Planer/Statiker</p>
 </div>
 <div class="container">
 <div class="tabs">
@@ -5209,6 +5298,10 @@ tr.highlight td{font-weight:600}
 <label for="tab8">⚔ Vergleich</label>
 <input type="radio" name="t" id="tab9">
 <label for="tab9">💎 Preise</label>
+<input type="radio" name="t" id="tab10">
+<label for="tab10">🔩 Statik</label>
+<input type="radio" name="t" id="tab11">
+<label for="tab11">📐 Bautabellen</label>
 <div class="panels">
 
 <!-- TAB 1: Bundesland -->
@@ -5823,6 +5916,222 @@ tr.highlight td{font-weight:600}
 </div>
 </div>
 
+<!-- TAB 10: Statik -->
+<div class="tab-panel p10">
+<div class="card">
+<h3>🔩 Statik-Grundrechner — Orientierung nach Eurocode</h3>
+<p style="color:#ff6666;font-size:0.85em;margin-bottom:16px">⚠ NUR Vordimensionierung/Orientierung — ersetzt KEINE statische Berechnung durch einen Ziviltechniker (befugten Statiker)!</p>
+
+<h4>Balkenrechner — Einfeldträger (Gleichlast)</h4>
+<p style="color:#888;font-size:0.8em;margin-bottom:12px">Berechnet Biegemoment, Querkraft und Durchbiegung für einen einfach gestützten Balken mit Gleichlast</p>
+<form method="post" action="/world/architekt-at">
+<input type="hidden" name="aktion" value="statik_balken">
+<input type="hidden" name="bundesland_auswahl" value="{{ gewaehltes_land }}">
+<div class="form-row">
+<div class="form-group">
+<label>Spannweite L (m)</label>
+<input type="number" name="spannweite" step="0.1" min="0.5" max="30" placeholder="z.B. 5.0">
+</div>
+<div class="form-group">
+<label>Gleichlast q (kN/m)</label>
+<input type="number" name="gleichlast" step="0.1" min="0.1" max="500" placeholder="z.B. 10.0">
+</div>
+<div class="form-group">
+<label>Material</label>
+<select name="statik_material">
+<option value="stahl_s235">Stahl S235 (fy=235 MPa)</option>
+<option value="stahl_s355">Stahl S355 (fy=355 MPa)</option>
+<option value="beton_c25">Beton C25/30</option>
+<option value="holz_c24" selected>Holz C24 (Nadelholz)</option>
+<option value="holz_gl24h">BSH GL24h</option>
+</select>
+</div>
+</div>
+<button type="submit" class="btn">🔩 Balken berechnen</button>
+</form>
+{% if statik_balken %}
+<div class="card" style="margin-top:16px;border-color:#00ff88">
+<h4>Ergebnis Balkenberechnung</h4>
+<div class="info-grid">
+<div class="label">Spannweite</div><div class="value">{{ statik_balken['spannweite'] }} m</div>
+<div class="label">Gleichlast</div><div class="value">{{ statik_balken['gleichlast'] }} kN/m</div>
+<div class="label">Max. Biegemoment M</div><div class="value" style="color:#ffc800;font-weight:700">{{ "%.2f"|format(statik_balken['moment_knm']) }} kNm</div>
+<div class="label">Max. Querkraft V</div><div class="value" style="color:#ffc800">{{ "%.2f"|format(statik_balken['querkraft_kn']) }} kN</div>
+<div class="label">Material</div><div class="value">{{ statik_balken['material_name'] }}</div>
+<div class="label">Erf. Widerstandsmoment</div><div class="value" style="color:#00ff88">{{ "%.1f"|format(statik_balken['erf_w_cm3']) }} cm³</div>
+<div class="label">Empfohlenes Profil</div><div class="value" style="color:#00ff88;font-weight:700">{{ statik_balken['empfehlung'] }}</div>
+</div>
+<p style="color:#888;font-size:0.8em;margin-top:12px">Formel: M = q·L²/8 | V = q·L/2 | erf. W = M/f_d | Durchbiegung: L/300 (Wohnbau)</p>
+</div>
+{% endif %}
+
+<h4 style="margin-top:24px">Stützencheck — Druckkraft</h4>
+<form method="post" action="/world/architekt-at">
+<input type="hidden" name="aktion" value="statik_stuetze">
+<input type="hidden" name="bundesland_auswahl" value="{{ gewaehltes_land }}">
+<div class="form-row">
+<div class="form-group">
+<label>Druckkraft N (kN)</label>
+<input type="number" name="druckkraft" step="1" min="1" max="50000" placeholder="z.B. 200">
+</div>
+<div class="form-group">
+<label>Knicklänge (m)</label>
+<input type="number" name="knicklaenge" step="0.1" min="0.5" max="20" placeholder="z.B. 3.0">
+</div>
+<div class="form-group">
+<label>Material</label>
+<select name="stuetze_material">
+<option value="stahl_s235">Stahl S235</option>
+<option value="holz_c24" selected>Holz C24</option>
+<option value="beton_c25">Beton C25/30</option>
+</select>
+</div>
+</div>
+<button type="submit" class="btn">🔩 Stütze prüfen</button>
+</form>
+{% if statik_stuetze %}
+<div class="card" style="margin-top:16px;border-color:#00ff88">
+<h4>Ergebnis Stützencheck</h4>
+<div class="info-grid">
+<div class="label">Druckkraft</div><div class="value">{{ statik_stuetze['druckkraft'] }} kN</div>
+<div class="label">Knicklänge</div><div class="value">{{ statik_stuetze['knicklaenge'] }} m</div>
+<div class="label">Material</div><div class="value">{{ statik_stuetze['material_name'] }}</div>
+<div class="label">Erf. Querschnitt</div><div class="value" style="color:#ffc800;font-weight:700">{{ "%.1f"|format(statik_stuetze['erf_a_cm2']) }} cm²</div>
+<div class="label">Empfehlung</div><div class="value" style="color:#00ff88;font-weight:700">{{ statik_stuetze['empfehlung'] }}</div>
+</div>
+</div>
+{% endif %}
+
+<h4 style="margin-top:24px">Schnee- & Windlasten Österreich</h4>
+<div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
+<div>
+<h4 style="color:#88ccff">❄ Schneelastzonen (ÖNORM EN 1991-1-3)</h4>
+<table>
+<tr><th>Zone</th><th>s_k (kN/m²)</th><th>Regionen</th></tr>
+{% for key, zone in schneelastzonen.items() %}
+<tr>
+<td style="color:#88ccff;font-weight:600">{{ zone['bezeichnung'] }}</td>
+<td style="font-weight:700">{{ zone['sk_kn_m2'] }}</td>
+<td style="color:#888;font-size:0.85em">{{ zone['regionen'] }}</td>
+</tr>
+{% endfor %}
+</table>
+<p style="color:#888;font-size:0.75em;margin-top:8px">Zusätzlich: Höhenkorrektur s_k = s_k0 · (1 + (A/728)²) für Seehöhe A > 0</p>
+</div>
+<div>
+<h4 style="color:#88ccff">💨 Windlastzonen (ÖNORM EN 1991-1-4)</h4>
+<table>
+<tr><th>Zone</th><th>v_b,0 (m/s)</th><th>q_b (kN/m²)</th><th>Regionen</th></tr>
+{% for key, zone in windlastzonen.items() %}
+<tr>
+<td style="color:#88ccff;font-weight:600">{{ zone['bezeichnung'] }}</td>
+<td>{{ zone['v_b0_ms'] }}</td>
+<td style="font-weight:700">{{ zone['q_b_kn_m2'] }}</td>
+<td style="color:#888;font-size:0.85em">{{ zone['regionen'] }}</td>
+</tr>
+{% endfor %}
+</table>
+</div>
+</div>
+</div>
+</div>
+
+<!-- TAB 11: Bautabellen -->
+<div class="tab-panel p11">
+<div class="card">
+<h3>📐 Bautabellen — Materialwerte nach Eurocode</h3>
+<p style="color:#888;font-size:0.85em;margin-bottom:16px">Referenzwerte für Vordimensionierung · Eurocode 2 (Beton), 3 (Stahl), 5 (Holz) · ÖNORM-konform</p>
+
+<h4>Stahlprofile — IPE / HEA / HEB</h4>
+<div style="overflow-x:auto">
+<table>
+<tr>
+<th>Profil</th><th>h (mm)</th><th>b (mm)</th><th>kg/m</th>
+<th>I_y (cm⁴)</th><th>W_y (cm³)</th><th>I_z (cm⁴)</th><th>A (cm²)</th>
+</tr>
+{% for p in stahlprofile %}
+<tr>
+<td style="color:#88ccff;font-weight:600">{{ p['typ'] }}</td>
+<td>{{ p['h_mm'] }}</td>
+<td>{{ p['b_mm'] }}</td>
+<td>{{ p['gewicht_kg_m'] }}</td>
+<td>{{ p['iy_cm4'] }}</td>
+<td style="color:#ffc800">{{ p['wy_cm3'] }}</td>
+<td>{{ p['iz_cm4'] }}</td>
+<td>{{ p['a_cm2'] }}</td>
+</tr>
+{% endfor %}
+</table>
+</div>
+
+<h4 style="margin-top:24px">Betonklassen — Eurocode 2</h4>
+<div style="overflow-x:auto">
+<table>
+<tr><th>Klasse</th><th>f_ck (MPa)</th><th>f_cd (MPa)</th><th>f_ctm (MPa)</th><th>E_cm (GPa)</th><th>Verwendung</th></tr>
+{% for b in betonklassen %}
+<tr>
+<td style="color:#aaa;font-weight:700">{{ b['klasse'] }}</td>
+<td style="color:#ffc800">{{ b['fck_mpa'] }}</td>
+<td>{{ b['fcd_mpa'] }}</td>
+<td>{{ b['fctm_mpa'] }}</td>
+<td>{{ b['ecm_gpa'] }}</td>
+<td style="color:#888;font-size:0.85em">{{ b['verwendung'] }}</td>
+</tr>
+{% endfor %}
+</table>
+</div>
+
+<h4 style="margin-top:24px">Holzfestigkeitsklassen — Eurocode 5</h4>
+<div style="overflow-x:auto">
+<table>
+<tr><th>Klasse</th><th>f_m,k (MPa)</th><th>f_t,0,k (MPa)</th><th>f_c,0,k (MPa)</th><th>E_0,mean (GPa)</th><th>ρ (kg/m³)</th><th>Verwendung</th></tr>
+{% for h in holzklassen %}
+<tr>
+<td style="color:#00cc6a;font-weight:700">{{ h['klasse'] }}</td>
+<td style="color:#ffc800">{{ h['fm_mpa'] }}</td>
+<td>{{ h['ft0_mpa'] }}</td>
+<td>{{ h['fc0_mpa'] }}</td>
+<td>{{ h['e0_gpa'] }}</td>
+<td>{{ h['rho_kg_m3'] }}</td>
+<td style="color:#888;font-size:0.85em">{{ h['verwendung'] }}</td>
+</tr>
+{% endfor %}
+</table>
+</div>
+
+<h4 style="margin-top:24px">Bewehrungsstahl & Querschnitte</h4>
+<div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
+<div>
+<table>
+<tr><th>Bezeichnung</th><th>f_yk (MPa)</th><th>f_tk (MPa)</th><th>E_s (GPa)</th><th>Durchmesser</th></tr>
+{% for s in bewehrungsstahl %}
+<tr>
+<td style="color:#aaa;font-weight:600">{{ s['bezeichnung'] }}</td>
+<td style="color:#ffc800">{{ s['fyk_mpa'] }}</td>
+<td>{{ s['ftk_mpa'] }}</td>
+<td>{{ s['es_gpa'] }}</td>
+<td style="color:#888;font-size:0.8em">{{ s['durchmesser_mm'] }}</td>
+</tr>
+{% endfor %}
+</table>
+</div>
+<div>
+<table>
+<tr><th>Ø (mm)</th><th>A_s (cm²)</th><th>kg/m</th></tr>
+{% for q in bewehrungsquerschnitte %}
+<tr>
+<td style="font-weight:600">{{ q['durchmesser_mm'] }}</td>
+<td style="color:#ffc800">{{ q['as_cm2'] }}</td>
+<td>{{ q['gewicht_kg_m'] }}</td>
+</tr>
+{% endfor %}
+</table>
+</div>
+</div>
+<p style="color:#888;font-size:0.75em;margin-top:12px">Quellen: Schneider Bautabellen 26. Auflage (2024), Eurocode 2/3/5 mit österreichischem Nationalanhang, ÖNORM B 4700/4100/4200</p>
+</div>
+</div>
+
 </div>
 </div>
 
@@ -5834,8 +6143,8 @@ tr.highlight td{font-weight:600}
 
 <div class="footer">
 ⊘∞⧈∞⊘ ORION ARCHITEKT ÖSTERREICH — Erstellt von Elisabeth Steurer & Gerhard Hirschmann<br>
-Stand Februar 2026 — Orientierungshilfe, ersetzt KEINE Beratung durch befugte Planer<br>
-Quellen: OIB-Richtlinien 2023 · 9 Landesbauordnungen · ÖNORM · BKI/WKO Richtwerte 2025/2026
+Stand Februar 2026 — Orientierungshilfe, ersetzt KEINE Beratung durch befugte Planer/Statiker<br>
+Quellen: OIB-Richtlinien 2023 · Eurocode 1-5 · ÖNORM · 9 Landesbauordnungen · BKI/WKO 2025/2026
 </div>
 </div>
 </body>
@@ -5857,7 +6166,16 @@ Quellen: OIB-Richtlinien 2023 · 9 Landesbauordnungen · ÖNORM · BKI/WKO Richt
         foerderungen_bund=FOERDERUNGEN.get('bund', []),
         foerderungen_land=FOERDERUNGEN.get(gewaehltes_land, []),
         zeitplan=ZEITPLAN_PHASEN,
-        wettbewerber=WETTBEWERBER)
+        wettbewerber=WETTBEWERBER,
+        statik_balken=statik_balken,
+        statik_stuetze=statik_stuetze,
+        schneelastzonen=SCHNEELASTZONEN_AT,
+        windlastzonen=WINDLASTZONEN_AT,
+        stahlprofile=STAHLPROFILE,
+        betonklassen=BETONKLASSEN,
+        holzklassen=HOLZKLASSEN,
+        bewehrungsstahl=BEWEHRUNGSSTAHL,
+        bewehrungsquerschnitte=BEWEHRUNGSQUERSCHNITTE)
 
 
 if __name__ == "__main__":

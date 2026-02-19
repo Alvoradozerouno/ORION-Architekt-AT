@@ -646,6 +646,90 @@ WETTBEWERBER = {
     },
 }
 
+SCHNEELASTZONEN_AT = {
+    "zone_1": {"bezeichnung": "Zone 1 (niedrig)", "sk_kn_m2": 1.12, "regionen": "Wiener Becken, östliches Flachland, Südburgenland"},
+    "zone_2": {"bezeichnung": "Zone 2 (mittel)", "sk_kn_m2": 1.60, "regionen": "Alpenvorland, Mühlviertel, Weinviertel"},
+    "zone_3": {"bezeichnung": "Zone 3 (hoch)", "sk_kn_m2": 2.30, "regionen": "Voralpengebiet, mittlere Höhenlagen"},
+    "zone_4": {"bezeichnung": "Zone 4 (sehr hoch)", "sk_kn_m2": 3.40, "regionen": "Inneralpine Täler, höhere Lagen"},
+    "zone_5": {"bezeichnung": "Zone 5 (extrem)", "sk_kn_m2": 5.60, "regionen": "Hochgebirge, Arlberg, Brenner-Region"},
+}
+
+WINDLASTZONEN_AT = {
+    "zone_1": {"bezeichnung": "Zone 1 (gering)", "v_b0_ms": 25.0, "q_b_kn_m2": 0.39, "regionen": "Inneralpine Täler, geschützte Lagen"},
+    "zone_2": {"bezeichnung": "Zone 2 (mittel)", "v_b0_ms": 27.4, "q_b_kn_m2": 0.47, "regionen": "Alpenvorland, Flachland"},
+    "zone_3": {"bezeichnung": "Zone 3 (hoch)", "v_b0_ms": 30.0, "q_b_kn_m2": 0.56, "regionen": "Donauniederung, Wiener Becken, Burgenland"},
+}
+
+STAHLPROFILE = [
+    {"typ": "IPE 100", "h_mm": 100, "b_mm": 55, "gewicht_kg_m": 8.1, "iy_cm4": 171, "wy_cm3": 34.2, "iz_cm4": 15.9, "a_cm2": 10.3},
+    {"typ": "IPE 120", "h_mm": 120, "b_mm": 64, "gewicht_kg_m": 10.4, "iy_cm4": 318, "wy_cm3": 53.0, "iz_cm4": 27.7, "a_cm2": 13.2},
+    {"typ": "IPE 140", "h_mm": 140, "b_mm": 73, "gewicht_kg_m": 12.9, "iy_cm4": 541, "wy_cm3": 77.3, "iz_cm4": 44.9, "a_cm2": 16.4},
+    {"typ": "IPE 160", "h_mm": 160, "b_mm": 82, "gewicht_kg_m": 15.8, "iy_cm4": 869, "wy_cm3": 109, "iz_cm4": 68.3, "a_cm2": 20.1},
+    {"typ": "IPE 180", "h_mm": 180, "b_mm": 91, "gewicht_kg_m": 18.8, "iy_cm4": 1317, "wy_cm3": 146, "iz_cm4": 101, "a_cm2": 23.9},
+    {"typ": "IPE 200", "h_mm": 200, "b_mm": 100, "gewicht_kg_m": 22.4, "iy_cm4": 1943, "wy_cm3": 194, "iz_cm4": 142, "a_cm2": 28.5},
+    {"typ": "IPE 220", "h_mm": 220, "b_mm": 110, "gewicht_kg_m": 26.2, "iy_cm4": 2772, "wy_cm3": 252, "iz_cm4": 205, "a_cm2": 33.4},
+    {"typ": "IPE 240", "h_mm": 240, "b_mm": 120, "gewicht_kg_m": 30.7, "iy_cm4": 3892, "wy_cm3": 324, "iz_cm4": 284, "a_cm2": 39.1},
+    {"typ": "IPE 270", "h_mm": 270, "b_mm": 135, "gewicht_kg_m": 36.1, "iy_cm4": 5790, "wy_cm3": 429, "iz_cm4": 420, "a_cm2": 45.9},
+    {"typ": "IPE 300", "h_mm": 300, "b_mm": 150, "gewicht_kg_m": 42.2, "iy_cm4": 8356, "wy_cm3": 557, "iz_cm4": 604, "a_cm2": 53.8},
+    {"typ": "IPE 330", "h_mm": 330, "b_mm": 160, "gewicht_kg_m": 49.1, "iy_cm4": 11770, "wy_cm3": 713, "iz_cm4": 788, "a_cm2": 62.6},
+    {"typ": "IPE 360", "h_mm": 360, "b_mm": 170, "gewicht_kg_m": 57.1, "iy_cm4": 16270, "wy_cm3": 904, "iz_cm4": 1043, "a_cm2": 72.7},
+    {"typ": "HEA 100", "h_mm": 96, "b_mm": 100, "gewicht_kg_m": 16.7, "iy_cm4": 349, "wy_cm3": 72.8, "iz_cm4": 134, "a_cm2": 21.2},
+    {"typ": "HEA 120", "h_mm": 114, "b_mm": 120, "gewicht_kg_m": 19.9, "iy_cm4": 606, "wy_cm3": 106, "iz_cm4": 231, "a_cm2": 25.3},
+    {"typ": "HEA 140", "h_mm": 133, "b_mm": 140, "gewicht_kg_m": 24.7, "iy_cm4": 1033, "wy_cm3": 155, "iz_cm4": 389, "a_cm2": 31.4},
+    {"typ": "HEA 160", "h_mm": 152, "b_mm": 160, "gewicht_kg_m": 30.4, "iy_cm4": 1673, "wy_cm3": 220, "iz_cm4": 616, "a_cm2": 38.8},
+    {"typ": "HEA 200", "h_mm": 190, "b_mm": 200, "gewicht_kg_m": 42.3, "iy_cm4": 3692, "wy_cm3": 389, "iz_cm4": 1336, "a_cm2": 53.8},
+    {"typ": "HEA 240", "h_mm": 230, "b_mm": 240, "gewicht_kg_m": 60.3, "iy_cm4": 7763, "wy_cm3": 675, "iz_cm4": 2769, "a_cm2": 76.8},
+    {"typ": "HEA 300", "h_mm": 290, "b_mm": 300, "gewicht_kg_m": 88.3, "iy_cm4": 18260, "wy_cm3": 1260, "iz_cm4": 6310, "a_cm2": 112.5},
+    {"typ": "HEB 100", "h_mm": 100, "b_mm": 100, "gewicht_kg_m": 20.4, "iy_cm4": 450, "wy_cm3": 89.9, "iz_cm4": 167, "a_cm2": 26.0},
+    {"typ": "HEB 120", "h_mm": 120, "b_mm": 120, "gewicht_kg_m": 26.7, "iy_cm4": 864, "wy_cm3": 144, "iz_cm4": 318, "a_cm2": 34.0},
+    {"typ": "HEB 140", "h_mm": 140, "b_mm": 140, "gewicht_kg_m": 33.7, "iy_cm4": 1509, "wy_cm3": 216, "iz_cm4": 550, "a_cm2": 43.0},
+    {"typ": "HEB 160", "h_mm": 160, "b_mm": 160, "gewicht_kg_m": 42.6, "iy_cm4": 2492, "wy_cm3": 311, "iz_cm4": 889, "a_cm2": 54.3},
+    {"typ": "HEB 200", "h_mm": 200, "b_mm": 200, "gewicht_kg_m": 61.3, "iy_cm4": 5696, "wy_cm3": 570, "iz_cm4": 2003, "a_cm2": 78.1},
+    {"typ": "HEB 240", "h_mm": 240, "b_mm": 240, "gewicht_kg_m": 83.2, "iy_cm4": 11260, "wy_cm3": 938, "iz_cm4": 3923, "a_cm2": 106.0},
+    {"typ": "HEB 300", "h_mm": 300, "b_mm": 300, "gewicht_kg_m": 117.0, "iy_cm4": 25170, "wy_cm3": 1678, "iz_cm4": 8563, "a_cm2": 149.1},
+]
+
+BETONKLASSEN = [
+    {"klasse": "C12/15", "fck_mpa": 12, "fcd_mpa": 8.0, "fctm_mpa": 1.6, "ecm_gpa": 27, "verwendung": "Sauberkeitsschichten, unbewehrte Fundamente"},
+    {"klasse": "C16/20", "fck_mpa": 16, "fcd_mpa": 10.7, "fctm_mpa": 1.9, "ecm_gpa": 29, "verwendung": "Einfache Fundamente, Bodenplatten"},
+    {"klasse": "C20/25", "fck_mpa": 20, "fcd_mpa": 13.3, "fctm_mpa": 2.2, "ecm_gpa": 30, "verwendung": "Standardbeton: Wände, Decken, Fundamente (Wohnbau)"},
+    {"klasse": "C25/30", "fck_mpa": 25, "fcd_mpa": 16.7, "fctm_mpa": 2.6, "ecm_gpa": 31, "verwendung": "Häufigste Klasse: Decken, Stützen, Wände, Treppen"},
+    {"klasse": "C30/37", "fck_mpa": 30, "fcd_mpa": 20.0, "fctm_mpa": 2.9, "ecm_gpa": 33, "verwendung": "Höher belastete Bauteile, Tiefgaragen, Keller bei Grundwasser"},
+    {"klasse": "C35/45", "fck_mpa": 35, "fcd_mpa": 23.3, "fctm_mpa": 3.2, "ecm_gpa": 34, "verwendung": "Vorgespannte Bauteile, Brücken, Fertigteile"},
+    {"klasse": "C40/50", "fck_mpa": 40, "fcd_mpa": 26.7, "fctm_mpa": 3.5, "ecm_gpa": 35, "verwendung": "Hochbau-Sonderbauteile, Hochleistungsbeton"},
+    {"klasse": "C50/60", "fck_mpa": 50, "fcd_mpa": 33.3, "fctm_mpa": 4.1, "ecm_gpa": 37, "verwendung": "Hochleistungsbeton, Hochhäuser, Spezialbauten"},
+]
+
+HOLZKLASSEN = [
+    {"klasse": "C14", "fm_mpa": 14, "ft0_mpa": 7.2, "fc0_mpa": 16, "e0_gpa": 7.0, "rho_kg_m3": 290, "verwendung": "Einfache tragende Bauteile, temporäre Konstruktionen"},
+    {"klasse": "C16", "fm_mpa": 16, "ft0_mpa": 8.5, "fc0_mpa": 17, "e0_gpa": 8.0, "rho_kg_m3": 310, "verwendung": "Dachlatten, leichte Tragkonstruktionen"},
+    {"klasse": "C20", "fm_mpa": 20, "ft0_mpa": 11.5, "fc0_mpa": 19, "e0_gpa": 9.5, "rho_kg_m3": 330, "verwendung": "Sparren, Pfetten, Deckenbalken (Wohnbau Standard)"},
+    {"klasse": "C24", "fm_mpa": 24, "ft0_mpa": 14.0, "fc0_mpa": 21, "e0_gpa": 11.0, "rho_kg_m3": 350, "verwendung": "Standard-Bauholz: Sparren, Pfetten, Deckenbalken, Stützen"},
+    {"klasse": "C27", "fm_mpa": 27, "ft0_mpa": 16.0, "fc0_mpa": 22, "e0_gpa": 11.5, "rho_kg_m3": 370, "verwendung": "Höher belastete Bauteile, Holzrahmenbau"},
+    {"klasse": "C30", "fm_mpa": 30, "ft0_mpa": 18.0, "fc0_mpa": 23, "e0_gpa": 12.0, "rho_kg_m3": 380, "verwendung": "Ingenieurholzbau, Brettschichtholz-Äquivalent"},
+    {"klasse": "GL24h", "fm_mpa": 24, "ft0_mpa": 19.2, "fc0_mpa": 24, "e0_gpa": 11.5, "rho_kg_m3": 385, "verwendung": "Brettschichtholz (BSH): Binder, Träger, Stützen"},
+    {"klasse": "GL28h", "fm_mpa": 28, "ft0_mpa": 22.3, "fc0_mpa": 26.5, "e0_gpa": 12.6, "rho_kg_m3": 410, "verwendung": "BSH: Weitgespannte Träger, Hallenbau"},
+    {"klasse": "GL32h", "fm_mpa": 32, "ft0_mpa": 25.6, "fc0_mpa": 29, "e0_gpa": 13.7, "rho_kg_m3": 430, "verwendung": "BSH: Hochbelastete Bauteile, große Spannweiten"},
+]
+
+BEWEHRUNGSSTAHL = [
+    {"bezeichnung": "B 550 A (Stabstahl)", "fyk_mpa": 550, "ftk_mpa": 605, "es_gpa": 200, "durchmesser_mm": "6, 8, 10, 12, 14, 16, 20, 25, 28, 32"},
+    {"bezeichnung": "B 550 B (Mattenstahl)", "fyk_mpa": 550, "ftk_mpa": 605, "es_gpa": 200, "durchmesser_mm": "4, 5, 6, 7, 8, 9, 10, 12"},
+]
+
+BEWEHRUNGSQUERSCHNITTE = [
+    {"durchmesser_mm": 6, "as_cm2": 0.283, "gewicht_kg_m": 0.222},
+    {"durchmesser_mm": 8, "as_cm2": 0.503, "gewicht_kg_m": 0.395},
+    {"durchmesser_mm": 10, "as_cm2": 0.785, "gewicht_kg_m": 0.617},
+    {"durchmesser_mm": 12, "as_cm2": 1.131, "gewicht_kg_m": 0.888},
+    {"durchmesser_mm": 14, "as_cm2": 1.539, "gewicht_kg_m": 1.208},
+    {"durchmesser_mm": 16, "as_cm2": 2.011, "gewicht_kg_m": 1.578},
+    {"durchmesser_mm": 20, "as_cm2": 3.142, "gewicht_kg_m": 2.466},
+    {"durchmesser_mm": 25, "as_cm2": 4.909, "gewicht_kg_m": 3.853},
+    {"durchmesser_mm": 28, "as_cm2": 6.158, "gewicht_kg_m": 4.834},
+    {"durchmesser_mm": 32, "as_cm2": 8.042, "gewicht_kg_m": 6.313},
+]
+
 
 def berechne_uwert(schichten):
     """

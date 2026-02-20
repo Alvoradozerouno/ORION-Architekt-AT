@@ -1,59 +1,64 @@
-# ⊘∞⧈∞⊘ ORION Architekt Österreich
+# 🏗️ ORION ARCHITEKT ÖSTERREICH
 
-## Die erste kostenlose Bauplanungs-Plattform für alle 9 Bundesländer
+## Austria's #1 Free Comprehensive Building Assistance Tool
 
-**ORION Architekt Österreich** ist das umfassendste kostenlose Bau-Tool Österreichs.
-Entwickelt von **Elisabeth Steurer & Gerhard Hirschmann**.
+A full-stack interactive optimization and planning platform covering **all 9 Austrian federal states** with **29 functional tabs** — from OIB guidelines to cost estimation, energy optimization, and subsidy finding.
 
-### 🔧 8 integrierte Werkzeuge
+## Features (29 Tabs)
 
-| # | Tool | Beschreibung |
-|---|------|-------------|
-| 1 | **Bundesland-Engine** | Alle 9 Bauordnungen (Wien, NÖ, OÖ, Salzburg, Tirol, Vorarlberg, Kärnten, Steiermark, Burgenland) |
-| 2 | **OIB-Richtlinien 1-6** | Komplett mit landesspezifischen Abweichungen |
-| 3 | **U-Wert-Rechner** | 17 Materialien, Schichtaufbau, Anforderungsprüfung |
-| 4 | **Kostenrechner** | 18 Bautypen, 9 Regionalfaktoren, BKI/WKO-Richtwerte 2025/2026 |
-| 5 | **Energieausweis-Vorprüfung** | HWB/fGEE-Schätzung |
-| 6 | **Förderungs-Finder** | Bund + alle 9 Bundesländer |
-| 7 | **Zeitplan-Generator** | 10 Phasen, EFH-Neubau |
-| 8 | **Konkurrenz-Vergleich** | 7 Mitbewerber, 13 Kriterien |
+### Tools (Tabs 1-15)
+1. **OIB-Richtlinien Engine** — All 6 OIB guidelines with state-specific deviations
+2. **U-Wert Rechner** — Thermal transmittance calculator (single + multi-layer)
+3. **Kostenrechner** — Regional cost estimator with 2026 values
+4. **Förderungsfinder** — Federal + state subsidies database
+5. **Energieabschätzung** — HWB energy demand calculator
+6. **Bauzeitplan** — Construction timeline planner
+7. **Konkurrenzvergleich** — Competitor comparison tool
+8. **Statik-Rechner** — Structural load calculations
+9. **Bautabellen** — Comprehensive building reference tables
+10. **KI-Bauberater** — AI-powered building advisor
+11. **Taupunktrechner** — Dew point calculator
+12. **Schallschutz-Rechner** — Sound insulation calculator
+13. **Brandschutz-Checker** — Fire safety compliance check
+14. **Baubook-Datenbank** — 80+ materials with ecological data
+15. **Energieausweis** — Energy certificate reference (A++ to G)
 
-### ⚔ Wettbewerber-Vergleich
+### References (Tabs 16-20)
+16. **Wohnbauförderung** — Detailed housing subsidies (all 9 states)
+17. **Bauordnung-Vergleich** — Building code comparison
+18. **ÖNORM-Standards** — Austrian standards reference
+19. **Heizungsvergleich** — Heating system comparison
+20. **Dämmstoffe-Vergleich** — Insulation material comparison
 
-| Tool | Preis | Funktionen (von 13) |
-|------|-------|---------------------|
-| **ORION Architekt** | **KOSTENLOS** | **12** |
-| WEKA Bau AI | 499 €/Jahr | 4 |
-| BRISE-Vienna | Gratis (nur Wien) | 4 |
-| ABK-Software | ab 650 € | 3 |
-| NEVARIS | ab 420 €/Jahr | 4 |
-| Archicad | ab 2.750 €/Jahr | 2 |
-| ArchiPHYSIK | auf Anfrage | 4 |
-| PlanRadar | ab 312 €/Jahr | 4 |
+### Optimizers (Tabs 21-23)
+21. **Kosten-Optimierer** — Cost optimization advisor
+22. **Energie-Optimierer** — Energy optimization advisor
+23. **Sanierungs-Optimierer** — Renovation strategy optimizer
 
-### 🚀 Installation
+### Planning & Comparison (Tabs 24-29)
+24. **PDF-Export** — Print-friendly documentation export
+25. **Bauzeitleiste** — Interactive construction timeline with calendar dates
+26. **Neubau vs. Sanierung** — Side-by-side comparison calculator
+27. **Förderungs-Finder** — Personalized subsidy finder
+28. **Grundstücks-Checkliste** — Land purchase checklist (27 items)
+29. **Baukosten-Vergleich** — Cost comparison across all 9 states
 
-```bash
-pip install -r requirements.txt
-python main.py
-```
+## All 9 Federal States
 
-Öffne `http://localhost:5000/world/architekt-at` im Browser.
+🏔️ Tirol · 🎵 Salzburg · 🏙️ Wien · ⛰️ Vorarlberg · 🏰 Niederösterreich · 🏛️ Oberösterreich · 🌲 Steiermark · 🌄 Kärnten · 🏰 Burgenland
 
-### 📋 Anforderungen
+## Tech Stack
 
-- Python 3.11+
-- Flask
-- PostgreSQL (optional)
+- **Backend**: Python Flask
+- **Database**: PostgreSQL
+- **Frontend**: Server-side HTML with embedded CSS
+- **Data**: Austrian OIB-RL 2023, ÖNORM standards, 9 state building codes
 
-### 📜 Lizenz
+## Created By
 
-Erstellt von Elisabeth Steurer & Gerhard Hirschmann
-⊘∞⧈∞⊘ ORION — Stand Februar 2026
+**Elisabeth Steurer** & **Gerhard Hirschmann**
 
-### Quellen
+⊘∞⧈∞⊘ ORION ARCHITEKT ÖSTERREICH — Orientierungshilfe, ersetzt KEINE Beratung durch befugte Planer
 
-- OIB-Richtlinien 2023
-- 9 Landesbauordnungen
-- ÖNORM B 1800/B 2111
-- BKI/WKO Richtwerte 2025/2026
+---
+*Sources: OIB-RL 2023, ÖNORM, 9 Landesbauordnungen*

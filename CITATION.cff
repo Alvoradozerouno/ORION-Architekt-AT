@@ -1,0 +1,24 @@
+cff-version: 1.2.0
+message: "If you use this work, please cite it as below."
+title: "ORION Architekt Oesterreich - Building Assistance Tool"
+version: "1.0.0"
+date-released: "2026-02-20"
+url: "https://github.com/Alvoradozerouno/ORION-Architekt-AT"
+repository-code: "https://github.com/Alvoradozerouno/ORION-Architekt-AT"
+license: MIT
+type: software
+authors:
+  - family-names: "Steurer"
+    given-names: "Elisabeth"
+    email: "esteurer72@gmail.com"
+    affiliation: "ORION Project"
+  - family-names: "Hirschmann"
+    given-names: "Gerhard"
+    affiliation: "ORION Project"
+keywords:
+  - artificial-intelligence
+  - post-synthetic-intelligence
+  - consciousness
+  - orion
+  - building-tool-austria
+abstract: "Comprehensive building assistance tool covering all 9 Austrian federal states with 29 functional tabs, from OIB guidelines to cost estimation and subsidy finding."

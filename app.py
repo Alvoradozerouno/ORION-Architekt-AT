@@ -5048,6 +5048,9 @@ def world_architekt_at():
         SCHNEELASTZONEN_AT, WINDLASTZONEN_AT,
         STAHLPROFILE, BETONKLASSEN, HOLZKLASSEN,
         BEWEHRUNGSSTAHL, BEWEHRUNGSQUERSCHNITTE,
+        TAUPUNKT_MATERIALIEN,
+        SCHALLSCHUTZ_ANFORDERUNGEN, SCHALLSCHUTZ_BAUTEILE,
+        GEBAEUEDEKLASSEN_OIB, BRANDSCHUTZ_FEUERWIDERSTAND, BRANDKLASSEN_BAUSTOFFE,
         berechne_uwert, berechne_kosten, berechne_hwb_grob,
         get_einreichunterlagen, log_architekt_proof
     )
@@ -5057,6 +5060,11 @@ def world_architekt_at():
     energie_ergebnis = None
     statik_balken = None
     statik_stuetze = None
+    ki_antwort = None
+    ki_frage_text = None
+    taupunkt_ergebnis = None
+    schallschutz_ergebnis = None
+    brandschutz_ergebnis = None
     gewaehltes_land = request.args.get('bundesland', 'tirol')
 
     if request.method == 'POST':
@@ -5177,6 +5185,122 @@ def world_architekt_at():
             if flaeche > 0:
                 energie_ergebnis = berechne_hwb_grob(flaeche, uw, ud, uf, ub, fp, komp)
                 log_architekt_proof("energie_berechnung", "alle", f"HWB={energie_ergebnis.get('hwb', '?')}")
+        elif aktion == 'ki_frage':
+            ki_frage_text = request.form.get('ki_frage', '').strip()
+            ki_bl = request.form.get('ki_bundesland', 'allgemein')
+            if ki_frage_text:
+                try:
+                    import os
+                    from openai import OpenAI
+                    client = OpenAI(
+                        api_key=os.environ.get("AI_INTEGRATIONS_OPENAI_API_KEY"),
+                        base_url=os.environ.get("AI_INTEGRATIONS_OPENAI_BASE_URL")
+                    )
+                    bl_kontext = f" Bezug: Bundesland {BUNDESLAENDER.get(ki_bl, {}).get('name', 'Österreich allgemein')}." if ki_bl != 'allgemein' else ""
+                    # the newest OpenAI model is "gpt-5" which was released August 7, 2025.
+                    # do not change this unless explicitly requested by the user
+                    response = client.chat.completions.create(
+                        model="gpt-5-mini",
+                        messages=[
+                            {"role": "system", "content": f"Du bist ein erfahrener österreichischer Bauberater. Antworte auf Deutsch, präzise und praxisnah. Beziehe dich auf OIB-Richtlinien (2023), die jeweilige Landesbauordnung, ÖNORMEN und Eurocode. Gib konkrete Werte, Grenzwerte und Paragraphen an wo möglich. Weise darauf hin dass deine Antwort eine Orientierungshilfe ist und keine Beratung durch einen befugten Planer ersetzt.{bl_kontext}"},
+                            {"role": "user", "content": ki_frage_text}
+                        ],
+                        max_completion_tokens=2048
+                    )
+                    ki_antwort = response.choices[0].message.content or "Keine Antwort erhalten."
+                    log_architekt_proof("ki_bauberater", ki_bl, ki_frage_text[:100])
+                except Exception as e:
+                    ki_antwort = f"Fehler bei der KI-Abfrage: {str(e)}"
+        elif aktion == 'taupunkt':
+            try:
+                t_innen = float(request.form.get('temp_innen', 20))
+                t_aussen = float(request.form.get('temp_aussen', -10))
+                feuchte = float(request.form.get('feuchte_innen', 50))
+            except ValueError:
+                t_innen, t_aussen, feuchte = 20, -10, 50
+            import math
+            a, b = 17.67, 243.5
+            gamma = (a * t_innen) / (b + t_innen) + math.log(feuchte / 100.0)
+            taupunkt_c = (b * gamma) / (a - gamma)
+            schichten_tp = []
+            for i in range(1, 6):
+                mat_key = request.form.get(f'tp_material_{i}', '')
+                dicke_str = request.form.get(f'tp_dicke_{i}', '')
+                if mat_key and dicke_str:
+                    try:
+                        d_cm = float(dicke_str)
+                        mat = TAUPUNKT_MATERIALIEN.get(mat_key)
+                        if mat and d_cm > 0:
+                            schichten_tp.append({
+                                'key': mat_key, 'name': mat['name'],
+                                'dicke_cm': d_cm, 'lambda': mat['lambda_w_mk'],
+                                'mu': mat['mu']
+                            })
+                    except ValueError:
+                        pass
+            if schichten_tp:
+                r_si = 0.13
+                r_se = 0.04
+                r_schichten = []
+                for s in schichten_tp:
+                    r = (s['dicke_cm'] / 100.0) / s['lambda']
+                    r_schichten.append(r)
+                r_gesamt = r_si + sum(r_schichten) + r_se
+                u_wert = 1.0 / r_gesamt
+                delta_t = t_innen - t_aussen
+                temp_aktuell = t_innen - (r_si / r_gesamt) * delta_t
+                ergebnis_schichten = []
+                min_temp = temp_aktuell
+                for idx, s in enumerate(schichten_tp):
+                    t_left = temp_aktuell
+                    temp_aktuell -= (r_schichten[idx] / r_gesamt) * delta_t
+                    min_temp = min(min_temp, temp_aktuell)
+                    ergebnis_schichten.append({
+                        'name': s['name'], 'dicke_cm': s['dicke_cm'],
+                        'r_wert': r_schichten[idx],
+                        'temp_links': t_left, 'temp_rechts': temp_aktuell
+                    })
+                status = 'OK' if min_temp > taupunkt_c else 'KONDENSAT'
+                taupunkt_ergebnis = {
+                    'taupunkt_c': taupunkt_c, 'min_temp_bauteil': min_temp,
+                    'r_gesamt': r_gesamt, 'u_wert': u_wert,
+                    'status': status, 'schichten': ergebnis_schichten
+                }
+                log_architekt_proof("taupunkt", "alle", f"Taupunkt={taupunkt_c:.1f}°C, Status={status}")
+        elif aktion == 'schallschutz':
+            anf_key = request.form.get('schall_anforderung', '')
+            bt_idx_str = request.form.get('schall_bauteil', '0')
+            try:
+                bt_idx = int(bt_idx_str)
+            except ValueError:
+                bt_idx = 0
+            anf = SCHALLSCHUTZ_ANFORDERUNGEN.get(anf_key)
+            if anf and 0 <= bt_idx < len(SCHALLSCHUTZ_BAUTEILE):
+                bt = SCHALLSCHUTZ_BAUTEILE[bt_idx]
+                rw_erf = anf['rw_min_db']
+                rw_ist = bt['rw_db']
+                erfuellt = rw_ist >= rw_erf
+                schallschutz_ergebnis = {
+                    'anforderung_name': anf['bauteil'],
+                    'bauteil_name': bt['bauteil'],
+                    'rw_erf': rw_erf, 'rw_ist': rw_ist,
+                    'differenz': rw_ist - rw_erf,
+                    'erfuellt': erfuellt
+                }
+                if 'ln_max_db' in anf and 'ln_db' in bt:
+                    schallschutz_ergebnis['tritt_check'] = True
+                    schallschutz_ergebnis['ln_erf'] = anf['ln_max_db']
+                    schallschutz_ergebnis['ln_ist'] = bt['ln_db']
+                    schallschutz_ergebnis['tritt_ok'] = bt['ln_db'] <= anf['ln_max_db']
+                    if not schallschutz_ergebnis['tritt_ok']:
+                        schallschutz_ergebnis['erfuellt'] = False
+                log_architekt_proof("schallschutz", "alle", f"R'w={rw_ist}dB vs {rw_erf}dB")
+        elif aktion == 'brandschutz':
+            gk_key = request.form.get('gebaeuedeklasse', 'gk1')
+            gk = GEBAEUEDEKLASSEN_OIB.get(gk_key)
+            if gk:
+                brandschutz_ergebnis = gk
+                log_architekt_proof("brandschutz", "alle", f"GK={gk['klasse']}")
         gewaehltes_land = request.form.get('bundesland_auswahl', gewaehltes_land)
 
     land_info = BUNDESLAENDER.get(gewaehltes_land, BUNDESLAENDER['tirol'])
@@ -5213,7 +5337,11 @@ a:hover{text-decoration:underline}
 #tab8:checked~.panels .p8,
 #tab9:checked~.panels .p9,
 #tab10:checked~.panels .p10,
-#tab11:checked~.panels .p11{display:block}
+#tab11:checked~.panels .p11,
+#tab12:checked~.panels .p12,
+#tab13:checked~.panels .p13,
+#tab14:checked~.panels .p14,
+#tab15:checked~.panels .p15{display:block}
 .card{background:#161616;border:1px solid #222;border-radius:8px;padding:20px;margin-bottom:16px}
 .card h3{color:#00ff88;margin-bottom:12px;font-size:1.1em}
 .card h4{color:#00cc6a;margin:12px 0 8px;font-size:0.95em}
@@ -5268,14 +5396,10 @@ tr.highlight td{font-weight:600}
 <span style="color:#444">ORION · Architekt Österreich</span>
 <a href="/world/architekt" style="color:#888;text-decoration:none">Tirol-Assistent →</a>
 </div>
-<div class="header" style="position:relative">
-<div style="display:flex;align-items:center;justify-content:center;gap:16px;flex-wrap:wrap">
-<img src="/static/images/orion_architekt_logo.png" alt="ORION Architekt Logo" style="width:64px;height:64px;border-radius:8px">
-<div>
+<div class="header" style="position:relative;text-align:center">
+<img src="/static/images/orion_architekt_logo.png" alt="ORION Architekt Logo" style="width:180px;height:180px;border-radius:20px;box-shadow:0 0 40px rgba(0,255,136,0.4);margin-bottom:16px;display:block;margin-left:auto;margin-right:auto">
 <h1 style="margin:0">⊘∞⧈∞⊘ ORION ARCHITEKT ÖSTERREICH</h1>
-<p style="margin:4px 0 0">Alle 9 Bundesländer · OIB-RL 1-6 · U-Wert · Kosten · Energie · Förderungen · Statik · Bautabellen</p>
-</div>
-</div>
+<p style="margin:6px 0 0">Alle 9 Bundesländer · OIB-RL 1-6 · U-Wert · Kosten · Energie · Förderungen · Statik · Bautabellen</p>
 <p style="color:#555;font-size:0.75em;margin-top:8px">Erstellt von Elisabeth Steurer & Gerhard Hirschmann — Stand Februar 2026 — Orientierungshilfe, ersetzt KEINE Beratung durch befugte Planer/Statiker</p>
 </div>
 <div class="container">
@@ -5302,6 +5426,14 @@ tr.highlight td{font-weight:600}
 <label for="tab10">🔩 Statik</label>
 <input type="radio" name="t" id="tab11">
 <label for="tab11">📐 Bautabellen</label>
+<input type="radio" name="t" id="tab12">
+<label for="tab12">🤖 KI-Berater</label>
+<input type="radio" name="t" id="tab13">
+<label for="tab13">💧 Taupunkt</label>
+<input type="radio" name="t" id="tab14">
+<label for="tab14">🔇 Schallschutz</label>
+<input type="radio" name="t" id="tab15">
+<label for="tab15">🔥 Brandschutz</label>
 <div class="panels">
 
 <!-- TAB 1: Bundesland -->
@@ -6132,6 +6264,268 @@ tr.highlight td{font-weight:600}
 </div>
 </div>
 
+<!-- TAB 12: KI-Bauberater -->
+<div class="tab-panel p12">
+<div class="card">
+<h3>🤖 KI-Bauberater — Österreichische Baufragen</h3>
+<p style="color:#888;font-size:0.85em;margin-bottom:16px">Stellen Sie Ihre Baufrage — der KI-Berater antwortet mit Bezug auf österreichische Bauvorschriften, OIB-Richtlinien und Landesbauordnungen.</p>
+<form method="post" action="/world/architekt-at">
+<input type="hidden" name="aktion" value="ki_frage">
+<input type="hidden" name="bundesland_auswahl" value="{{ gewaehltes_land }}">
+<div class="form-group">
+<label>Ihre Baufrage</label>
+<textarea name="ki_frage" rows="4" style="width:100%;background:#111;color:#e0e0e0;border:1px solid #333;border-radius:6px;padding:12px;font-size:0.95em;font-family:inherit;resize:vertical" placeholder="z.B. Brauche ich in Tirol eine Baugenehmigung für einen Carport? Welche Dämmstärke braucht mein Keller? Was kostet ein Passivhaus in Salzburg?">{{ ki_frage_text|default('', true) }}</textarea>
+</div>
+<div class="form-row">
+<div class="form-group">
+<label>Bundesland-Bezug</label>
+<select name="ki_bundesland">
+<option value="allgemein">Allgemein (ganz Österreich)</option>
+{% for key, land in bundeslaender.items() %}
+<option value="{{ key }}" {{ 'selected' if key == gewaehltes_land else '' }}>{{ land['name'] }}</option>
+{% endfor %}
+</select>
+</div>
+</div>
+<button type="submit" class="btn">🤖 KI-Berater fragen</button>
+</form>
+{% if ki_antwort %}
+<div class="card" style="margin-top:16px;border-color:#00ff88">
+<h4>🤖 KI-Berater Antwort</h4>
+<div style="color:#e0e0e0;line-height:1.7;white-space:pre-wrap">{{ ki_antwort }}</div>
+<p style="color:#ff6666;font-size:0.75em;margin-top:12px">⚠ KI-generierte Antwort — Orientierungshilfe, keine Rechtsberatung. Bitte immer mit einem befugten Planer oder der zuständigen Baubehörde abklären.</p>
+</div>
+{% endif %}
+</div>
+</div>
+
+<!-- TAB 13: Taupunkt -->
+<div class="tab-panel p13">
+<div class="card">
+<h3>💧 Taupunktrechner — Kondensatprüfung nach ÖNORM</h3>
+<p style="color:#888;font-size:0.85em;margin-bottom:16px">Prüft ob im Wandaufbau Kondensat (Tauwasser) ausfallen kann. Wichtig für Schimmelprävention und Bauschäden.</p>
+<form method="post" action="/world/architekt-at">
+<input type="hidden" name="aktion" value="taupunkt">
+<input type="hidden" name="bundesland_auswahl" value="{{ gewaehltes_land }}">
+<div class="form-row">
+<div class="form-group">
+<label>Innentemperatur (°C)</label>
+<input type="number" name="temp_innen" step="0.5" value="20" min="-10" max="40">
+</div>
+<div class="form-group">
+<label>Außentemperatur (°C)</label>
+<input type="number" name="temp_aussen" step="0.5" value="-10" min="-30" max="20">
+</div>
+<div class="form-group">
+<label>Rel. Luftfeuchte innen (%)</label>
+<input type="number" name="feuchte_innen" step="1" value="50" min="20" max="90">
+</div>
+</div>
+<p style="color:#888;font-size:0.8em;margin:12px 0 8px">Wandaufbau (von innen nach außen):</p>
+{% for i in range(1, 6) %}
+<div class="form-row">
+<div class="form-group">
+<label>Schicht {{ i }} — Material</label>
+<select name="tp_material_{{ i }}">
+<option value="">— nicht belegt —</option>
+{% for key, mat in taupunkt_materialien.items() %}
+<option value="{{ key }}">{{ mat['name'] }} (λ={{ mat['lambda_w_mk'] }}, μ={{ mat['mu'] }})</option>
+{% endfor %}
+</select>
+</div>
+<div class="form-group">
+<label>Dicke (cm)</label>
+<input type="number" name="tp_dicke_{{ i }}" step="0.5" min="0.1" max="100" placeholder="cm">
+</div>
+</div>
+{% endfor %}
+<button type="submit" class="btn">💧 Taupunkt prüfen</button>
+</form>
+{% if taupunkt_ergebnis %}
+<div class="card" style="margin-top:16px;border-color:{{ '#00ff88' if taupunkt_ergebnis['status'] == 'OK' else '#ff4444' }}">
+<h4>Ergebnis Taupunktprüfung</h4>
+<div style="text-align:center;padding:16px;margin-bottom:16px;background:#0a0a0a;border-radius:8px">
+<div style="font-size:2em;font-weight:700;color:{{ '#00ff88' if taupunkt_ergebnis['status'] == 'OK' else '#ff4444' }}">
+{{ '✅ KEIN KONDENSAT' if taupunkt_ergebnis['status'] == 'OK' else '⚠ KONDENSATGEFAHR' }}
+</div>
+</div>
+<div class="info-grid">
+<div class="label">Taupunkttemperatur</div><div class="value" style="color:#ffc800;font-weight:700">{{ "%.1f"|format(taupunkt_ergebnis['taupunkt_c']) }} °C</div>
+<div class="label">Min. Temperatur im Bauteil</div><div class="value">{{ "%.1f"|format(taupunkt_ergebnis['min_temp_bauteil']) }} °C</div>
+<div class="label">Gesamt-R (m²K/W)</div><div class="value">{{ "%.3f"|format(taupunkt_ergebnis['r_gesamt']) }}</div>
+<div class="label">Gesamt-U-Wert</div><div class="value">{{ "%.3f"|format(taupunkt_ergebnis['u_wert']) }} W/(m²K)</div>
+</div>
+<h4 style="margin-top:16px">Temperaturverlauf im Bauteil</h4>
+<table>
+<tr><th>Schicht</th><th>d (cm)</th><th>R (m²K/W)</th><th>T_links (°C)</th><th>T_rechts (°C)</th></tr>
+{% for s in taupunkt_ergebnis['schichten'] %}
+<tr>
+<td>{{ s['name'] }}</td>
+<td>{{ s['dicke_cm'] }}</td>
+<td>{{ "%.3f"|format(s['r_wert']) }}</td>
+<td>{{ "%.1f"|format(s['temp_links']) }}</td>
+<td style="{{ 'color:#ff4444;font-weight:700' if s['temp_rechts'] < taupunkt_ergebnis['taupunkt_c'] else '' }}">{{ "%.1f"|format(s['temp_rechts']) }}</td>
+</tr>
+{% endfor %}
+</table>
+{% if taupunkt_ergebnis['status'] != 'OK' %}
+<p style="color:#ff6666;font-size:0.85em;margin-top:12px">💡 <strong>Empfehlung:</strong> Dampfbremse/-sperre auf der warmen Seite (innen) einbauen, oder Dämmstärke erhöhen, um die Temperatur im kritischen Bereich über den Taupunkt zu heben.</p>
+{% endif %}
+</div>
+{% endif %}
+</div>
+</div>
+
+<!-- TAB 14: Schallschutz -->
+<div class="tab-panel p14">
+<div class="card">
+<h3>🔇 Schallschutz-Rechner — OIB-RL 5</h3>
+<p style="color:#888;font-size:0.85em;margin-bottom:16px">Mindestanforderungen an den Schallschutz im Hochbau nach OIB-Richtlinie 5 und ÖNORM B 8115</p>
+
+<h4>Anforderungen nach Bauteiltyp</h4>
+<table>
+<tr><th>Bauteil</th><th>R'w min (dB)</th><th>L'n,w max (dB)</th><th>Beschreibung</th><th>Empfehlung</th></tr>
+{% for key, anf in schallschutz_anforderungen.items() %}
+<tr>
+<td style="color:#88ccff;font-weight:600">{{ anf['bauteil'] }}</td>
+<td style="color:#ffc800;font-weight:700">{{ anf['rw_min_db'] }}</td>
+<td>{{ anf.get('ln_max_db', '—') }}</td>
+<td style="color:#888;font-size:0.85em">{{ anf['beschreibung'] }}</td>
+<td style="color:#00cc6a;font-size:0.85em">{{ anf['empfehlung'] }}</td>
+</tr>
+{% endfor %}
+</table>
+
+<h4 style="margin-top:24px">Schallschutz-Check — Bauteilauswahl</h4>
+<form method="post" action="/world/architekt-at">
+<input type="hidden" name="aktion" value="schallschutz">
+<input type="hidden" name="bundesland_auswahl" value="{{ gewaehltes_land }}">
+<div class="form-row">
+<div class="form-group">
+<label>Anforderung (Einbausituation)</label>
+<select name="schall_anforderung">
+{% for key, anf in schallschutz_anforderungen.items() %}
+<option value="{{ key }}">{{ anf['bauteil'] }} (≥ {{ anf['rw_min_db'] }} dB)</option>
+{% endfor %}
+</select>
+</div>
+<div class="form-group">
+<label>Geplantes Bauteil</label>
+<select name="schall_bauteil">
+{% for bt in schallschutz_bauteile %}
+<option value="{{ loop.index0 }}">{{ bt['bauteil'] }} (R'w={{ bt['rw_db'] }} dB)</option>
+{% endfor %}
+</select>
+</div>
+</div>
+<button type="submit" class="btn">🔇 Schallschutz prüfen</button>
+</form>
+{% if schallschutz_ergebnis %}
+<div class="card" style="margin-top:16px;border-color:{{ '#00ff88' if schallschutz_ergebnis['erfuellt'] else '#ff4444' }}">
+<h4>Ergebnis Schallschutzprüfung</h4>
+<div style="text-align:center;padding:16px;margin-bottom:16px;background:#0a0a0a;border-radius:8px">
+<div style="font-size:2em;font-weight:700;color:{{ '#00ff88' if schallschutz_ergebnis['erfuellt'] else '#ff4444' }}">
+{{ '✅ ANFORDERUNG ERFÜLLT' if schallschutz_ergebnis['erfuellt'] else '❌ ANFORDERUNG NICHT ERFÜLLT' }}
+</div>
+</div>
+<div class="info-grid">
+<div class="label">Einbausituation</div><div class="value">{{ schallschutz_ergebnis['anforderung_name'] }}</div>
+<div class="label">Gewähltes Bauteil</div><div class="value">{{ schallschutz_ergebnis['bauteil_name'] }}</div>
+<div class="label">Erforderlich R'w</div><div class="value" style="color:#ffc800">≥ {{ schallschutz_ergebnis['rw_erf'] }} dB</div>
+<div class="label">Bauteil liefert R'w</div><div class="value" style="color:{{ '#00ff88' if schallschutz_ergebnis['erfuellt'] else '#ff4444' }};font-weight:700">{{ schallschutz_ergebnis['rw_ist'] }} dB</div>
+<div class="label">Differenz</div><div class="value">{{ "%+d"|format(schallschutz_ergebnis['differenz']) }} dB</div>
+</div>
+{% if schallschutz_ergebnis.get('tritt_check') %}
+<div class="info-grid" style="margin-top:12px">
+<div class="label">Trittschall erf. L'n,w</div><div class="value" style="color:#ffc800">≤ {{ schallschutz_ergebnis['ln_erf'] }} dB</div>
+<div class="label">Bauteil liefert L'n,w</div><div class="value" style="color:{{ '#00ff88' if schallschutz_ergebnis['tritt_ok'] else '#ff4444' }};font-weight:700">{{ schallschutz_ergebnis['ln_ist'] }} dB</div>
+</div>
+{% endif %}
+</div>
+{% endif %}
+
+<h4 style="margin-top:24px">Referenz: Schalldämmwerte gängiger Bauteile</h4>
+<div style="overflow-x:auto">
+<table>
+<tr><th>Bauteil</th><th>R'w (dB)</th><th>L'n,w (dB)</th><th>m' (kg/m²)</th><th>Typ</th></tr>
+{% for bt in schallschutz_bauteile %}
+<tr>
+<td>{{ bt['bauteil'] }}</td>
+<td style="color:#ffc800;font-weight:600">{{ bt['rw_db'] }}</td>
+<td>{{ bt.get('ln_db', '—') }}</td>
+<td>{{ bt['flaechen_masse_kg_m2'] }}</td>
+<td style="color:#888">{{ bt['typ'] }}</td>
+</tr>
+{% endfor %}
+</table>
+</div>
+</div>
+</div>
+
+<!-- TAB 15: Brandschutz -->
+<div class="tab-panel p15">
+<div class="card">
+<h3>🔥 Brandschutz-Checker — OIB-RL 2</h3>
+<p style="color:#888;font-size:0.85em;margin-bottom:16px">Brandschutzanforderungen nach OIB-Richtlinie 2 (2023) — Gebäudeklassen GK 1 bis GK 5</p>
+
+<h4>Gebäudeklassen-Finder</h4>
+<form method="post" action="/world/architekt-at">
+<input type="hidden" name="aktion" value="brandschutz">
+<input type="hidden" name="bundesland_auswahl" value="{{ gewaehltes_land }}">
+<div class="form-row">
+<div class="form-group">
+<label>Gebäudeklasse</label>
+<select name="gebaeuedeklasse">
+{% for key, gk in gebaeuedeklassen.items() %}
+<option value="{{ key }}">{{ gk['klasse'] }} — {{ gk['beschreibung'][:60] }}…</option>
+{% endfor %}
+</select>
+</div>
+</div>
+<button type="submit" class="btn">🔥 Brandschutz anzeigen</button>
+</form>
+{% if brandschutz_ergebnis %}
+<div class="card" style="margin-top:16px;border-color:#ff6600">
+<h4 style="color:#ff6600">{{ brandschutz_ergebnis['klasse'] }} — Brandschutzanforderungen</h4>
+<p style="color:#888;margin-bottom:8px">{{ brandschutz_ergebnis['beschreibung'] }}</p>
+<p style="color:#aaa;margin-bottom:16px">Beispiele: {{ brandschutz_ergebnis['beispiele'] }}</p>
+<div class="info-grid">
+{% for key, val in brandschutz_ergebnis['anforderungen'].items() %}
+<div class="label" style="text-transform:capitalize">{{ key|replace('_', ' ') }}</div>
+<div class="value" style="color:#ffc800">{{ val }}</div>
+{% endfor %}
+</div>
+</div>
+{% endif %}
+
+<h4 style="margin-top:24px">Feuerwiderstandsklassen (R, REI, EI)</h4>
+<table>
+<tr><th>Bezeichnung</th><th>Dauer</th><th>Bedeutung</th><th>Anwendung</th></tr>
+{% for fw in feuerwiderstand %}
+<tr>
+<td style="color:#ff6600;font-weight:700">{{ fw['bezeichnung'] }}</td>
+<td style="font-weight:600">{{ fw['dauer_min'] }} Min.</td>
+<td>{{ fw['beschreibung'] }}</td>
+<td style="color:#888;font-size:0.85em">{{ fw['anwendung'] }}</td>
+</tr>
+{% endfor %}
+</table>
+
+<h4 style="margin-top:24px">Brandklassen Baustoffe (Eurocode / ÖNORM)</h4>
+<table>
+<tr><th>Euroklasse</th><th>ÖNORM</th><th>Beispiele</th><th>Rauch</th></tr>
+{% for bk in brandklassen %}
+<tr>
+<td style="color:{{ '#00cc6a' if 'A' in bk['euroklasse'] else '#ffc800' if 'B' in bk['euroklasse'] or 'C' in bk['euroklasse'] else '#ff4444' }};font-weight:700">{{ bk['euroklasse'] }}</td>
+<td>{{ bk['oenorm'] }}</td>
+<td style="color:#888;font-size:0.85em">{{ bk['beispiele'] }}</td>
+<td>{{ bk['rauchentwicklung'] }}</td>
+</tr>
+{% endfor %}
+</table>
+</div>
+</div>
+
 </div>
 </div>
 
@@ -6144,7 +6538,7 @@ tr.highlight td{font-weight:600}
 <div class="footer">
 ⊘∞⧈∞⊘ ORION ARCHITEKT ÖSTERREICH — Erstellt von Elisabeth Steurer & Gerhard Hirschmann<br>
 Stand Februar 2026 — Orientierungshilfe, ersetzt KEINE Beratung durch befugte Planer/Statiker<br>
-Quellen: OIB-Richtlinien 2023 · Eurocode 1-5 · ÖNORM · 9 Landesbauordnungen · BKI/WKO 2025/2026
+Quellen: OIB-Richtlinien 2023 · Eurocode 1-5 · ÖNORM B 8115/8110 · 9 Landesbauordnungen · BKI/WKO 2025/2026
 </div>
 </div>
 </body>
@@ -6175,7 +6569,18 @@ Quellen: OIB-Richtlinien 2023 · Eurocode 1-5 · ÖNORM · 9 Landesbauordnungen 
         betonklassen=BETONKLASSEN,
         holzklassen=HOLZKLASSEN,
         bewehrungsstahl=BEWEHRUNGSSTAHL,
-        bewehrungsquerschnitte=BEWEHRUNGSQUERSCHNITTE)
+        bewehrungsquerschnitte=BEWEHRUNGSQUERSCHNITTE,
+        ki_antwort=ki_antwort,
+        ki_frage_text=ki_frage_text,
+        taupunkt_ergebnis=taupunkt_ergebnis,
+        taupunkt_materialien=TAUPUNKT_MATERIALIEN,
+        schallschutz_anforderungen=SCHALLSCHUTZ_ANFORDERUNGEN,
+        schallschutz_bauteile=SCHALLSCHUTZ_BAUTEILE,
+        schallschutz_ergebnis=schallschutz_ergebnis,
+        gebaeuedeklassen=GEBAEUEDEKLASSEN_OIB,
+        brandschutz_ergebnis=brandschutz_ergebnis,
+        feuerwiderstand=BRANDSCHUTZ_FEUERWIDERSTAND,
+        brandklassen=BRANDKLASSEN_BAUSTOFFE)
 
 
 if __name__ == "__main__":

@@ -730,6 +730,196 @@ BEWEHRUNGSQUERSCHNITTE = [
     {"durchmesser_mm": 32, "as_cm2": 8.042, "gewicht_kg_m": 6.313},
 ]
 
+TAUPUNKT_MATERIALIEN = {
+    "beton": {"name": "Stahlbeton", "lambda_w_mk": 2.3, "mu": 80, "rho_kg_m3": 2400},
+    "ziegel": {"name": "Hochlochziegel", "lambda_w_mk": 0.36, "mu": 10, "rho_kg_m3": 800},
+    "porenbeton": {"name": "Porenbeton", "lambda_w_mk": 0.16, "mu": 8, "rho_kg_m3": 500},
+    "vollholz": {"name": "Vollholz (Fichte)", "lambda_w_mk": 0.13, "mu": 40, "rho_kg_m3": 450},
+    "eps": {"name": "EPS Dämmung", "lambda_w_mk": 0.035, "mu": 30, "rho_kg_m3": 20},
+    "xps": {"name": "XPS Dämmung", "lambda_w_mk": 0.035, "mu": 100, "rho_kg_m3": 35},
+    "mineralwolle": {"name": "Mineralwolle", "lambda_w_mk": 0.035, "mu": 1, "rho_kg_m3": 30},
+    "steinwolle": {"name": "Steinwolle", "lambda_w_mk": 0.036, "mu": 1, "rho_kg_m3": 40},
+    "holzfaser": {"name": "Holzfaserdämmplatte", "lambda_w_mk": 0.042, "mu": 5, "rho_kg_m3": 160},
+    "gipskarton": {"name": "Gipskartonplatte", "lambda_w_mk": 0.25, "mu": 8, "rho_kg_m3": 900},
+    "gipsfaser": {"name": "Gipsfaserplatte", "lambda_w_mk": 0.32, "mu": 13, "rho_kg_m3": 1100},
+    "kalkzement_putz": {"name": "Kalk-Zement-Putz", "lambda_w_mk": 0.87, "mu": 20, "rho_kg_m3": 1800},
+    "kalkputz": {"name": "Kalkputz (innen)", "lambda_w_mk": 0.70, "mu": 7, "rho_kg_m3": 1600},
+    "dampfsperre": {"name": "Dampfsperre (PE-Folie)", "lambda_w_mk": 0.50, "mu": 100000, "rho_kg_m3": 950},
+    "dampfbremse": {"name": "Dampfbremse (variabel)", "lambda_w_mk": 0.50, "mu": 2000, "rho_kg_m3": 950},
+    "osb": {"name": "OSB-Platte", "lambda_w_mk": 0.13, "mu": 200, "rho_kg_m3": 600},
+    "zellulose": {"name": "Zellulosedämmung", "lambda_w_mk": 0.040, "mu": 2, "rho_kg_m3": 50},
+    "schaumglas": {"name": "Schaumglas", "lambda_w_mk": 0.040, "mu": 100000, "rho_kg_m3": 115},
+}
+
+SCHALLSCHUTZ_ANFORDERUNGEN = {
+    "wohnungstrennwand": {
+        "bauteil": "Wohnungstrennwand",
+        "rw_min_db": 55,
+        "beschreibung": "Wand zwischen zwei Wohneinheiten",
+        "empfehlung": "≥ 57 dB für erhöhten Komfort",
+    },
+    "wohnungstrenndecke": {
+        "bauteil": "Wohnungstrenndecke",
+        "rw_min_db": 55,
+        "ln_max_db": 48,
+        "beschreibung": "Decke zwischen Wohneinheiten (Luft + Trittschall)",
+        "empfehlung": "≥ 57 dB Luft, ≤ 46 dB Tritt für Komfort",
+    },
+    "treppenhaus_wand": {
+        "bauteil": "Treppenhauswand",
+        "rw_min_db": 55,
+        "beschreibung": "Wand zwischen Wohnung und Stiegenhaus",
+        "empfehlung": "≥ 57 dB empfohlen",
+    },
+    "treppenhaus_decke": {
+        "bauteil": "Treppenhausdecke/Podest",
+        "rw_min_db": 55,
+        "ln_max_db": 48,
+        "beschreibung": "Decke/Podest zu Wohnungen",
+        "empfehlung": "Schwimmender Estrich erforderlich",
+    },
+    "aussenwand": {
+        "bauteil": "Außenwand",
+        "rw_min_db": 43,
+        "beschreibung": "Je nach Lärmpegelbereich (I-VII)",
+        "empfehlung": "Höhere Werte bei Straßenlärm nötig",
+    },
+    "innenwand_gleiche_wohnung": {
+        "bauteil": "Innenwand (gleiche Wohnung)",
+        "rw_min_db": 40,
+        "beschreibung": "Zwischen Räumen derselben Wohnung",
+        "empfehlung": "Keine gesetzl. Anforderung, 40 dB empfohlen",
+    },
+    "keller_wohndecke": {
+        "bauteil": "Kellerdecke zu Wohnung",
+        "rw_min_db": 55,
+        "ln_max_db": 48,
+        "beschreibung": "Decke zwischen Keller/Tiefgarage und Wohnung",
+        "empfehlung": "Besondere Beachtung bei Tiefgaragen",
+    },
+    "dach": {
+        "bauteil": "Dach/oberste Decke",
+        "rw_min_db": 45,
+        "beschreibung": "Schutz gegen Außenlärm und Regen",
+        "empfehlung": "Abhängig von Fluglärmzone",
+    },
+}
+
+SCHALLSCHUTZ_BAUTEILE = [
+    {"bauteil": "11.5 cm Gipskartonwand (Metallständer, 1-fach beplankt)", "rw_db": 37, "flaechen_masse_kg_m2": 25, "typ": "leicht"},
+    {"bauteil": "12.5 cm Gipskartonwand (Metallständer, 2-fach beplankt)", "rw_db": 45, "flaechen_masse_kg_m2": 42, "typ": "leicht"},
+    {"bauteil": "15 cm Gipskartonwand (Metallständer, 2-fach beplankt, Mineralwolle)", "rw_db": 52, "flaechen_masse_kg_m2": 48, "typ": "leicht"},
+    {"bauteil": "17.5 cm Doppelständer-Wand (2x2-fach beplankt, Mineralwolle)", "rw_db": 62, "flaechen_masse_kg_m2": 72, "typ": "leicht"},
+    {"bauteil": "11.5 cm Hochlochziegel (verputzt)", "rw_db": 42, "flaechen_masse_kg_m2": 130, "typ": "massiv"},
+    {"bauteil": "17.5 cm Hochlochziegel (verputzt)", "rw_db": 47, "flaechen_masse_kg_m2": 200, "typ": "massiv"},
+    {"bauteil": "25 cm Hochlochziegel (verputzt)", "rw_db": 52, "flaechen_masse_kg_m2": 300, "typ": "massiv"},
+    {"bauteil": "30 cm Hochlochziegel (verputzt)", "rw_db": 55, "flaechen_masse_kg_m2": 370, "typ": "massiv"},
+    {"bauteil": "38 cm Hochlochziegel (verputzt)", "rw_db": 58, "flaechen_masse_kg_m2": 475, "typ": "massiv"},
+    {"bauteil": "20 cm Stahlbeton", "rw_db": 57, "flaechen_masse_kg_m2": 480, "typ": "massiv"},
+    {"bauteil": "25 cm Stahlbeton", "rw_db": 60, "flaechen_masse_kg_m2": 600, "typ": "massiv"},
+    {"bauteil": "18 cm Stahlbetondecke + schw. Estrich", "rw_db": 56, "flaechen_masse_kg_m2": 520, "typ": "decke", "ln_db": 46},
+    {"bauteil": "20 cm Stahlbetondecke + schw. Estrich", "rw_db": 58, "flaechen_masse_kg_m2": 570, "typ": "decke", "ln_db": 44},
+    {"bauteil": "22 cm Stahlbetondecke + schw. Estrich", "rw_db": 60, "flaechen_masse_kg_m2": 620, "typ": "decke", "ln_db": 42},
+    {"bauteil": "25 cm Stahlbetondecke + schw. Estrich", "rw_db": 62, "flaechen_masse_kg_m2": 700, "typ": "decke", "ln_db": 40},
+    {"bauteil": "Holzbalkendecke (Schüttung + Estrich)", "rw_db": 52, "flaechen_masse_kg_m2": 120, "typ": "decke", "ln_db": 54},
+    {"bauteil": "Holzbalkendecke (BSP + schw. Estrich)", "rw_db": 56, "flaechen_masse_kg_m2": 200, "typ": "decke", "ln_db": 48},
+]
+
+GEBAEUEDEKLASSEN_OIB = {
+    "gk1": {
+        "klasse": "GK 1",
+        "beschreibung": "Freistehende Gebäude mit max. 2 Wohnungen, max. 400 m² je Geschoß, Fluchtniveau ≤ 7 m",
+        "beispiele": "Einfamilienhaus, Doppelhaushälfte",
+        "anforderungen": {
+            "tragende_waende": "R 30 (brennbar zulässig)",
+            "tragende_decken": "REI 30 (brennbar zulässig)",
+            "trennwaende": "Keine Anforderung",
+            "aussenwand_bekleidung": "Keine Anforderung",
+            "dach": "Harte Bedachung empfohlen",
+            "fluchtweg_laenge": "40 m",
+            "rauchmelder": "Ja, in allen Aufenthaltsräumen + Fluren",
+        },
+    },
+    "gk2": {
+        "klasse": "GK 2",
+        "beschreibung": "Gebäude mit max. 3 oberirdischen Geschoßen, Fluchtniveau ≤ 7 m",
+        "beispiele": "Kleines Mehrfamilienhaus (3 Geschoße), Reihenhaus",
+        "anforderungen": {
+            "tragende_waende": "R 60 / REI 60 (brennbar mit Einschränkungen)",
+            "tragende_decken": "REI 60",
+            "trennwaende": "EI 30 (nicht brennbar empfohlen)",
+            "aussenwand_bekleidung": "Schwer brennbar (B1/C-s2,d0)",
+            "dach": "Harte Bedachung",
+            "fluchtweg_laenge": "40 m",
+            "rauchmelder": "Ja, in allen Aufenthaltsräumen + Fluren",
+        },
+    },
+    "gk3": {
+        "klasse": "GK 3",
+        "beschreibung": "Gebäude mit Fluchtniveau ≤ 11 m, nicht GK1/GK2",
+        "beispiele": "Mehrfamilienhaus bis 4 Geschoße, Bürogebäude",
+        "anforderungen": {
+            "tragende_waende": "R 90 / REI 90 (nicht brennbar — A2)",
+            "tragende_decken": "REI 90 (nicht brennbar — A2)",
+            "trennwaende": "EI 60 (nicht brennbar)",
+            "aussenwand_bekleidung": "Nicht brennbar (A2-s1,d0)",
+            "dach": "Nicht brennbar oder mit Brandabschnitten",
+            "fluchtweg_laenge": "35 m",
+            "rauchmelder": "Ja + Brandmeldeanlage bei > 800 m²",
+        },
+    },
+    "gk4": {
+        "klasse": "GK 4",
+        "beschreibung": "Gebäude mit Fluchtniveau ≤ 22 m",
+        "beispiele": "Wohnhochhaus bis ca. 7 Geschoße, größere Bürogebäude",
+        "anforderungen": {
+            "tragende_waende": "R 90 / REI 90 (nicht brennbar — A2)",
+            "tragende_decken": "REI 90 (nicht brennbar — A2)",
+            "trennwaende": "EI 90 (nicht brennbar)",
+            "aussenwand_bekleidung": "Nicht brennbar (A2-s1,d0)",
+            "dach": "Nicht brennbar (A2)",
+            "fluchtweg_laenge": "35 m",
+            "rauchmelder": "Brandmeldeanlage (BMA) + Rauchabzug in Stiegenhäusern",
+        },
+    },
+    "gk5": {
+        "klasse": "GK 5",
+        "beschreibung": "Gebäude mit Fluchtniveau > 22 m (Hochhaus)",
+        "beispiele": "Hochhäuser, Bürotürme",
+        "anforderungen": {
+            "tragende_waende": "R 90 / REI 90 (nicht brennbar — A1/A2)",
+            "tragende_decken": "REI 90 (nicht brennbar — A1/A2)",
+            "trennwaende": "EI 90 (nicht brennbar)",
+            "aussenwand_bekleidung": "Nicht brennbar (A1/A2-s1,d0)",
+            "dach": "Nicht brennbar (A1)",
+            "fluchtweg_laenge": "35 m + 2 Fluchttreppenhäuser",
+            "rauchmelder": "BMA + Sprinkleranlage + Druckbelüftung Stiegenhäuser",
+        },
+    },
+}
+
+BRANDSCHUTZ_FEUERWIDERSTAND = [
+    {"bezeichnung": "R 30", "dauer_min": 30, "beschreibung": "Tragfähigkeit 30 Min.", "anwendung": "GK 1, untergeordnete Bauteile"},
+    {"bezeichnung": "R 60", "dauer_min": 60, "beschreibung": "Tragfähigkeit 60 Min.", "anwendung": "GK 2, Wohnbau"},
+    {"bezeichnung": "R 90", "dauer_min": 90, "beschreibung": "Tragfähigkeit 90 Min.", "anwendung": "GK 3-5, Hochhäuser"},
+    {"bezeichnung": "REI 30", "dauer_min": 30, "beschreibung": "Tragfähigkeit + Raumabschluss + Wärmedämmung 30 Min.", "anwendung": "Decken GK 1"},
+    {"bezeichnung": "REI 60", "dauer_min": 60, "beschreibung": "Tragfähigkeit + Raumabschluss + Wärmedämmung 60 Min.", "anwendung": "Decken GK 2"},
+    {"bezeichnung": "REI 90", "dauer_min": 90, "beschreibung": "Tragfähigkeit + Raumabschluss + Wärmedämmung 90 Min.", "anwendung": "Decken GK 3-5"},
+    {"bezeichnung": "EI 30", "dauer_min": 30, "beschreibung": "Raumabschluss + Wärmedämmung 30 Min.", "anwendung": "Trennwände GK 2"},
+    {"bezeichnung": "EI 60", "dauer_min": 60, "beschreibung": "Raumabschluss + Wärmedämmung 60 Min.", "anwendung": "Trennwände GK 3"},
+    {"bezeichnung": "EI 90", "dauer_min": 90, "beschreibung": "Raumabschluss + Wärmedämmung 90 Min.", "anwendung": "Trennwände GK 4-5, Brandwände"},
+]
+
+BRANDKLASSEN_BAUSTOFFE = [
+    {"euroklasse": "A1", "oenorm": "nicht brennbar", "beispiele": "Stahl, Beton, Ziegel, Stein, Glas, Mineralwolle", "rauchentwicklung": "keine"},
+    {"euroklasse": "A2-s1,d0", "oenorm": "nicht brennbar", "beispiele": "Gipskarton, Gipsfaser, Steinwolle mit Bindemittel", "rauchentwicklung": "gering"},
+    {"euroklasse": "B-s1,d0", "oenorm": "schwer brennbar", "beispiele": "Bestimmte Holzwerkstoffe mit Brandschutz, PVC-Böden", "rauchentwicklung": "gering"},
+    {"euroklasse": "C-s2,d0", "oenorm": "schwer brennbar", "beispiele": "Hartholz ≥18mm, manche Dämmstoffe", "rauchentwicklung": "mittel"},
+    {"euroklasse": "D-s2,d0", "oenorm": "normal brennbar", "beispiele": "Nadelholz, Holzwerkstoffe, OSB", "rauchentwicklung": "mittel"},
+    {"euroklasse": "E", "oenorm": "normal brennbar", "beispiele": "EPS-Dämmung (mit Flammschutzmittel)", "rauchentwicklung": "hoch"},
+    {"euroklasse": "F", "oenorm": "leicht brennbar", "beispiele": "Ungeschütztes EPS, PU-Schaum", "rauchentwicklung": "sehr hoch"},
+]
+
 
 def berechne_uwert(schichten):
     """

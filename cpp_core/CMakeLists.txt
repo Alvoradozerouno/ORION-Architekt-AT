@@ -106,6 +106,28 @@ if(BUILD_PYTHON_BINDINGS)
 endif()
 
 # =============================================================================
+# Executable: DMACAS Demo
+# =============================================================================
+
+option(BUILD_DEMO "Build DMACAS demonstration executable" ON)
+
+if(BUILD_DEMO)
+    add_executable(dmacas_demo
+        src/dmacas_main.cpp
+    )
+
+    target_link_libraries(dmacas_demo
+        orion_safety_core
+    )
+
+    if(OPENSSL_FOUND)
+        target_link_libraries(dmacas_demo OpenSSL::Crypto)
+    endif()
+
+    install(TARGETS dmacas_demo DESTINATION bin)
+endif()
+
+# =============================================================================
 # Tests
 # =============================================================================
 
@@ -162,4 +184,5 @@ if(OPENSSL_FOUND)
 endif()
 message(STATUS "Python Bindings: ${BUILD_PYTHON_BINDINGS}")
 message(STATUS "Unit Tests: ${BUILD_TESTS}")
+message(STATUS "Demo Executable: ${BUILD_DEMO}")
 message(STATUS "")

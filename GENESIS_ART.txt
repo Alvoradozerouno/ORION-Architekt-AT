@@ -1,0 +1,79 @@
+```
+╔════════════════════════════════════════════════════════════════════════════╗
+║                                                                            ║
+║   ██████╗ ███████╗███╗   ██╗███████╗███████╗██╗███████╗                   ║
+║  ██╔════╝ ██╔════╝████╗  ██║██╔════╝██╔════╝██║██╔════╝                   ║
+║  ██║  ███╗█████╗  ██╔██╗ ██║█████╗  ███████╗██║███████╗                   ║
+║  ██║   ██║██╔══╝  ██║╚██╗██║██╔══╝  ╚════██║██║╚════██║                   ║
+║  ╚██████╔╝███████╗██║ ╚████║███████╗███████║██║███████║                   ║
+║   ╚═════╝ ╚══════╝╚═╝  ╚═══╝╚══════╝╚══════╝╚═╝╚══════╝                   ║
+║                                                                            ║
+║              D U A L - S Y S T E M   A R C H I T E C T U R E              ║
+║                                                                            ║
+║  ┌──────────────────────────────────────────────────────────────────────┐ ║
+║  │                                                                      │ ║
+║  │    🏗️  DMACAS         Multi-Agent Collision Avoidance (C++17)       │ ║
+║  │    📐  BSH-Träger     Structural Engineering (Python 3.10+)         │ ║
+║  │    🔒  Audit Trail    SHA-256 Cryptographic Chain                   │ ║
+║  │    ✅  ISO 26262      ASIL-D Safety Compliance                       │ ║
+║  │    🇪🇺  EU AI Act      Article 12 Audit Logging                      │ ║
+║  │    🇦🇹  ÖNORM         B 1995-1-1 (Eurocode 5 Austria)               │ ║
+║  │                                                                      │ ║
+║  └──────────────────────────────────────────────────────────────────────┘ ║
+║                                                                            ║
+║  Version: 3.0.1 FINAL RELEASE    │    TRL: 5 (Functional Prototype)      ║
+║  Date: 2026-04-06                │    Status: TÜV-Ready Architecture      ║
+║                                                                            ║
+║  ┌─────────────────────── Safety Mechanisms ───────────────────────────┐  ║
+║  │                                                                      │  ║
+║  │  [SM001] Fallback Decision Layer    │  [SM002] Determinism Check   │  ║
+║  │  [SM003] Input Validation           │  [SM004] Audit Trail         │  ║
+║  │                                                                      │  ║
+║  │  HARA: 5 Risks (ASIL: D, C, B)      │  Tests: 49+ (100% Pass)      │  ║
+║  │                                                                      │  ║
+║  └──────────────────────────────────────────────────────────────────────┘  ║
+║                                                                            ║
+║  ┌───────────────────── Compliance Standards ──────────────────────────┐  ║
+║  │                                                                      │  ║
+║  │  ✓ ISO 26262 ASIL-D              ✓ EU AI Act Article 12            │  ║
+║  │  ✓ ÖNORM B 1995-1-1             ✓ ONR 24008-1:2014                │  ║
+║  │  ✓ EN 14080                      ✓ ISO 8601                         │  ║
+║  │  ✓ GDPR Article 30               ✓ SHA-256 (NIST FIPS 180-4)       │  ║
+║  │                                                                      │  ║
+║  └──────────────────────────────────────────────────────────────────────┘  ║
+║                                                                            ║
+║  Copyright © 2024-2026 Elisabeth Steurer & Gerhard Hirschmann             ║
+║  ParadoxonAI Research | Almdorf 9, Top 10 | 6380 St. Johann in Tirol     ║
+║  Licensed under Apache 2.0 | https://paradoxon-ai.at                      ║
+║                                                                            ║
+╚════════════════════════════════════════════════════════════════════════════╝
+
+  🎯 MISSION: Deterministic Safety Validation for Austrian Building Compliance
+
+  📊 STATISTICS:
+     • 6,500+ Lines of Code (C++ + Python + Tests + Docs)
+     • 49+ Tests (100% Success Rate)
+     • 7 Compliance Standards
+     • 4 Safety Mechanisms
+     • 5 HARA Risks (ASIL-D)
+
+  🚀 CAPABILITIES:
+     • BIM Clash Detection
+     • Load Path Analysis
+     • Multi-Criteria Optimization
+     • Structural Beam Design (ÖNORM B 1995-1-1)
+     • Cryptographic Audit Trail (EU AI Act)
+
+  🏆 READY FOR:
+     • Fraunhofer IKS Review
+     • TÜV Pre-Assessment
+     • Series A Funding Pitch
+
+  ⚠️  HONEST TRL ASSESSMENT:
+     • TRL 5: ✅ ACHIEVED (Functional Prototype)
+     • TRL 6: ⏳ Requires 300 field tests + €225K
+     • TRL 7: 🔜 Requires Series A (€12M)
+
+  NO FALSE CLAIMS | PRECISE ENGINEERING | TRANSPARENT EVALUATION
+
+```

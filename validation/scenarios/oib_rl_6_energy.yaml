@@ -1,0 +1,157 @@
+# Example Validation Scenario - OIB-RL 6 Energy Efficiency
+# GENESIS V3.0.1 - BSH-Träger EC5-AT
+#
+# This is a template for future validation scenarios.
+# Actual implementation: Q2 2026
+
+name: "OIB-RL 6 Energieausweis Compliance"
+version: "3.0.1"
+standard: "ÖNORM B 1995-1-1 (Eurocode 5 Austria)"
+trl: 6
+description: "Validation scenarios for typical residential building floor spans"
+
+scenarios:
+  # Scenario 1: Standard 6m span
+  - id: "OIB-RL-6-001"
+    description: "6m Spannweite, GL24h, Wohnnutzung (Standard)"
+    category: "residential"
+    input:
+      span_m: 6.0
+      width_mm: 140
+      material: "GL24h"
+      dead_load_kn_per_m2: 2.5
+      live_load_kn_per_m: 13.5
+      influence_width_m: 4.5
+    expected:
+      height_mm: 540
+      tolerance_mm: 20
+      eta_bending_max: 1.0
+      eta_shear_max: 1.0
+      w_fin_limit_factor: 200.0
+    validation:
+      - type: "range_check"
+        parameter: "height_mm"
+        min: 520
+        max: 560
+      - type: "compliance"
+        parameter: "eta_bending"
+        condition: "<=1.0"
+        critical: true
+      - type: "compliance"
+        parameter: "eta_shear"
+        condition: "<=1.0"
+        critical: true
+      - type: "audit_trail"
+        required: true
+        sha256_chain: true
+
+  # Scenario 2: Longer span (8m)
+  - id: "OIB-RL-6-002"
+    description: "8m Spannweite, GL24h, Wohnnutzung (Größere Spanne)"
+    category: "residential"
+    input:
+      span_m: 8.0
+      width_mm: 140
+      material: "GL24h"
+      dead_load_kn_per_m2: 2.5
+      live_load_kn_per_m: 13.5
+      influence_width_m: 4.5
+    expected:
+      height_mm: 720
+      tolerance_mm: 40
+      eta_bending_max: 1.0
+      eta_shear_max: 1.0
+    validation:
+      - type: "range_check"
+        parameter: "height_mm"
+        min: 680
+        max: 760
+
+  # Scenario 3: Higher loads (office)
+  - id: "OIB-RL-6-003"
+    description: "6m Spannweite, GL24h, Büronutzung (Höhere Lasten)"
+    category: "office"
+    input:
+      span_m: 6.0
+      width_mm: 140
+      material: "GL24h"
+      dead_load_kn_per_m2: 3.0
+      live_load_kn_per_m: 18.0  # Office loads higher
+      influence_width_m: 4.5
+    expected:
+      height_mm: 600
+      tolerance_mm: 40
+      eta_bending_max: 1.0
+
+  # Scenario 4: Sensitivity check (load +10%)
+  - id: "OIB-RL-6-004"
+    description: "6m Spannweite mit +10% Last (Sensitivität)"
+    category: "sensitivity"
+    input:
+      span_m: 6.0
+      width_mm: 140
+      material: "GL24h"
+      dead_load_kn_per_m2: 2.75  # +10%
+      live_load_kn_per_m: 14.85  # +10%
+      influence_width_m: 4.5
+    expected:
+      eta_bending_increase_max: 0.15  # Should not increase by more than 15%
+    validation:
+      - type: "sensitivity"
+        parameter: "eta_bending"
+        baseline_scenario: "OIB-RL-6-001"
+        max_increase_percent: 15.0
+
+  # Scenario 5: Material variation (GL24c instead of GL24h)
+  - id: "OIB-RL-6-005"
+    description: "6m Spannweite, GL24c (Niedrigere Festigkeit)"
+    category: "material_variation"
+    input:
+      span_m: 6.0
+      width_mm: 140
+      material: "GL24c"
+      f_m_k: 24.0  # Same as GL24h
+      dead_load_kn_per_m2: 2.5
+      live_load_kn_per_m: 13.5
+      influence_width_m: 4.5
+    expected:
+      height_mm: 540
+      tolerance_mm: 20
+    validation:
+      - type: "determinism"
+        runs: 20
+        identical_results_required: true
+
+# TRL Assessment Criteria
+trl_assessment:
+  criteria:
+    - id: "TA-001"
+      description: "All scenarios pass validation"
+      weight: 0.4
+      required_for_trl: 7
+    - id: "TA-002"
+      description: "Determinism verified (20 runs)"
+      weight: 0.3
+      required_for_trl: 7
+    - id: "TA-003"
+      description: "Audit trail complete for all scenarios"
+      weight: 0.2
+      required_for_trl: 7
+    - id: "TA-004"
+      description: "Sensitivity within expected ranges"
+      weight: 0.1
+      required_for_trl: 7
+
+# Notes for implementation
+notes: |
+  This is a template scenario file demonstrating the structure.
+  Actual implementation of the validation runner is planned for Q2 2026.
+
+  To implement:
+  1. Create Python validation runner (validation/run_scenario.py)
+  2. Parse YAML files
+  3. Execute BSH-Träger calculations
+  4. Compare results with expected values
+  5. Generate validation report
+
+  See: docs/genesis/BSH_TRAEGER_INTEGRATION.md for details

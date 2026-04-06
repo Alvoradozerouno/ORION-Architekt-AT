@@ -1,0 +1,86 @@
+{
+  "hara_risks": [
+    {
+      "id": "R001",
+      "description": "Unterdimensionierung → Strukturversagen",
+      "asil": "D",
+      "mitigation": "Iteration bis η≤1.0 + Safety Margins"
+    },
+    {
+      "id": "R002",
+      "description": "Materialkennwerte ungenau → Überlastung",
+      "asil": "C",
+      "mitigation": "EN 14080 zertifizierte Werte + k_mod"
+    },
+    {
+      "id": "R003",
+      "description": "Durchbiegung > L/200 → Gebrauchstauglichkeit",
+      "asil": "B",
+      "mitigation": "SLS Checks (w_fin ≤ L/200)"
+    },
+    {
+      "id": "R004",
+      "description": "Softwarefehler → Falsche Dimensionierung",
+      "asil": "D",
+      "mitigation": "Determinismus-Check + Unit Tests"
+    },
+    {
+      "id": "R005",
+      "description": "Lastannahmen nicht konservativ",
+      "asil": "C",
+      "mitigation": "EC5 Lastkombinationen + γ-Faktoren"
+    }
+  ],
+  "safety_mechanisms": [
+    {
+      "id": "SM001",
+      "name": "Fallback Decision Layer",
+      "status": "tested"
+    },
+    {
+      "id": "SM002",
+      "name": "Determinismus Check",
+      "status": "validated"
+    },
+    {
+      "id": "SM003",
+      "name": "Input Validation",
+      "status": "tested"
+    },
+    {
+      "id": "SM004",
+      "name": "Audit Trail (SHA-256)",
+      "status": "implemented"
+    }
+  ],
+  "validation_status": {
+    "GZT_Bending": "validated",
+    "GZT_Shear": "validated",
+    "GZG_Deflection": "validated",
+    "Iteration_Logic": "tested",
+    "Diagram_Discretization": "tested",
+    "Audit_Trail": "implemented",
+    "Sensitivity_Analysis": "tested",
+    "TÜV_Certification": "not_started"
+  },
+  "tuv_assessment": {
+    "ready": [
+      "Biegenachweis (EC5-AT)",
+      "Schubnachweis (EC5-AT)",
+      "Durchbiegungsnachweis (EC5-AT)",
+      "Materialkennwerte (EN 14080)",
+      "Lastkombinationen (EC5)"
+    ],
+    "prototype": [
+      "Sensitivitätsanalyse",
+      "Automatisierte Berichtsgenerierung",
+      "Diagramm-Export"
+    ],
+    "missing": [
+      "Externe TÜV-Zertifizierung",
+      "Vollständige FMEA/FTA",
+      "Unabhängige Validierung (Third Party)",
+      "Langzeit-Stabilitätstests"
+    ]
+  }
+}

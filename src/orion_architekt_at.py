@@ -3726,3 +3726,206 @@ def generiere_raumprogramm(haushaltsgroesse, wohnwunsch_typ, budget_euro, besond
         "hinweis": "Raumprogramm ist Orientierung - finale Planung mit Architekt erforderlich"
     }
 
+
+# ============================================================================
+# KNOWLEDGE BASE VALIDATION & WEB INTEGRATION
+# ============================================================================
+
+def pruefe_wissensdatenbank(bundesland=None, vollstaendig=True):
+    """
+    Prüft die Aktualität der Wissensdatenbank und externe Quellen.
+
+    Integriert mit orion_kb_validation.py für:
+    - RIS Austria (Rechtsinformationssystem)
+    - OIB-Richtlinien Updates
+    - ÖNORM Standards Aktualität
+    - hora.gv.at Naturgefahren
+
+    Args:
+        bundesland: Spezifisches Bundesland (optional)
+        vollstaendig: Vollständige Prüfung (default: True)
+
+    Returns:
+        Dict mit Validierungsbericht
+    """
+    try:
+        # Versuche orion_kb_validation zu importieren
+        import sys
+        import os
+
+        # Füge parent directory zum path hinzu falls nötig
+        parent_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+        if parent_dir not in sys.path:
+            sys.path.insert(0, parent_dir)
+
+        from orion_kb_validation import validate_knowledge_base, check_all_standards
+
+        if vollstaendig:
+            return validate_knowledge_base(
+                bundesland=bundesland,
+                include_ris=True,
+                include_oib=True,
+                include_oenorm=True,
+                include_hora=False  # Optional, da oft nicht benötigt
+            )
+        else:
+            # Schnelle Prüfung nur der Standards
+            return {
+                "status": "schnell",
+                "standards": check_all_standards(),
+                "hinweis": "Für vollständige Prüfung: vollstaendig=True"
+            }
+
+    except ImportError as e:
+        # Fallback wenn orion_kb_validation nicht verfügbar
+        return {
+            "status": "warnung",
+            "nachricht": "Knowledge Base Validation Modul nicht verfügbar",
+            "fehler": str(e),
+            "hinweis": "Installieren Sie orion_kb_validation.py für volle Funktionalität",
+            "manuelle_pruefung": {
+                "ris": "https://www.ris.bka.gv.at",
+                "oib": "https://www.oib.or.at",
+                "oenorm": "https://www.austrian-standards.at",
+                "hora": "https://www.hora.gv.at"
+            }
+        }
+
+
+def pruefe_ris_updates(bundesland):
+    """
+    Prüft Rechtsinformationssystem Österreich auf Updates.
+
+    Args:
+        bundesland: Bundesland (z.B. "tirol", "wien")
+
+    Returns:
+        Dict mit RIS-Status
+    """
+    try:
+        from orion_kb_validation import check_ris_updates
+        return check_ris_updates(bundesland)
+    except ImportError:
+        return {
+            "status": "warnung",
+            "nachricht": "Bitte manuell auf ris.bka.gv.at prüfen",
+            "link": f"https://www.ris.bka.gv.at/Bundesrecht/"
+        }
+
+
+def pruefe_oib_richtlinien():
+    """
+    Prüft OIB-Richtlinien auf Updates.
+
+    Returns:
+        Dict mit OIB-Status für alle Richtlinien 1-6
+    """
+    try:
+        from orion_kb_validation import check_oib_updates
+        return check_oib_updates()
+    except ImportError:
+        return {
+            "status": "warnung",
+            "nachricht": "Bitte manuell auf oib.or.at prüfen",
+            "link": "https://www.oib.or.at",
+            "aktuelle_version": "2023",
+            "hinweis": "OIB-Richtlinien werden ca. alle 3 Jahre aktualisiert"
+        }
+
+
+def pruefe_oenorm(norm_nummer):
+    """
+    Prüft ÖNORM-Standard auf Aktualität.
+
+    Args:
+        norm_nummer: ÖNORM-Nummer (z.B. "B 1800", "A 6240")
+
+    Returns:
+        Dict mit ÖNORM-Status
+    """
+    try:
+        from orion_kb_validation import check_oenorm_updates
+        return check_oenorm_updates(norm_nummer)
+    except ImportError:
+        return {
+            "status": "warnung",
+            "nachricht": f"Bitte ÖNORM {norm_nummer} manuell prüfen",
+            "link": "https://www.austrian-standards.at",
+            "hinweis": "ÖNORM-Standards sind kostenpflichtig"
+        }
+
+
+def pruefe_naturgefahren(plz=None, gemeinde=None):
+    """
+    Prüft Naturgefahren über hora.gv.at.
+
+    Args:
+        plz: Postleitzahl (optional)
+        gemeinde: Gemeindename (optional)
+
+    Returns:
+        Dict mit Naturgefahren-Informationen
+    """
+    try:
+        from orion_kb_validation import check_naturgefahren
+        return check_naturgefahren(plz=plz, gemeinde=gemeinde)
+    except ImportError:
+        result = {
+            "status": "info",
+            "nachricht": "Bitte manuell auf hora.gv.at prüfen",
+            "link": "https://www.hora.gv.at",
+            "gefahren": [
+                "Hochwasser (HQ30, HQ100, HQ300)",
+                "Lawinen (ab ca. 1200m Seehöhe)",
+                "Hangwasser und Rutschungen"
+            ]
+        }
+        if plz:
+            result["plz"] = plz
+        if gemeinde:
+            result["gemeinde"] = gemeinde
+        return result
+
+
+def generiere_validierungsbericht(bundesland=None, format="text"):
+    """
+    Generiert vollständigen Validierungsbericht der Wissensdatenbank.
+
+    Args:
+        bundesland: Bundesland für spezifische Prüfungen (optional)
+        format: Ausgabeformat ("text" oder "json")
+
+    Returns:
+        Formatierter Bericht als String
+    """
+    try:
+        from orion_kb_validation import validate_knowledge_base, export_validation_report
+
+        report = validate_knowledge_base(
+            bundesland=bundesland,
+            include_ris=True,
+            include_oib=True,
+            include_oenorm=True,
+            include_hora=True
+        )
+
+        return export_validation_report(report, format=format)
+
+    except ImportError:
+        if format == "json":
+            return json.dumps({
+                "status": "warnung",
+                "nachricht": "Validation Modul nicht verfügbar",
+                "manuelle_pruefung_erforderlich": True
+            }, indent=2)
+        else:
+            return """
+⚠️ Knowledge Base Validation Modul nicht verfügbar
+
+Bitte manuell prüfen:
+- RIS Austria: https://www.ris.bka.gv.at
+- OIB-Richtlinien: https://www.oib.or.at
+- ÖNORM Standards: https://www.austrian-standards.at
+- Naturgefahren: https://www.hora.gv.at
+"""
+

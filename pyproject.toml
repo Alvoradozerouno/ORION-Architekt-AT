@@ -1,32 +1,162 @@
 [project]
-name = "repl-nix-workspace"
-version = "0.1.0"
-description = "Add your description here"
+name = "orion-architekt-at"
+version = "2.1.0"
+description = "Comprehensive Austrian building regulations tool with OIB-RL compliance, ÖNORM standards, and knowledge base validation for all 9 Bundesländer"
+authors = [
+    {name = "Elisabeth Steurer", email = ""},
+    {name = "Gerhard Hirschmann", email = ""}
+]
+readme = "README.md"
 requires-python = ">=3.11"
+license = {text = "MIT"}
+keywords = [
+    "austrian-building-regulations",
+    "oib-richtlinien",
+    "oenorm",
+    "building-compliance",
+    "architecture",
+    "construction",
+    "structural-analysis",
+    "energy-efficiency"
+]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: Developers",
+    "Intended Audience :: Science/Research",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: OS Independent",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Topic :: Scientific/Engineering",
+    "Topic :: Scientific/Engineering :: Architecture",
+]
+
 dependencies = [
-    "arxiv>=2.3.1",
-    "atproto>=0.0.64",
-    "base58>=2.1.1",
-    "beautifulsoup4>=4.14.2",
-    "email-validator>=2.2.0",
+    "requests>=2.32.0",
+    "beautifulsoup4>=4.14.0",
+    "lxml>=6.0.0",
+    "numpy>=2.3.0",
     "fastapi>=0.123.0",
-    "flask>=3.1.2",
-    "flask-sqlalchemy>=3.1.1",
+    "flask>=3.1.0",
+    "flask-sqlalchemy>=3.1.0",
+    "sqlalchemy>=2.0.0",
+    "uvicorn>=0.38.0",
+    "gunicorn>=23.0.0",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=8.0.0",
+    "pytest-cov>=4.1.0",
+    "pytest-xdist>=3.5.0",
+    "black>=24.0.0",
+    "flake8>=7.0.0",
+    "isort>=5.13.0",
+    "mypy>=1.8.0",
+    "pylint>=3.0.0",
+]
+security = [
+    "bandit>=1.7.0",
+    "safety>=3.0.0",
+]
+docs = [
+    "sphinx>=7.0.0",
+    "sphinx-rtd-theme>=2.0.0",
+]
+ai = [
+    "openai>=2.8.0",
+]
+quantum = [
+    "qiskit>=2.2.0",
+    "qiskit-ibm-runtime>=0.44.0",
+]
+google = [
     "google-api-python-client>=2.187.0",
     "google-auth>=2.43.0",
     "google-auth-httplib2>=0.2.1",
     "google-auth-oauthlib>=1.2.2",
-    "gunicorn>=23.0.0",
-    "lxml>=6.0.2",
-    "numpy>=2.3.5",
-    "openai>=2.8.1",
-    "psycopg2-binary>=2.9.10",
-    "qiskit>=2.2.3",
-    "qiskit-ibm-runtime>=0.44.0",
-    "requests>=2.32.5",
-    "solana>=0.36.10",
-    "solders>=0.27.1",
-    "sqlalchemy>=2.0.43",
-    "uvicorn>=0.38.0",
-    "wikipedia>=1.4.0",
+]
+blockchain = [
+    "solana>=0.36.0",
+    "solders>=0.27.0",
+]
+all = [
+    "orion-architekt-at[dev,security,docs,ai,quantum,google,blockchain]"
+]
+
+[project.urls]
+Homepage = "https://github.com/Alvoradozerouno/ORION-Architekt-AT"
+Documentation = "https://github.com/Alvoradozerouno/ORION-Architekt-AT/blob/main/README.md"
+Repository = "https://github.com/Alvoradozerouno/ORION-Architekt-AT"
+Issues = "https://github.com/Alvoradozerouno/ORION-Architekt-AT/issues"
+
+[build-system]
+requires = ["setuptools>=68.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools]
+packages = ["orion_architekt_at", "tests"]
+
+[tool.setuptools.package-data]
+orion_architekt_at = ["*.json", "*.md"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+python_files = ["test_*.py"]
+python_classes = ["Test*"]
+python_functions = ["test_*"]
+addopts = [
+    "--verbose",
+    "--cov=.",
+    "--cov-report=html",
+    "--cov-report=term",
+    "--cov-report=xml",
+    "-n=auto",
+]
+
+[tool.black]
+line-length = 100
+target-version = ['py311']
+include = '\.pyi?$'
+
+[tool.isort]
+profile = "black"
+line_length = 100
+
+[tool.mypy]
+python_version = "3.11"
+warn_return_any = true
+warn_unused_configs = true
+disallow_untyped_defs = false
+
+[tool.pylint]
+max-line-length = 100
+disable = [
+    "C0103",  # Invalid name
+    "C0114",  # Missing module docstring
+    "R0913",  # Too many arguments
+    "R0914",  # Too many local variables
+]
+
+[tool.bandit]
+exclude_dirs = ["tests", "venv"]
+skips = ["B101"]  # Skip assert warnings in tests
+
+[tool.coverage.run]
+source = ["."]
+omit = [
+    "tests/*",
+    "venv/*",
+    "*/__pycache__/*",
+]
+
+[tool.coverage.report]
+exclude_lines = [
+    "pragma: no cover",
+    "def __repr__",
+    "raise AssertionError",
+    "raise NotImplementedError",
+    "if __name__ == .__main__.:",
+    "if TYPE_CHECKING:",
 ]

@@ -65,6 +65,30 @@
 
 ---
 
+## 🌐 **Web Interface & Demo**
+
+**Live Demo**: [https://alvoradozerouno.github.io/ORION-Architekt-AT/](https://alvoradozerouno.github.io/ORION-Architekt-AT/)
+
+**Features**:
+- 📝 Request a demo
+- 📊 Interactive examples
+- 📄 Documentation browser
+- 🎯 Use case scenarios
+
+**For Investors & Partners**:
+- 💰 [Financial Model](GENESIS_FINANCIAL_MODEL.md) - 5-year projections (€169K → €3.5M)
+- 🎯 [Pitch Deck](GENESIS_PITCH_DECK.md) - 15-slide investor presentation
+- 📧 [Contact Templates](ZIVILTECHNIKER_EMAILS.md) - Pilot program & partnerships
+- 🚀 [Launch Guide](PRODUCTION_LAUNCH_GUIDE.md) - Complete go-to-market strategy
+
+**Business Metrics**:
+- **Target Market**: 2,500+ Ziviltechniker in Austria, €500M TAM (DACH region)
+- **Revenue Model**: SaaS (€99-€999/mo), On-Premise (€15K-€75K), API Integration
+- **Funding**: Seeking €300K-€500K Series A for TRL 5→6 validation & certification
+- **Break-Even**: Q3 2027 (conservative scenario)
+
+---
+
 ## Overview
 
 ORION Architekt-AT is a professional-grade tool for Austrian architects, civil engineers, and building planners. It integrates Austrian building regulations (OIB-Richtlinien), state-specific building codes for all 9 Bundeslaender, and structural analysis capabilities — all powered by ORION's autonomous reasoning engine.

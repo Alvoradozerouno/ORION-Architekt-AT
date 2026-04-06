@@ -5051,8 +5051,15 @@ def world_architekt_at():
         TAUPUNKT_MATERIALIEN,
         SCHALLSCHUTZ_ANFORDERUNGEN, SCHALLSCHUTZ_BAUTEILE,
         GEBAEUEDEKLASSEN_OIB, BRANDSCHUTZ_FEUERWIDERSTAND, BRANDKLASSEN_BAUSTOFFE,
+        STELLPLATZ_ANFORDERUNGEN, PROJEKT_PHASEN, GEWERKE_STANDARD,
         berechne_uwert, berechne_kosten, berechne_hwb_grob,
-        get_einreichunterlagen, log_architekt_proof
+        get_einreichunterlagen, log_architekt_proof,
+        berechne_stellplaetze, pruefe_barrierefreiheit, berechne_fluchtweg,
+        berechne_tageslicht, berechne_abstandsflaechen, berechne_flaechen_oenorm_b1800,
+        generiere_leistungsverzeichnis, vergleiche_angebote, pruefe_phasen_vollstaendigkeit,
+        generiere_abnahmeprotokoll, generiere_gebaeuedokumentation,
+        pruefe_blitzschutz, pruefe_rauchableitung, pruefe_gefahrenzonen,
+        generiere_raumprogramm
     )
 
     uwert_ergebnis = None
@@ -5065,6 +5072,22 @@ def world_architekt_at():
     taupunkt_ergebnis = None
     schallschutz_ergebnis = None
     brandschutz_ergebnis = None
+    # Neue Funktionen
+    stellplatz_ergebnis = None
+    barrierefreiheit_ergebnis = None
+    fluchtweg_ergebnis = None
+    tageslicht_ergebnis = None
+    abstandsflaechen_ergebnis = None
+    flaechen_b1800_ergebnis = None
+    leistungsverzeichnis = None
+    angebots_vergleich = None
+    phasen_check = None
+    abnahme_protokoll = None
+    gebaeuedok = None
+    blitzschutz_ergebnis = None
+    rauchableitung_ergebnis = None
+    gefahrenzonen_ergebnis = None
+    raumprogramm_ergebnis = None
     gewaehltes_land = request.args.get('bundesland', 'tirol')
 
     if request.method == 'POST':

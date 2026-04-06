@@ -1,12 +1,61 @@
 # ORION Architekt-AT — Vollständige Implementierung
 
-**Status**: Von Bauherr bis Schlüsselfertig (80% komplett)
+**Status**: Von Bauherr bis Schlüsselfertig (85% komplett)
 **Stand**: 06.04.2026
-**Version**: 2.0 - Comprehensive Architect Workflow
+**Version**: 2.1 - With Knowledge Base Validation & Web Integration
 
 ---
 
 ## ✅ VOLLSTÄNDIG IMPLEMENTIERT (Funktionsfähig)
+
+### 0. Knowledge Base Validation & Web Integration (NEU! April 2026)
+- ✅ **Automatische Versionsüberwachung** für ÖNORM und OIB-RL
+  - Tracking von 14 Standards (OIB-RL 1-6, ÖNORM B 1800/1600/1601/2110/8110-3/A 2063/A 6240/EN 62305)
+  - Gültigkeitsprüfung mit Datum
+  - Automatische Warnung bei veralteten Standards
+
+- ✅ **RIS Austria Integration** (Rechtsinformationssystem Österreich)
+  - Prüfung auf Baurechts-Updates pro Bundesland
+  - Link zu Landesgesetzblättern (LGBl)
+  - Hinweise auf manuelle Prüfung (keine öffentliche API)
+
+- ✅ **OIB-Richtlinien Monitoring**
+  - Status-Check aller 6 OIB-Richtlinien
+  - Version 2023 komplett validiert
+  - Nächste Update-Periode: 2026
+
+- ✅ **ÖNORM Standards Aktualitätsprüfung**
+  - Einzelprüfung jeder ÖNORM
+  - Versions-Historie
+  - Link zu Austrian Standards
+
+- ✅ **hora.gv.at Integration** (Naturgefahren)
+  - Hinweise auf Hochwasser (HQ30/100/300)
+  - Lawinengefahr-Check (>1200m)
+  - Rutschungen und Hangwasser
+
+- ✅ **Daten-Freshness System**
+  - Automatische Altersbestimmung der Datenbasis
+  - 4-Stufen-Warnsystem: aktuell/noch_ok/veraltet/kritisch
+  - Empfehlung für Update-Zyklen (90 Tage)
+
+- ✅ **Intelligentes Caching**
+  - 24-Stunden Cache für API-Anfragen
+  - MD5-basierte Cache-Schlüssel
+  - Automatische Invalidierung
+
+- ✅ **Validierungsberichte**
+  - Export als JSON oder Text
+  - Vollständiger Compliance-Report
+  - Bundesland-spezifische Checks
+
+**Neue Funktionen:**
+- `pruefe_wissensdatenbank()` - Haupt-Validierungsfunktion
+- `pruefe_ris_updates()` - RIS Austria Check
+- `pruefe_oib_richtlinien()` - OIB-RL Status
+- `pruefe_oenorm()` - ÖNORM-Aktualität
+- `pruefe_naturgefahren()` - hora.gv.at Integration
+- `generiere_validierungsbericht()` - Report-Generator
 
 ### 1. Kern-Berechnungen & Technik
 - ✅ **U-Wert-Berechnung** (`berechne_uwert`, `berechne_uwert_mehrschicht`)

@@ -1,0 +1,68 @@
+---
+name: Research / Academic Question
+description: Ask a question about GENESIS for academic/research purposes
+title: "[Research]: "
+labels: ["research", "question"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for your interest in GENESIS for research purposes!
+
+  - type: input
+    id: institution
+    attributes:
+      label: Institution
+      description: Your university or research institution
+      placeholder: ex. TU Wien, Fraunhofer IKS
+    validations:
+      required: false
+
+  - type: dropdown
+    id: topic
+    attributes:
+      label: Research Topic
+      description: What is your research focus?
+      options:
+        - Structural Engineering
+        - Safety-Critical Systems
+        - Multi-Agent Systems
+        - EU AI Act Compliance
+        - ISO 26262 / ASIL-D
+        - Building Codes & Standards
+        - Formal Verification
+        - Other
+    validations:
+      required: true
+
+  - type: textarea
+    id: question
+    attributes:
+      label: Research Question
+      description: What would you like to know about GENESIS?
+      placeholder: I am researching [topic] and would like to know [question]
+    validations:
+      required: true
+
+  - type: textarea
+    id: context
+    attributes:
+      label: Context
+      description: Please provide context about your research
+      placeholder: |
+        - Research goal
+        - Methodology
+        - How GENESIS fits into your research
+
+  - type: checkboxes
+    id: collaboration
+    attributes:
+      label: Collaboration Interest
+      description: Are you interested in collaboration?
+      options:
+        - label: I am interested in academic collaboration
+          required: false
+        - label: I would like to cite GENESIS in my paper
+          required: false
+        - label: I am looking for research data/datasets
+          required: false

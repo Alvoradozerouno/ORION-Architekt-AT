@@ -11,12 +11,19 @@
                                     /_/   \_\_|  
 ```
 
-[![Python 3.11+](https://img.shields.io/badge/Python-3.11+-blue.svg)](https://python.org)
+[![Python 3.10+](https://img.shields.io/badge/Python-3.10+-blue.svg)](https://python.org)
+[![C++17](https://img.shields.io/badge/C++-17-blue.svg)](https://isocpp.org/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
-[![OIB-RL](https://img.shields.io/badge/OIB--RL-Compliant-brightgreen.svg)]()
+[![License: Apache 2.0](https://img.shields.io/badge/GENESIS-Apache%202.0-green.svg)](GENESIS_LICENSE.md)
+[![TRL](https://img.shields.io/badge/TRL-5-blue.svg)](docs/tuv_readiness_assessment.md)
+[![ISO 26262](https://img.shields.io/badge/ISO%2026262-ASIL--D-red.svg)](https://www.iso.org/standard/68383.html)
+[![EU AI Act](https://img.shields.io/badge/EU%20AI%20Act-Article%2012-purple.svg)](https://artificialintelligenceact.eu/)
+[![ÖNORM](https://img.shields.io/badge/%C3%96NORM-B%201995--1--1-orange.svg)](https://www.austrian-standards.at/)
+[![OIB-RL](https://img.shields.io/badge/OIB--RL-Compliant-brightgreen.svg)](https://www.oib.or.at/)
 [![Bundeslaender](https://img.shields.io/badge/Bundesl%C3%A4nder-9-blue.svg)]()
-[![Functionalities](https://img.shields.io/badge/Functionalities-20+-orange.svg)]()
-[![ORION](https://img.shields.io/badge/Powered_by-ORION-purple.svg)]()
+[![DOI](https://img.shields.io/badge/DOI-10.5281%2Fzenodo.XXXXX-blue.svg)](https://doi.org/10.5281/zenodo.XXXXX)
+[![GitHub Stars](https://img.shields.io/github/stars/Alvoradozerouno/ORION-Architekt-AT?style=social)](https://github.com/Alvoradozerouno/ORION-Architekt-AT)
+[![GitHub Forks](https://img.shields.io/github/forks/Alvoradozerouno/ORION-Architekt-AT?style=social)](https://github.com/Alvoradozerouno/ORION-Architekt-AT/fork)
 
 # ORION Architekt-AT — Austrian Building & Structural Analysis Tool
 

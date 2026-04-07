@@ -26,7 +26,8 @@ from api.routers import (
     bim_integration,
     collaboration
 )
-from api.middleware import rate_limit, auth, logging_middleware
+from api.middleware import RateLimitMiddleware, LoggingMiddleware
+from api.middleware.auth import router as auth_router
 from api.database import engine, Base
 from api.models import User
 from orion_logging import setup_default_logging, get_logger
@@ -100,8 +101,8 @@ app.add_middleware(
     allow_headers=["*"],
 )
 app.add_middleware(GZipMiddleware, minimum_size=1000)
-app.add_middleware(logging_middleware.LoggingMiddleware)
-app.add_middleware(rate_limit.RateLimitMiddleware)
+app.add_middleware(LoggingMiddleware)
+app.add_middleware(RateLimitMiddleware)
 
 # Prometheus metrics
 Instrumentator().instrument(app).expose(app)
@@ -115,7 +116,7 @@ app.include_router(reports.router, prefix="/api/v1/reports", tags=["reports"])
 app.include_router(ai_recommendations.router, prefix="/api/v1/ai", tags=["ai"])
 app.include_router(bim_integration.router, prefix="/api/v1/bim", tags=["bim"])
 app.include_router(collaboration.router, prefix="/api/v1/collaboration", tags=["collaboration"])
-app.include_router(auth.router, prefix="/auth", tags=["auth"])
+app.include_router(auth_router, prefix="/auth", tags=["auth"])
 
 # Health check endpoints
 @app.get("/health", tags=["health"])

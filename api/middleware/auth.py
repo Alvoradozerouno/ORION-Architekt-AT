@@ -31,6 +31,25 @@ class UserLogin(BaseModel):
     username: str
     password: str
 
+class PasswordChange(BaseModel):
+    """Password change request"""
+    old_password: str
+    new_password: str = Field(..., min_length=8)
+
+class PasswordReset(BaseModel):
+    """Password reset with token"""
+    token: str
+    new_password: str = Field(..., min_length=8)
+
+class TokenRefresh(BaseModel):
+    """Refresh token request"""
+    refresh_token: str
+
+class UserLoginOld(BaseModel):
+    """User login - OLD"""
+    username: str
+    password: str
+
 class Token(BaseModel):
     """JWT token response"""
     access_token: str
@@ -266,8 +285,7 @@ async def logout(current_user: dict = Depends(get_current_active_user)):
 
 @router.post("/change-password")
 async def change_password(
-    old_password: str,
-    new_password: str = Field(..., min_length=8),
+    request: PasswordChange,
     current_user: dict = Depends(get_current_active_user)
 ):
     """
@@ -305,10 +323,7 @@ async def reset_password_request(email: EmailStr):
     }
 
 @router.post("/reset-password")
-async def reset_password(
-    token: str,
-    new_password: str = Field(..., min_length=8)
-):
+async def reset_password(request: PasswordReset):
     """
     🔓 **Reset Password**
 

@@ -156,7 +156,7 @@ install(TARGETS orion_safety_core EXPORT ORIONSafetyCoreTargets)
 # Package Configuration
 # =============================================================================
 
-include(CMakePackageConfigHelper)
+include(CMakePackageConfigHelpers)
 write_basic_package_version_file(
     "ORIONSafetyCoreConfigVersion.cmake"
     VERSION ${PROJECT_VERSION}

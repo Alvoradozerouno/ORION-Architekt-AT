@@ -248,7 +248,7 @@ void example_audit_export() {
 /**
  * Main entry point
  */
-int main(int argc, char* argv[]) {
+int main(int /*argc*/, char* /*argv*/[]) {
     std::cout << "\n";
     std::cout << "╔════════════════════════════════════════════════════════════╗\n";
     std::cout << "║   ORION DMACAS V3.0.1 – Safety-Critical Building Analysis  ║\n";

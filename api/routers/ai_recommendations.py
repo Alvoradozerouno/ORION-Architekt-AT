@@ -4,7 +4,7 @@ Uses machine learning to optimize building designs for Austrian regulations
 """
 from fastapi import APIRouter, HTTPException, Depends
 from pydantic import BaseModel, Field
-from typing import List, Dict, Optional
+from typing import List, Dict, Optional, Any
 import numpy as np
 from datetime import datetime
 
@@ -27,7 +27,7 @@ class OptimizationResult(BaseModel):
     estimated_savings: Dict[str, float]
     compliance_warnings: List[str]
     suggested_materials: List[Dict[str, str]]
-    energy_optimization: Dict[str, any]
+    energy_optimization: Dict[str, Any]
 
 @router.post("/optimize-building", response_model=OptimizationResult)
 async def optimize_building(building: BuildingInput):

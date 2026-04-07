@@ -1,0 +1,29 @@
+# THE ARCHITEKT ⊘∞⧈∞⊘ - Language Detection Configuration
+
+# Python is primary language
+*.py linguist-language=Python
+
+# C++ for GENESIS DMACAS
+*.cpp linguist-language=C++
+*.hpp linguist-language=C++
+*.h linguist-language=C++
+
+# Documentation (don't count toward language stats)
+*.md linguist-documentation
+*.txt linguist-documentation
+
+# Test files should count
+tests/*.py linguist-vendored=false
+test_*.py linguist-vendored=false
+
+# Assets
+*.svg linguist-generated=false
+*.json linguist-generated=false
+
+# Primary language weights
+*.py linguist-detectable=true
+*.cpp linguist-detectable=true
+
+# Exclude specific directories from language stats
+docs/* linguist-documentation
+node_modules/* linguist-vendored

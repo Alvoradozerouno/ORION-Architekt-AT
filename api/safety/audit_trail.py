@@ -57,10 +57,11 @@ class AuditEntry:
         result: str,
         details: Dict[str, Any],
         previous_hash: str = "0" * 64,
+        timestamp: Optional[str] = None,
     ) -> "AuditEntry":
         """Create new audit entry with calculated hash"""
 
-        timestamp = datetime.utcnow().isoformat() + "Z"
+        timestamp = timestamp or (datetime.utcnow().isoformat() + "Z")
 
         # Create data for hashing (excluding entry_hash itself)
         data_to_hash = {

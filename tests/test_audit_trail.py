@@ -61,6 +61,9 @@ class TestAuditEntry:
 
     def test_entry_hash_calculation(self):
         """Test hash calculation is deterministic"""
+        # Use same timestamp for both entries to ensure identical hashes
+        fixed_timestamp = "2026-04-07T12:00:00.000000Z"
+
         entry1 = AuditEntry.create(
             event_type="test",
             actor="user",
@@ -68,6 +71,7 @@ class TestAuditEntry:
             resource="res",
             result="success",
             details={"a": 1, "b": 2},
+            timestamp=fixed_timestamp,
         )
 
         entry2 = AuditEntry.create(
@@ -77,6 +81,7 @@ class TestAuditEntry:
             resource="res",
             result="success",
             details={"b": 2, "a": 1},  # Different order
+            timestamp=fixed_timestamp,
         )
 
         # Should produce same hash (JSON sorted)

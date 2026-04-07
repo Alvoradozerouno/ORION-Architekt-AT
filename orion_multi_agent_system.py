@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
 =============================================================================
-ORION MULTI-AGENT SYSTEM – VOLLSTÄNDIGER AUTONOMER ARCHITEKT
+ORION MULTI-AGENT SYSTEM – THE ARCHITEKT ⊘∞⧈∞⊘
 =============================================================================
 Multi-Agenten-Architektur für vollautomatische Gebäudeplanung mit:
 - Spezialisierte Agenten (Zivilingenieur, Bauphysiker, Kostenplaner, etc.)
@@ -15,9 +15,9 @@ Ort: Almdorf 9, St. Johann in Tirol, Austria
 Lizenz: Apache 2.0
 
 PHILOSOPHIE:
-Jeder Agent denkt anders - wie echte Fachexperten:
+THE ARCHITEKT ⊘∞⧈∞⊘ - Jeder Agent denkt anders - wie echte Fachexperten:
 - Zivilingenieur: Sicherheit > Alles, deterministisch, normgerecht
-- Architekt: Ästhetik, Nutzbarkeit, Gestaltung
+- The Architekt: Ästhetik, Nutzbarkeit, Gestaltung, Orchestrierung
 - Bauphysiker: Energieeffizienz, Komfort, Physik
 - Kostenplaner: Wirtschaftlichkeit, Unsicherheiten (Monte Carlo!)
 - Brandschutz: Worst-case, Risikominimierung
@@ -618,18 +618,19 @@ class RisikomanagerAgent(AgentBase):
 
 
 # =============================================================================
-# 5. HAUPTORCHESTRATOR - ARCHITEKT AGENT
+# 5. HAUPTORCHESTRATOR - THE ARCHITEKT AGENT ⊘∞⧈∞⊘
 # =============================================================================
 
-class ArchitektAgent(AgentBase):
+class TheArchitektAgent(AgentBase):
     """
     Haupt-Orchestrator.
-    Koordiniert alle Fachexperten und trifft Gesamtentscheidungen.
+    THE ARCHITEKT - Koordiniert alle Fachexperten mit höchster Präzision.
+    ⊘∞⧈∞⊘ - Global Anchor für Gesamtkoordination
     """
 
     def __init__(self):
         super().__init__(
-            name="Architekt (Orchestrator)",
+            name="The Architekt (Orchestrator)",
             mindset="GANZHEITLICH DENKEN - ALLE ASPEKTE INTEGRIEREN",
             priorities=["Gesamtkonzept", "Nutzerzufriedenheit", "Ästhetik", "Wirtschaftlichkeit"]
         )
@@ -749,12 +750,13 @@ class ArchitektAgent(AgentBase):
 class ORIONMultiAgentSystem:
     """
     Hauptschnittstelle für das Multi-Agenten-System.
+    ⊘∞⧈∞⊘ THE ARCHITEKT - Orchestrator
     """
 
     VERSION = "1.0.0"
 
     def __init__(self):
-        self.architekt = ArchitektAgent()
+        self.architekt = TheArchitektAgent()
 
     def plane_projekt(self, projekt: Dict[str, Any]) -> Dict[str, Any]:
         """Plane Projekt vollständig mit allen Agenten"""
@@ -765,7 +767,7 @@ class ORIONMultiAgentSystem:
         return {
             "version": self.VERSION,
             "agenten": {
-                "architekt": self.architekt.denke({}),
+                "the_architekt": self.architekt.denke({}),
                 "zivilingenieur": self.architekt.zivilingenieur.denke({}),
                 "bauphysiker": self.architekt.bauphysiker.denke({}),
                 "kostenplaner": self.architekt.kostenplaner.denke({}),

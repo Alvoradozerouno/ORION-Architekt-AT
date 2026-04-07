@@ -16,7 +16,7 @@ import json
 from pathlib import Path
 
 from orion_multi_agent_system import (
-    ArchitektAgent,
+    TheArchitektAgent,
     ZivilingenieurAgent,
     BauphysikerAgent,
     KostenplanerAgent,
@@ -97,7 +97,7 @@ def test_3_hybrid_architektur():
     print("TEST 3: Hybrid-Architektur")
     print("="*70)
 
-    architekt = ArchitektAgent()
+    architekt = TheArchitektAgent()
 
     projekt = {
         "name": "Test-Wohnhaus",

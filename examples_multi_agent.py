@@ -12,7 +12,7 @@ Datum: 2026-04-07
 """
 
 from orion_multi_agent_system import (
-    ArchitektAgent,
+    TheArchitektAgent,
     ZivilingenieurAgent,
     BauphysikerAgent,
     KostenplanerAgent,
@@ -26,7 +26,7 @@ def beispiel_1_vollstaendige_planung():
     print("BEISPIEL 1: Vollständige Projektplanung")
     print("="*70)
 
-    architekt = ArchitektAgent()
+    architekt = TheArchitektAgent()
 
     projekt = {
         "name": "Wohnhaus Familie Müller",

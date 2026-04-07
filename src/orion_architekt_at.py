@@ -2638,3 +2638,1294 @@ def log_architekt_proof(aktion, bundesland, details=""):
     except Exception:
         pass
     return proof
+
+
+# ═══════════════════════════════════════════════════════════════════════════
+# NEUE VOLLSTÄNDIGE FUNKTIONEN FÜR ARCHITEKT-WORKFLOW
+# ═══════════════════════════════════════════════════════════════════════════
+
+# STELLPLATZBERECHNUNG nach allen 9 Bundesländern
+
+STELLPLATZ_ANFORDERUNGEN = {
+    "wien": {
+        "wohnung_bis_100m2": 1.0,
+        "wohnung_ueber_100m2": 1.5,
+        "buero_pro_100m2": 1.0,
+        "handel_pro_100m2": 1.0,
+        "gastronomie_pro_50m2": 1.0,
+        "besonderheiten": "Wiener Garagengesetz 2008 - Ablöse möglich bei innerstädtischen Lagen (140-200 €/m² Stellplatz)",
+    },
+    "niederoesterreich": {
+        "wohnung_bis_100m2": 1.0,
+        "wohnung_ueber_100m2": 1.5,
+        "buero_pro_100m2": 1.5,
+        "handel_pro_100m2": 1.5,
+        "gastronomie_pro_50m2": 1.0,
+        "besonderheiten": "NÖ Bauordnung §67 - Stellplatz auf eigenem Grund erforderlich",
+    },
+    "oberoesterreich": {
+        "wohnung_bis_100m2": 1.0,
+        "wohnung_ueber_100m2": 2.0,
+        "buero_pro_100m2": 1.0,
+        "handel_pro_100m2": 1.5,
+        "gastronomie_pro_50m2": 1.0,
+        "besonderheiten": "OÖ BauO §35 - Bei Mehrfamilienhäusern zusätzlich Besucherstellplätze (10% der Pflichtstellplätze)",
+    },
+    "salzburg": {
+        "wohnung_bis_100m2": 1.0,
+        "wohnung_ueber_100m2": 1.5,
+        "buero_pro_100m2": 1.0,
+        "handel_pro_100m2": 2.0,
+        "gastronomie_pro_50m2": 1.5,
+        "besonderheiten": "Sbg BauPolG - Altstadt Salzburg: Stellplatzpflicht häufig ausgesetzt, Ablöse üblich",
+    },
+    "tirol": {
+        "wohnung_bis_100m2": 1.0,
+        "wohnung_ueber_100m2": 1.5,
+        "buero_pro_100m2": 1.0,
+        "handel_pro_100m2": 2.0,
+        "gastronomie_pro_50m2": 2.0,
+        "besonderheiten": "TBO 2022 §54 - Tourismuszonen: erhöhte Anforderungen, Gästestellplätze zusätzlich",
+    },
+    "vorarlberg": {
+        "wohnung_bis_100m2": 1.0,
+        "wohnung_ueber_100m2": 1.5,
+        "buero_pro_100m2": 1.5,
+        "handel_pro_100m2": 2.0,
+        "gastronomie_pro_50m2": 1.5,
+        "besonderheiten": "Vlbg BauG - Fahrradabstellplätze verpflichtend (1:1 zu KFZ-Stellplätzen bei Wohnbau)",
+    },
+    "steiermark": {
+        "wohnung_bis_100m2": 1.0,
+        "wohnung_ueber_100m2": 1.5,
+        "buero_pro_100m2": 1.0,
+        "handel_pro_100m2": 1.5,
+        "gastronomie_pro_50m2": 1.0,
+        "besonderheiten": "Stmk BauG - Graz Innenstadt: Ablöse möglich, Stellplatzverpflichtung reduziert",
+    },
+    "kaernten": {
+        "wohnung_bis_100m2": 1.0,
+        "wohnung_ueber_100m2": 1.5,
+        "buero_pro_100m2": 1.0,
+        "handel_pro_100m2": 1.5,
+        "gastronomie_pro_50m2": 1.0,
+        "besonderheiten": "K-BO - Tourismusgebiete: Gästestellplätze zusätzlich erforderlich",
+    },
+    "burgenland": {
+        "wohnung_bis_100m2": 1.0,
+        "wohnung_ueber_100m2": 1.5,
+        "buero_pro_100m2": 1.0,
+        "handel_pro_100m2": 1.5,
+        "gastronomie_pro_50m2": 1.0,
+        "besonderheiten": "Bgld BauG - Ländliche Gebiete, moderate Anforderungen",
+    },
+}
+
+
+def berechne_stellplaetze(nutzungsart, flaeche_m2, anzahl_wohnungen=0, bundesland="tirol"):
+    """
+    Berechnet erforderliche Stellplatzanzahl nach bundeslandspezifischen Vorschriften.
+
+    nutzungsart: "wohnbau", "buero", "handel", "gastronomie", "hotel", "mischnutzung"
+    flaeche_m2: Bruttogeschossfläche oder Wohnfläche
+    anzahl_wohnungen: Bei Wohnbau: Anzahl der Wohneinheiten
+    bundesland: eines der 9 Bundesländer
+    """
+    anf = STELLPLATZ_ANFORDERUNGEN.get(bundesland, STELLPLATZ_ANFORDERUNGEN["tirol"])
+
+    stellplaetze_gesamt = 0
+    details = []
+
+    if nutzungsart == "wohnbau":
+        if anzahl_wohnungen > 0:
+            for i in range(anzahl_wohnungen):
+                wohnflaeche_pro_einheit = flaeche_m2 / anzahl_wohnungen
+                if wohnflaeche_pro_einheit <= 100:
+                    stellplaetze_gesamt += anf["wohnung_bis_100m2"]
+                    details.append(f"Wohnung {i+1} (≤100m²): {anf['wohnung_bis_100m2']} Stellplatz")
+                else:
+                    stellplaetze_gesamt += anf["wohnung_ueber_100m2"]
+                    details.append(f"Wohnung {i+1} (>100m²): {anf['wohnung_ueber_100m2']} Stellplätze")
+        else:
+            durchschnitt_pro_wohnung = 80
+            geschaetzte_wohnungen = max(1, flaeche_m2 // durchschnitt_pro_wohnung)
+            stellplaetze_gesamt = geschaetzte_wohnungen * anf["wohnung_bis_100m2"]
+            details.append(f"Geschätzte Wohnungen: {geschaetzte_wohnungen}")
+
+        if bundesland == "oberoesterreich" and anzahl_wohnungen > 2:
+            besucherstellplaetze = max(1, int(stellplaetze_gesamt * 0.1))
+            stellplaetze_gesamt += besucherstellplaetze
+            details.append(f"Besucherstellplätze (10%): {besucherstellplaetze}")
+
+    elif nutzungsart == "buero":
+        stellplaetze_gesamt = (flaeche_m2 / 100) * anf["buero_pro_100m2"]
+        details.append(f"Bürofläche {flaeche_m2}m² / 100 × {anf['buero_pro_100m2']}")
+
+    elif nutzungsart == "handel":
+        stellplaetze_gesamt = (flaeche_m2 / 100) * anf["handel_pro_100m2"]
+        details.append(f"Verkaufsfläche {flaeche_m2}m² / 100 × {anf['handel_pro_100m2']}")
+
+    elif nutzungsart == "gastronomie":
+        stellplaetze_gesamt = (flaeche_m2 / 50) * anf["gastronomie_pro_50m2"]
+        details.append(f"Gastrofläche {flaeche_m2}m² / 50 × {anf['gastronomie_pro_50m2']}")
+
+    elif nutzungsart == "hotel":
+        zimmeranzahl = flaeche_m2 / 30
+        stellplaetze_gesamt = zimmeranzahl * 0.5
+        details.append(f"Geschätzte Zimmer: {int(zimmeranzahl)}, 0.5 Stellplätze pro Zimmer")
+
+    stellplaetze_gerundet = int(round(stellplaetze_gesamt))
+    fahrradstellplaetze = stellplaetze_gerundet if bundesland == "vorarlberg" else int(stellplaetze_gerundet * 0.5)
+
+    return {
+        "stellplaetze_erforderlich": stellplaetze_gerundet,
+        "fahrradstellplaetze_empfohlen": fahrradstellplaetze,
+        "bundesland": BUNDESLAENDER.get(bundesland, {}).get("name", bundesland),
+        "nutzungsart": nutzungsart,
+        "flaeche_m2": flaeche_m2,
+        "besonderheiten": anf["besonderheiten"],
+        "berechnungsdetails": details,
+        "rechtsgrundlage": f"{BUNDESLAENDER.get(bundesland, {}).get('bauordnung_kurz', 'Bauordnung')} - Stellplatzverordnung",
+    }
+
+# BARRIEREFREIHEIT-CHECK nach ÖNORM B 1600/1601 & OIB-RL 4
+
+def pruefe_barrierefreiheit(gebaeudetyp, geschosse, wohnungen_pro_geschoss, tueren_breite_cm,
+                            rampen_steigung_prozent=0, aufzug_vorhanden=False, bundesland="tirol"):
+    """
+    Prüft Barrierefreiheit nach ÖNORM B 1600/1601 und OIB-RL 4.
+
+    gebaeudetyp: "einfamilienhaus", "mehrfamilienhaus", "buero", "oeffentlich"
+    geschosse: Anzahl oberirdischer Geschoße
+    wohnungen_pro_geschoss: Anzahl Wohneinheiten pro Geschoß
+    tueren_breite_cm: Breite der Eingangstüren/Wohnungstüren
+    rampen_steigung_prozent: Steigung von Rampen (falls vorhanden)
+    aufzug_vorhanden: Aufzug eingebaut?
+    bundesland: Bundesland für spezifische Anforderungen
+    """
+    mangel = []
+    hinweise = []
+    auflagen = []
+
+    # Aufzugspflicht prüfen
+    aufzug_pflicht = False
+    if bundesland == "wien" and geschosse >= 3:
+        aufzug_pflicht = True
+        auflagen.append("Wien: Aufzugspflicht ab 3 OG")
+    elif bundesland in ["niederoesterreich", "oberoesterreich", "salzburg", "tirol", "vorarlberg", "steiermark", "kaernten"] and geschosse >= 4:
+        aufzug_pflicht = True
+        auflagen.append(f"{BUNDESLAENDER.get(bundesland, {}).get('name', bundesland)}: Aufzugspflicht ab 4 OG")
+    elif bundesland == "burgenland" and geschosse >= 5:
+        aufzug_pflicht = True
+        auflagen.append("Burgenland: Aufzugspflicht ab 5 OG")
+
+    if aufzug_pflicht and not aufzug_vorhanden:
+        mangel.append(f"❌ Aufzug fehlt! Pflicht ab {3 if bundesland=='wien' else 4} Geschoßen in {BUNDESLAENDER.get(bundesland, {}).get('name', bundesland)}")
+
+    # Türbreiten nach ÖNORM B 1600
+    min_tueren_breite = 80 if gebaeudetyp in ["mehrfamilienhaus", "buero", "oeffentlich"] else 75
+    if tueren_breite_cm < min_tueren_breite:
+        mangel.append(f"❌ Türbreite {tueren_breite_cm}cm zu gering! Mind. {min_tueren_breite}cm für Rollstuhl erforderlich (ÖNORM B 1600)")
+    else:
+        hinweise.append(f"✓ Türbreite {tueren_breite_cm}cm OK (mind. {min_tueren_breite}cm)")
+
+    # Rampensteigung nach ÖNORM B 1600
+    if rampen_steigung_prozent > 0:
+        if rampen_steigung_prozent > 6:
+            mangel.append(f"❌ Rampensteigung {rampen_steigung_prozent}% zu steil! Max. 6% erlaubt (ÖNORM B 1600)")
+        else:
+            hinweise.append(f"✓ Rampensteigung {rampen_steigung_prozent}% OK (max. 6%)")
+
+    # Bewegungsflächen
+    if gebaeudetyp in ["mehrfamilienhaus", "buero", "oeffentlich"]:
+        auflagen.append("Bewegungsfläche vor Türen: mind. 150×150cm für Rollstuhl-Wendekreis")
+        auflagen.append("WC barrierefrei: mind. 1 barrierefreies WC pro Geschoß erforderlich")
+        auflagen.append("Durchgangsbreiten Flure: mind. 120cm, besser 150cm")
+
+    # Vorarlberg: Erweiterte Anforderungen
+    if bundesland == "vorarlberg" and gebaeudetyp == "mehrfamilienhaus":
+        auflagen.append("Vorarlberg: Erweiterte Barrierefreiheit auch bei kleinerem Wohnbau (alle Wohnungen adaptierbar)")
+
+    # Beurteilung
+    if len(mangel) == 0:
+        status = "✓ Barrierefrei nach ÖNORM B 1600/1601 & OIB-RL 4"
+        erfuellt = True
+    elif len(mangel) <= 2:
+        status = "⚠ Teilweise barrierefrei - Nachbesserungen erforderlich"
+        erfuellt = False
+    else:
+        status = "❌ Nicht barrierefrei - erhebliche Mängel"
+        erfuellt = False
+
+    return {
+        "status": status,
+        "erfuellt": erfuellt,
+        "mangel": mangel,
+        "hinweise": hinweise,
+        "auflagen": auflagen,
+        "rechtsgrundlagen": ["ÖNORM B 1600 (Barrierefreies Bauen)", "ÖNORM B 1601 (Spezielle Baulichkeiten)", "OIB-RL 4 (Nutzungssicherheit und Barrierefreiheit)"],
+        "bundesland": BUNDESLAENDER.get(bundesland, {}).get("name", bundesland),
+    }
+
+
+# FLUCHTWEGBERECHNUNG mit automatischer Prüfung
+
+def berechne_fluchtweg(gebaeudetyp, gebaeudeklasse, geschosse, personen_pro_geschoss,
+                      fluchtweglaenge_m, anzahl_fluchtwege, treppenbreite_cm, bundesland="tirol"):
+    """
+    Berechnet und prüft Fluchtwege nach OIB-RL 2 und Bauordnung.
+
+    gebaeudeklasse: "GK1", "GK2", "GK3", "GK4", "GK5"
+    geschosse: Anzahl oberirdischer Geschoße
+    personen_pro_geschoss: Anzahl der Personen pro Geschoß
+    fluchtweglaenge_m: Länge des längsten Fluchtwegs in Metern
+    anzahl_fluchtwege: Anzahl der Fluchtwege/Stiegenhäuser
+    treppenbreite_cm: Breite der Fluchttreppen in cm
+    """
+    mangel = []
+    hinweise = []
+    anforderungen = []
+
+    # Maximale Fluchtweglängen nach GK
+    max_fluchtweg = {
+        "GK1": 40,
+        "GK2": 40,
+        "GK3": 35,
+        "GK4": 35,
+        "GK5": 35
+    }
+
+    max_laenge = max_fluchtweg.get(gebaeudeklasse, 35)
+
+    if fluchtweglaenge_m > max_laenge:
+        mangel.append(f"❌ Fluchtweg {fluchtweglaenge_m}m zu lang! Max. {max_laenge}m für {gebaeudeklasse} erlaubt (OIB-RL 2)")
+    else:
+        hinweise.append(f"✓ Fluchtweglänge {fluchtweglaenge_m}m OK (max. {max_laenge}m)")
+
+    # Anzahl Fluchtwege
+    if geschosse >= 5 or personen_pro_geschoss > 200:
+        erforderliche_fluchtwege = 2
+    else:
+        erforderliche_fluchtwege = 1
+
+    if gebaeudeklasse == "GK5":
+        erforderliche_fluchtwege = max(2, erforderliche_fluchtwege)
+
+    if anzahl_fluchtwege < erforderliche_fluchtwege:
+        mangel.append(f"❌ Zu wenige Fluchtwege! Mind. {erforderliche_fluchtwege} erforderlich (aktuell: {anzahl_fluchtwege})")
+    else:
+        hinweise.append(f"✓ Anzahl Fluchtwege {anzahl_fluchtwege} OK (mind. {erforderliche_fluchtwege})")
+
+    # Treppenbreite
+    min_breite = 120 if personen_pro_geschoss > 100 else 100
+    if treppenbreite_cm < min_breite:
+        mangel.append(f"❌ Treppenbreite {treppenbreite_cm}cm zu gering! Mind. {min_breite}cm erforderlich")
+    else:
+        hinweise.append(f"✓ Treppenbreite {treppenbreite_cm}cm OK (mind. {min_breite}cm)")
+
+    # Anforderungen dokumentieren
+    anforderungen.append("Fluchtwege müssen ins Freie oder in gesicherten Bereich führen")
+    anforderungen.append("Notbeleuchtung in Fluchtwegen erforderlich (nach OIB-RL 2)")
+    anforderungen.append("Brandschutztüren: Selbstschließend, rauchdicht (T30 mind.)")
+
+    if gebaeudeklasse in ["GK4", "GK5"]:
+        anforderungen.append("Sicherheitsstiegenhaus erforderlich (eigene Brandabschnitte)")
+        anforderungen.append("Notausgangsschilder beleuchtet, nach ÖNORM EN ISO 7010")
+
+    # Beurteilung
+    if len(mangel) == 0:
+        status = "✓ Fluchtwege normgerecht nach OIB-RL 2"
+        erfuellt = True
+    else:
+        status = "❌ Fluchtweg-Mängel vorhanden - Nachbesserung erforderlich"
+        erfuellt = False
+
+    return {
+        "status": status,
+        "erfuellt": erfuellt,
+        "mangel": mangel,
+        "hinweise": hinweise,
+        "anforderungen": anforderungen,
+        "max_fluchtweg_m": max_laenge,
+        "erforderliche_fluchtwege": erforderliche_fluchtwege,
+        "min_treppenbreite_cm": min_breite,
+        "rechtsgrundlage": "OIB-RL 2 (Brandschutz), Bauordnung " + BUNDESLAENDER.get(bundesland, {}).get("bauordnung_kurz", ""),
+    }
+
+
+# TAGESLICHTBERECHNUNG nach ÖNORM
+
+def berechne_tageslicht(raumflaeche_m2, fensterflaeche_m2, raumtiefe_m, fensterhoehe_m, raumnutzung="wohnen"):
+    """
+    Berechnet Tageslichtfaktor und prüft Anforderungen nach ÖNORM B 8110-3.
+
+    raumflaeche_m2: Grundfläche des Raums
+    fensterflaeche_m2: Gesamte Fensterfläche
+    raumtiefe_m: Tiefe des Raums (von Fenster zur Rückwand)
+    fensterhoehe_m: Oberkante Fenster über Boden
+    raumnutzung: "wohnen", "buero", "schule", "krankenhaus"
+    """
+    # Mindest-Tageslichtfaktor nach Nutzung
+    min_tageslicht = {
+        "wohnen": 1.0,
+        "buero": 2.0,
+        "schule": 2.5,
+        "krankenhaus": 3.0
+    }
+
+    min_tf = min_tageslicht.get(raumnutzung, 1.0)
+
+    # Vereinfachte Berechnung Tageslichtfaktor
+    # TF = (Fensterfläche / Raumfläche) × 100 × Korrekturfaktoren
+    grundwert = (fensterflaeche_m2 / raumflaeche_m2) * 100
+
+    # Korrekturfaktor Raumtiefe (je tiefer, desto schlechter)
+    tiefenfaktor = max(0.5, 1.0 - (raumtiefe_m - 4) * 0.1) if raumtiefe_m > 4 else 1.0
+
+    # Korrekturfaktor Fensterhöhe
+    hoehenfaktor = min(1.2, 0.8 + (fensterhoehe_m - 2.0) * 0.1) if fensterhoehe_m > 2.0 else 0.8
+
+    tageslichtfaktor = grundwert * tiefenfaktor * hoehenfaktor
+    tageslichtfaktor = round(tageslichtfaktor, 2)
+
+    mangel = []
+    hinweise = []
+
+    if tageslichtfaktor < min_tf:
+        mangel.append(f"❌ Tageslichtfaktor {tageslichtfaktor}% zu gering! Mind. {min_tf}% für {raumnutzung} erforderlich (ÖNORM B 8110-3)")
+    else:
+        hinweise.append(f"✓ Tageslichtfaktor {tageslichtfaktor}% OK (mind. {min_tf}%)")
+
+    # Fensterfläche in % der Bodenfläche
+    fenster_prozent = (fensterflaeche_m2 / raumflaeche_m2) * 100
+
+    if fenster_prozent < 10:
+        mangel.append(f"❌ Fensterfläche {fenster_prozent:.1f}% zu gering! Mind. 10% der Bodenfläche empfohlen")
+    else:
+        hinweise.append(f"✓ Fensterfläche {fenster_prozent:.1f}% der Bodenfläche OK")
+
+    # Raumtiefe vs. Fensterhöhe
+    verhaeltnis = raumtiefe_m / fensterhoehe_m
+    if verhaeltnis > 2.5:
+        hinweise.append(f"⚠ Raumtiefe/Fensterhöhe-Verhältnis {verhaeltnis:.1f} ungünstig (>2.5). Erwägen Sie: Oberlichten, Innenhof, Lichtschächte")
+
+    empfehlungen = [
+        "Helle Wandfarben verwenden (Reflexionsgrad >70%)",
+        "Verschattungselemente außen anbringen (Raffstores, Jalousien)",
+        "Sichtkontakt nach außen ermöglichen (Fensterunterkante max. 90cm)",
+        "Bei kritischen Räumen: Tageslichtsimulation mit DIALux oder Velux Daylight Visualizer"
+    ]
+
+    erfuellt = len(mangel) == 0
+
+    return {
+        "tageslichtfaktor_prozent": tageslichtfaktor,
+        "erforderlich_prozent": min_tf,
+        "fensterflaeche_prozent_raum": round(fenster_prozent, 1),
+        "raumtiefe_fensterhoehe_verhaeltnis": round(verhaeltnis, 2),
+        "erfuellt": erfuellt,
+        "mangel": mangel,
+        "hinweise": hinweise,
+        "empfehlungen": empfehlungen,
+        "rechtsgrundlage": "ÖNORM B 8110-3 (Tageslicht), OIB-RL 3 (Hygiene, Gesundheit)"
+    }
+
+
+# ABSTANDSFLÄCHENBERECHNUNG pro Bundesland
+
+def berechne_abstandsflaechen(gebaeude_hoehe_m, gebaeude_laenge_m, grenze_typ="nachbar",
+                              bebauungsart="offen", bundesland="tirol"):
+    """
+    Berechnet erforderliche Abstandsflächen nach Bauordnung.
+
+    gebaeude_hoehe_m: Höhe des Gebäudes (Traufe oder Dachfirst)
+    gebaeude_laenge_m: Länge der dem Nachbarn zugewandten Gebäudeseite
+    grenze_typ: "nachbar", "strasse", "eigengrund"
+    bebauungsart: "offen", "gekuppelt", "geschlossen"
+    bundesland: Bundesland für spezifische Berechnung
+    """
+    # Formeln variieren pro Bundesland
+    abstandsregeln = {
+        "wien": {"faktor": 0.4, "minimum": 3.0, "nachbar_reduziert": True},
+        "niederoesterreich": {"faktor": 0.4, "minimum": 4.0, "nachbar_reduziert": False},
+        "oberoesterreich": {"faktor": 0.5, "minimum": 3.0, "nachbar_reduziert": True},
+        "salzburg": {"faktor": 1.0, "minimum": 4.0, "nachbar_reduziert": False},
+        "tirol": {"faktor": 1.0, "minimum": 4.0, "nachbar_reduziert": False},
+        "vorarlberg": {"faktor": 0.5, "minimum": 4.0, "nachbar_reduziert": False},
+        "steiermark": {"faktor": 0.5, "minimum": 3.0, "nachbar_reduziert": True},
+        "kaernten": {"faktor": 0.4, "minimum": 3.0, "nachbar_reduziert": True},
+        "burgenland": {"faktor": 0.4, "minimum": 3.0, "nachbar_reduziert": False},
+    }
+
+    regel = abstandsregeln.get(bundesland, abstandsregeln["tirol"])
+
+    # Berechnung
+    abstand_berechnet = gebaeude_hoehe_m * regel["faktor"]
+    abstand_erforderlich = max(abstand_berechnet, regel["minimum"])
+
+    # Reduzierungen bei gekuppelter/geschlossener Bauweise
+    if bebauungsart == "gekuppelt" and grenze_typ == "nachbar":
+        abstand_erforderlich = min(abstand_erforderlich, 3.0)
+        hinweis_bebauung = "Gekuppelte Bauweise: Abstand zur Nachbargrenze reduziert (Zustimmung Nachbar erforderlich)"
+    elif bebauungsart == "geschlossen":
+        abstand_erforderlich = 0
+        hinweis_bebauung = "Geschlossene Bauweise: Grenzbebauung zulässig"
+    else:
+        hinweis_bebauung = "Offene Bauweise: Standardabstände gelten"
+
+    # Straßenabstand häufig größer
+    if grenze_typ == "strasse":
+        abstand_erforderlich = max(abstand_erforderlich, 5.0)
+
+    details = []
+    details.append(f"Gebäudehöhe: {gebaeude_hoehe_m}m × Faktor {regel['faktor']} = {abstand_berechnet:.1f}m")
+    details.append(f"Mindestabstand Bundesland: {regel['minimum']}m")
+    details.append(f"Erforderlich: max({abstand_berechnet:.1f}m, {regel['minimum']}m) = {abstand_erforderlich:.1f}m")
+
+    return {
+        "abstand_erforderlich_m": round(abstand_erforderlich, 1),
+        "grenze_typ": grenze_typ,
+        "bebauungsart": bebauungsart,
+        "bundesland": BUNDESLAENDER.get(bundesland, {}).get("name", bundesland),
+        "details": details,
+        "hinweis_bebauung": hinweis_bebauung,
+        "rechtsgrundlage": BUNDESLAENDER.get(bundesland, {}).get("bauordnung_kurz", "Bauordnung"),
+    }
+
+
+
+# ═══════════════════════════════════════════════════════════════════════════
+# ÖNORM B 1800: BGF / NGF / NRF BERECHNUNG
+# ═══════════════════════════════════════════════════════════════════════════
+
+def berechne_flaechen_oenorm_b1800(grundriss_flaechen, geschosse=1, keller=False, dachgeschoss=False):
+    """
+    Berechnet Flächen nach ÖNORM B 1800 (Bruttogrundfläche, Nutzfläche, Verkehrsfläche).
+
+    grundriss_flaechen: dict mit Räumen und ihren Flächen
+    Beispiel: {
+        "wohnzimmer": {"flaeche": 35, "typ": "nutzflaeche"},
+        "flur": {"flaeche": 8, "typ": "verkehrsflaeche"},
+        "technik": {"flaeche": 4, "typ": "funktionsflaeche"},
+        "wand_aussen": {"flaeche": 12, "typ": "konstruktionsflaeche"}
+    }
+    """
+    bgf = 0  # Bruttogrundfläche
+    ngf = 0  # Nettogrundfläche
+    nf = 0   # Nutzfläche (Wohnen, Büro, etc.)
+    vf = 0   # Verkehrsfläche (Flure, Treppen)
+    ff = 0   # Funktionsfläche (Technik, Lager)
+    kf = 0   # Konstruktionsfläche (Wände, Stützen)
+
+    for raum, daten in grundriss_flaechen.items():
+        flaeche = daten["flaeche"]
+        typ = daten.get("typ", "nutzflaeche")
+
+        if typ == "nutzflaeche":
+            nf += flaeche
+            ngf += flaeche
+            bgf += flaeche
+        elif typ == "verkehrsflaeche":
+            vf += flaeche
+            ngf += flaeche
+            bgf += flaeche
+        elif typ == "funktionsflaeche":
+            ff += flaeche
+            ngf += flaeche
+            bgf += flaeche
+        elif typ == "konstruktionsflaeche":
+            kf += flaeche
+            bgf += flaeche
+
+    # Multiplikator für mehrere Geschosse
+    bgf_gesamt = bgf * geschosse
+
+    if keller:
+        bgf_gesamt += bgf * 0.5  # Keller teilweise
+
+    if dachgeschoss:
+        bgf_gesamt += bgf * 0.8  # Dachgeschoss teilweise
+
+    # Brutto-Rauminhalt (BRI) grob geschätzt
+    geschosshoehe = 2.8
+    bri = bgf_gesamt * geschosshoehe
+
+    # Kompaktheit (A/V-Verhältnis)
+    aussenwand_flaeche_schaetzung = (bgf ** 0.5) * 4 * (geschosshoehe * geschosse)
+    dach_flaeche = bgf
+    a_gesamt = aussenwand_flaeche_schaetzung + dach_flaeche + bgf  # Umfassungsfläche
+    kompaktheit = a_gesamt / bri if bri > 0 else 0
+
+    return {
+        "BGF_m2": round(bgf_gesamt, 2),
+        "NGF_m2": round(ngf * geschosse, 2),
+        "NF_m2": round(nf * geschosse, 2),
+        "VF_m2": round(vf * geschosse, 2),
+        "FF_m2": round(ff * geschosse, 2),
+        "KF_m2": round(kf * geschosse, 2),
+        "BRI_m3": round(bri, 2),
+        "kompaktheit_A_V": round(kompaktheit, 3),
+        "geschosse": geschosse,
+        "rechtsgrundlage": "ÖNORM B 1800 (Flächen- und Rauminhaltsberechnungen im Hochbau)",
+        "hinweis": "Vereinfachte Berechnung - für Einreichung detaillierte Planung mit Architekt erforderlich"
+    }
+
+
+# ═══════════════════════════════════════════════════════════════════════════
+# ANGEBOTSLEGUNG / AUSSCHREIBUNG nach ÖNORM A 2063
+# ═══════════════════════════════════════════════════════════════════════════
+
+GEWERKE_STANDARD = [
+    {"nr": "01", "gewerk": "Baumeisterarbeiten", "anteil_kosten_prozent": 35, "phase": "Rohbau"},
+    {"nr": "02", "gewerk": "Zimmerer-/Holzbauarbeiten", "anteil_kosten_prozent": 8, "phase": "Rohbau"},
+    {"nr": "03", "gewerk": "Dachdecker-/Spenglerarbeiten", "anteil_kosten_prozent": 6, "phase": "Rohbau"},
+    {"nr": "04", "gewerk": "Fenster und Außentüren", "anteil_kosten_prozent": 7, "phase": "Rohbau"},
+    {"nr": "05", "gewerk": "Elektroinstallationen", "anteil_kosten_prozent": 8, "phase": "Ausbau"},
+    {"nr": "06", "gewerk": "Sanitärinstallationen", "anteil_kosten_prozent": 7, "phase": "Ausbau"},
+    {"nr": "07", "gewerk": "Heizung-Lüftung-Klima", "anteil_kosten_prozent": 10, "phase": "Ausbau"},
+    {"nr": "08", "gewerk": "Estrich-/Bodenbelagsarbeiten", "anteil_kosten_prozent": 5, "phase": "Ausbau"},
+    {"nr": "09", "gewerk": "Maler-/Anstreicherarbeiten", "anteil_kosten_prozent": 3, "phase": "Ausbau"},
+    {"nr": "10", "gewerk": "Fliesenlegerarbeiten", "anteil_kosten_prozent": 4, "phase": "Ausbau"},
+    {"nr": "11", "gewerk": "Tischlerarbeiten (Innentüren)", "anteil_kosten_prozent": 4, "phase": "Ausbau"},
+    {"nr": "12", "gewerk": "Außenanlagen", "anteil_kosten_prozent": 3, "phase": "Außen"},
+]
+
+
+def generiere_leistungsverzeichnis(bauvorhaben_typ, bgf_m2, baukosten_gesamt, bundesland="tirol"):
+    """
+    Generiert ein Leistungsverzeichnis (LV) nach ÖNORM A 2063 für Ausschreibung.
+
+    bauvorhaben_typ: "einfamilienhaus", "mehrfamilienhaus", "buero", "sanierung"
+    bgf_m2: Bruttogrundfläche in m²
+    baukosten_gesamt: Gesamtbaukosten in €
+    bundesland: Bundesland für regionale Besonderheiten
+    """
+    lv_positionen = []
+
+    for gewerk in GEWERKE_STANDARD:
+        kosten_gewerk = baukosten_gesamt * (gewerk["anteil_kosten_prozent"] / 100)
+
+        position = {
+            "gewerk_nr": gewerk["nr"],
+            "gewerk_name": gewerk["gewerk"],
+            "phase": gewerk["phase"],
+            "schaetzkosten_netto": round(kosten_gewerk, 2),
+            "schaetzkosten_brutto": round(kosten_gewerk * 1.20, 2),  # +20% USt
+            "anteil_prozent": gewerk["anteil_kosten_prozent"],
+            "mengengeruest": f"Für Gebäude mit {bgf_m2}m² BGF",
+        }
+        lv_positionen.append(position)
+
+    # Bundesland-Spezifika
+    besonderheiten = []
+    if bundesland == "tirol":
+        besonderheiten.append("Radonschutz-Maßnahmen im Keller vorsehen (Radonvorsorgegebiet)")
+        besonderheiten.append("Schneelastsicherung Dach (erhöhte Anforderungen)")
+    elif bundesland == "wien":
+        besonderheiten.append("Wiener Garagengesetz: Stellplatzablöse möglich")
+    elif bundesland == "salzburg":
+        besonderheiten.append("Energienachweis nach Sbg. Wärmeschutzverordnung (nicht OIB-RL 6)")
+
+    ausschreibungshinweise = [
+        "Angebotsfrist: mind. 3 Wochen nach ÖNORM A 2063",
+        "Angebote schriftlich, signiert, mit Preisen netto + USt",
+        "Nebenangebote zugelassen (technische Alternativen)",
+        "Nachtragsarbeiten nur schriftlich beauftragt",
+        "Zahlungsplan: 30% Anzahlung, 60% nach Baufortschritt, 10% nach Abnahme",
+        "Gewährleistung: 3 Jahre ab Abnahme (ABGB § 1167)",
+        "Vertragsgrundlage: ÖNORM B 2110 (Werkvertragsnorm)"
+    ]
+
+    return {
+        "bauvorhaben_typ": bauvorhaben_typ,
+        "bgf_m2": bgf_m2,
+        "baukosten_gesamt_netto": round(baukosten_gesamt, 2),
+        "baukosten_gesamt_brutto": round(baukosten_gesamt * 1.20, 2),
+        "lv_positionen": lv_positionen,
+        "anzahl_gewerke": len(lv_positionen),
+        "besonderheiten_bundesland": besonderheiten,
+        "ausschreibungshinweise": ausschreibungshinweise,
+        "rechtsgrundlagen": ["ÖNORM A 2063 (Ausschreibung)", "ÖNORM B 2110 (Werkvertrag)", "ABGB Gewährleistung"],
+        "erstellt_am": datetime.now().strftime("%d.%m.%Y"),
+    }
+
+
+def vergleiche_angebote(angebote_liste):
+    """
+    Vergleicht eingereichte Angebote und erstellt Preisspiegelmatrix.
+
+    angebote_liste: Liste von dicts mit Angebotsdetails
+    Beispiel: [
+        {"firma": "Baufirma A", "gesamt_netto": 280000, "gewerke": {"01": 95000, "02": 22000, ...}},
+        {"firma": "Baufirma B", "gesamt_netto": 295000, "gewerke": {"01": 98000, "02": 24000, ...}},
+    ]
+    """
+    if len(angebote_liste) == 0:
+        return {"fehler": "Keine Angebote vorhanden"}
+
+    # Sortiere nach Gesamtpreis
+    angebote_sortiert = sorted(angebote_liste, key=lambda x: x["gesamt_netto"])
+
+    guenstigstes = angebote_sortiert[0]
+    teuerstes = angebote_sortiert[-1]
+    differenz_prozent = ((teuerstes["gesamt_netto"] - guenstigstes["gesamt_netto"]) / guenstigstes["gesamt_netto"]) * 100
+
+    # Gewerke-Vergleich
+    gewerke_vergleich = {}
+    if len(angebote_liste) > 1 and "gewerke" in angebote_liste[0]:
+        for gewerk_nr in angebote_liste[0]["gewerke"].keys():
+            preise = [a["gewerke"].get(gewerk_nr, 0) for a in angebote_liste]
+            gewerke_vergleich[gewerk_nr] = {
+                "min": min(preise),
+                "max": max(preise),
+                "durchschnitt": sum(preise) / len(preise),
+                "differenz_prozent": ((max(preise) - min(preise)) / min(preise) * 100) if min(preise) > 0 else 0
+            }
+
+    empfehlung = []
+    if differenz_prozent > 20:
+        empfehlung.append("⚠ Preisspanne >20% - Nachverhandlung empfohlen")
+    if len(angebote_liste) < 3:
+        empfehlung.append("⚠ Weniger als 3 Angebote - weitere Angebote einholen empfohlen")
+
+    if differenz_prozent < 10 and len(angebote_liste) >= 3:
+        empfehlung.append("✓ Gute Vergleichbarkeit, marktübliche Preise")
+
+    return {
+        "anzahl_angebote": len(angebote_liste),
+        "guenstigstes_angebot": {
+            "firma": guenstigstes["firma"],
+            "gesamt_netto": guenstigstes["gesamt_netto"],
+            "gesamt_brutto": round(guenstigstes["gesamt_netto"] * 1.20, 2),
+        },
+        "teuerstes_angebot": {
+            "firma": teuerstes["firma"],
+            "gesamt_netto": teuerstes["gesamt_netto"],
+            "gesamt_brutto": round(teuerstes["gesamt_netto"] * 1.20, 2),
+        },
+        "differenz_prozent": round(differenz_prozent, 1),
+        "gewerke_vergleich": gewerke_vergleich,
+        "empfehlung": empfehlung,
+        "angebote_sortiert": [{"rang": i+1, "firma": a["firma"], "preis": a["gesamt_netto"]} for i, a in enumerate(angebote_sortiert)],
+    }
+
+
+# ═══════════════════════════════════════════════════════════════════════════
+# WORKFLOW STATE MACHINE - Projektphasen Management
+# ═══════════════════════════════════════════════════════════════════════════
+
+PROJEKT_PHASEN = [
+    {"phase": 1, "name": "Erstberatung & Bedarfsermittlung", "dauer_wochen": "1-2", "pflicht_dokumente": ["Grundbuchsauszug", "Bebauungsplan"]},
+    {"phase": 2, "name": "Vorentwurf", "dauer_wochen": "2-4", "pflicht_dokumente": ["Raumprogramm", "Kostenschätzung", "Grundriss-Skizze"]},
+    {"phase": 3, "name": "Entwurfsplanung", "dauer_wochen": "4-6", "pflicht_dokumente": ["Grundrisse", "Schnitte", "Ansichten", "Statik-Vorprüfung"]},
+    {"phase": 4, "name": "Einreichplanung", "dauer_wochen": "3-5", "pflicht_dokumente": ["Einreichpläne 1:100", "Baubeschreibung", "Energieausweis", "Stellplatznachweis"]},
+    {"phase": 5, "name": "Baubewilligung", "dauer_wochen": "8-16", "pflicht_dokumente": ["Einreichung bei Behörde", "Nachbarverständigung"]},
+    {"phase": 6, "name": "Ausführungsplanung", "dauer_wochen": "6-10", "pflicht_dokumente": ["Detailpläne 1:50/1:20", "Ausschreibungsunterlagen"]},
+    {"phase": 7, "name": "Ausschreibung & Vergabe", "dauer_wochen": "4-6", "pflicht_dokumente": ["Leistungsverzeichnis", "Angebote", "Vergabevorschlag"]},
+    {"phase": 8, "name": "Bauausführung", "dauer_wochen": "20-52", "pflicht_dokumente": ["Bautagebuch", "Baufortschrittsdokumentation"]},
+    {"phase": 9, "name": "Abnahme & Übergabe", "dauer_wochen": "2-4", "pflicht_dokumente": ["Abnahmeprotokoll", "Mängelliste", "Gebäudedokumentation", "Benützungsbewilligung"]},
+]
+
+
+def pruefe_phasen_vollstaendigkeit(phase_nummer, vorhandene_dokumente):
+    """
+    Prüft ob alle erforderlichen Dokumente für eine Phase vorhanden sind.
+
+    phase_nummer: 1-9 (siehe PROJEKT_PHASEN)
+    vorhandene_dokumente: Liste der vorhandenen Dokumente
+    """
+    if phase_nummer < 1 or phase_nummer > 9:
+        return {"fehler": "Ungültige Phasennummer (1-9)"}
+
+    phase = PROJEKT_PHASEN[phase_nummer - 1]
+
+    fehlende_dokumente = []
+    for dok in phase["pflicht_dokumente"]:
+        if dok not in vorhandene_dokumente:
+            fehlende_dokumente.append(dok)
+
+    vollstaendig = len(fehlende_dokumente) == 0
+
+    naechste_schritte = []
+    if vollstaendig and phase_nummer < 9:
+        naechste_phase = PROJEKT_PHASEN[phase_nummer]
+        naechste_schritte.append(f"✓ Phase {phase_nummer} abgeschlossen")
+        naechste_schritte.append(f"→ Nächste Phase: {naechste_phase['name']}")
+        naechste_schritte.append(f"   Dauer: {naechste_phase['dauer_wochen']} Wochen")
+    elif vollstaendig and phase_nummer == 9:
+        naechste_schritte.append("✓ Projekt abgeschlossen - Schlüsselübergabe erfolgt")
+        naechste_schritte.append("→ Gewährleistungsfrist läuft (3 Jahre)")
+
+    return {
+        "phase_nummer": phase_nummer,
+        "phase_name": phase["name"],
+        "vollstaendig": vollstaendig,
+        "vorhandene_dokumente": vorhandene_dokumente,
+        "fehlende_dokumente": fehlende_dokumente,
+        "pflicht_dokumente_gesamt": phase["pflicht_dokumente"],
+        "fortschritt_prozent": round((len(vorhandene_dokumente) / len(phase["pflicht_dokumente"])) * 100, 1) if len(phase["pflicht_dokumente"]) > 0 else 100,
+        "naechste_schritte": naechste_schritte,
+        "dauer_wochen": phase["dauer_wochen"],
+    }
+
+
+
+# ═══════════════════════════════════════════════════════════════════════════
+# BAUPHASE: Abnahme & Mängelverwaltung
+# ═══════════════════════════════════════════════════════════════════════════
+
+def generiere_abnahmeprotokoll(bauvorhaben, datum, teilnehmer, gepruefte_gewerke, maengel_liste):
+    """
+    Generiert Abnahmeprotokoll nach ÖNORM B 2110.
+
+    bauvorhaben: Projektbezeichnung
+    datum: Abnahmedatum
+    teilnehmer: Liste der Teilnehmer (Bauherr, Planer, Baumeister, etc.)
+    gepruefte_gewerke: Liste der geprüften Gewerke
+    maengel_liste: Liste von Mängeln mit Kategorisierung
+    Beispiel: [{"gewerk": "Maler", "beschreibung": "Kratzer Tür EG", "kategorie": "geringfügig", "frist_tage": 14}]
+    """
+    maengel_kategorien = {
+        "wesentlich": [],
+        "geringfuegig": [],
+        "optisch": []
+    }
+
+    for mangel in maengel_liste:
+        kat = mangel.get("kategorie", "geringfuegig")
+        if kat in maengel_kategorien:
+            maengel_kategorien[kat].append(mangel)
+
+    # Beurteilung
+    if len(maengel_kategorien["wesentlich"]) > 0:
+        status = "❌ Abnahme VERWEIGERT - Wesentliche Mängel vorhanden"
+        abnahme_erfolgt = False
+    elif len(maengel_kategorien["geringfuegig"]) > 5:
+        status = "⚠ Abnahme UNTER VORBEHALT - Mängelbehebung erforderlich"
+        abnahme_erfolgt = True
+    else:
+        status = "✓ Abnahme ERFOLGT - Geringfügige Mängel nachbessern"
+        abnahme_erfolgt = True
+
+    gewaehrleistungsbeginn = datum if abnahme_erfolgt else None
+
+    return {
+        "bauvorhaben": bauvorhaben,
+        "abnahmedatum": datum,
+        "teilnehmer": teilnehmer,
+        "gepruefte_gewerke": gepruefte_gewerke,
+        "status": status,
+        "abnahme_erfolgt": abnahme_erfolgt,
+        "maengel_wesentlich": len(maengel_kategorien["wesentlich"]),
+        "maengel_geringfuegig": len(maengel_kategorien["geringfuegig"]),
+        "maengel_optisch": len(maengel_kategorien["optisch"]),
+        "maengel_gesamt": len(maengel_liste),
+        "maengel_details": maengel_kategorien,
+        "gewaehrleistungsbeginn": gewaehrleistungsbeginn,
+        "gewaehrleistungsdauer_jahre": 3,
+        "naechste_schritte": [
+            "Mängelbehebungsfrist setzen (üblicherweise 14-30 Tage)",
+            "Nachbesserungstermin vereinbaren",
+            "Nach Mängelbehebung: Nachkontrolle durchführen",
+            "Bei Mängelfreiheit: Schlusszahlung freigeben (10% Einbehalt bis Mängelbehebung)"
+        ],
+        "rechtsgrundlage": "ÖNORM B 2110 (Werkvertrag), ABGB § 922 ff (Gewährleistung)",
+    }
+
+
+def generiere_gebaeuedokumentation(bauvorhaben, bgf_m2, baujahr, energieklasse, gewerke_liste,
+                                   wartungsintervalle):
+    """
+    Erstellt Gebäudedokumentation für Übergabe (Gebäudebuch).
+
+    bauvorhaben: Projektbezeichnung
+    bgf_m2: Bruttogrundfläche
+    baujahr: Baujahr
+    energieklasse: Energieausweis-Klasse (A++, A+, A, B, etc.)
+    gewerke_liste: Liste ausführender Firmen pro Gewerk
+    wartungsintervalle: Empfohlene Wartungsintervalle
+    """
+    pflicht_unterlagen = [
+        "Einreichpläne (genehmigt mit Stempel)",
+        "Ausführungspläne (As-Built)",
+        "Statische Berechnungen",
+        "Energieausweis (registriert)",
+        "Prüfbefunde (Elektro, Heizung, Lüftung)",
+        "Brandschutzkonzept",
+        "Bedienungsanleitungen (Heizung, Lüftung, etc.)",
+        "Garantie- und Gewährleistungsnachweise",
+        "Revisionsöffnungen-Plan (Installationen)",
+        "Material- und Farbspezifikationen"
+    ]
+
+    wartungsplan_standard = {
+        "Heizung": "1x jährlich (vor Heizperiode)",
+        "Lüftungsanlage": "2x jährlich (Filter wechseln)",
+        "Dachrinnen": "2x jährlich (Frühjahr, Herbst)",
+        "Fassade": "Alle 2-3 Jahre Sichtkontrolle",
+        "Fenster/Türen": "Alle 3 Jahre Beschläge warten",
+        "Elektroinstallation": "Alle 10 Jahre Prüfung durch Elektriker",
+        "Brandmelder": "1x jährlich Funktionstest",
+        "Blitzschutzanlage": "Alle 3 Jahre durch Ziviltechniker"
+    }
+
+    wartungsplan_standard.update(wartungsintervalle)
+
+    return {
+        "bauvorhaben": bauvorhaben,
+        "bgf_m2": bgf_m2,
+        "baujahr": baujahr,
+        "energieklasse": energieklasse,
+        "gewerke_ausfuehrende_firmen": gewerke_liste,
+        "pflicht_unterlagen": pflicht_unterlagen,
+        "wartungsplan": wartungsplan_standard,
+        "digitale_ablage_empfohlen": [
+            "Alle Pläne als PDF/A (Langzeitarchivierung)",
+            "Fotos vom Bauzustand (für spätere Renovierungen)",
+            "Rechnungen und Zahlungsnachweise",
+            "Korrespondenz mit Behörden"
+        ],
+        "uebergabe_checkliste": [
+            "Schlüssel übergeben (Haustür, Zimmer, Keller, Technikraum)",
+            "Zählerst��nde dokumentieren (Strom, Gas, Wasser)",
+            "Einweisung Heizung und Lüftung",
+            "Notfallnummern übergeben (Installateur, Elektriker, etc.)",
+            "Versicherungen aktivieren (Gebäudeversicherung, Haftpflicht)"
+        ],
+        "hinweis": "Gebäudebuch 30 Jahre aufbewahren (Gewährleistung, Umbau, Verkauf)",
+    }
+
+
+# ═══════════════════════════════════════════════════════════════════════════
+# ZUSÄTZLICHE PRÜFUNGEN: Blitzschutz, Rauchableitung, Gefahrenzonen
+# ═══════════════════════════════════════════════════════════════════════════
+
+def pruefe_blitzschutz(gebaeude_hoehe_m, gebaeude_lage, gebaeude_nutzung):
+    """
+    Klassifiziert Blitzschutz-Erfordernis nach ÖNORM EN 62305.
+
+    gebaeude_hoehe_m: Höhe des Gebäudes
+    gebaeude_lage: "freistehend_huegel", "ortslage", "talkessel"
+    gebaeude_nutzung: "wohnhaus", "schule", "krankenhaus", "explosionsgefahr"
+    """
+    # Risikoklasse
+    if gebaeude_nutzung in ["krankenhaus", "schule", "explosionsgefahr"]:
+        lpk = "LPK I (höchster Schutz)"
+        pflicht = True
+    elif gebaeude_hoehe_m > 20 or gebaeude_lage == "freistehend_huegel":
+        lpk = "LPK II (mittlerer Schutz)"
+        pflicht = True
+    elif gebaeude_hoehe_m > 10:
+        lpk = "LPK III (normaler Schutz)"
+        pflicht = False
+        empfohlen = True
+    else:
+        lpk = "LPK IV (einfacher Schutz)"
+        pflicht = False
+        empfohlen = False
+
+    massnahmen = []
+    if pflicht or empfohlen:
+        massnahmen.append("Fangeinrichtung (Fangstangen oder Maschennetz auf Dach)")
+        massnahmen.append("Ableitungseinrichtung (mind. 2 Ableitungen)")
+        massnahmen.append("Erdungsanlage (Ringerder oder Tiefenerder)")
+        massnahmen.append("Potentialausgleich (alle metallenen Installationen verbinden)")
+        massnahmen.append("Überspannungsschutz (Typ 1+2 am Hausanschluss, Typ 3 bei Endgeräten)")
+
+    return {
+        "blitzschutzklasse": lpk,
+        "pflicht": pflicht,
+        "empfohlen": empfohlen if not pflicht else None,
+        "massnahmen": massnahmen,
+        "pruefung": "Alle 3 Jahre durch Ziviltechniker (Elektrotechnik) erforderlich" if pflicht else "Freiwillig",
+        "rechtsgrundlage": "ÖNORM EN 62305 (Blitzschutz), OIB-RL 3",
+        "kosten_schaetzung": "3.000-8.000 € je nach Gebäudegröße (Neuinstallation)"
+    }
+
+
+def pruefe_rauchableitung(gebaeudeklasse, geschosse, treppenhaus_typ, fluchtweglaenge_m):
+    """
+    Prüft Rauchableitung-Anforderungen nach OIB-RL 2.
+
+    gebaeudeklasse: "GK1", "GK2", "GK3", "GK4", "GK5"
+    geschosse: Anzahl Geschoße
+    treppenhaus_typ: "offen", "geschlossen", "sicherheitstreppenhaus"
+    fluchtweglaenge_m: Länge Fluchtweg
+    """
+    mangel = []
+    anforderungen = []
+
+    # GK1 und GK2: Basis-Anforderungen
+    if gebaeudeklasse in ["GK1", "GK2"]:
+        anforderungen.append("Fenster in Treppenhaus zum Öffnen (natürliche Rauchableitung)")
+        if treppenhaus_typ == "offen":
+            mangel.append("⚠ Treppenhaus offen - Empfehlung: Türen zu Wohnungen rauchdicht (T30)")
+
+    # GK3: Erhöhte Anforderungen
+    elif gebaeudeklasse == "GK3":
+        anforderungen.append("Geschlossenes Treppenhaus erforderlich")
+        anforderungen.append("Rauchableitung über Dachfenster oder RWA (mind. 1 m² pro Geschoß)")
+        if treppenhaus_typ == "offen":
+            mangel.append("❌ Treppenhaus muss geschlossen sein für GK3")
+
+    # GK4/GK5: Sicherheitsstiegenhaus
+    elif gebaeudeklasse in ["GK4", "GK5"]:
+        anforderungen.append("Sicherheitstreppenhaus erforderlich (eigene Brandabschnitte)")
+        anforderungen.append("RWA (Rauch-Wärme-Abzug) automatisch gesteuert")
+        anforderungen.append("Überdruckbelüftung bei Hochhäusern (>22m)")
+        if treppenhaus_typ != "sicherheitstreppenhaus":
+            mangel.append("❌ Sicherheitstreppenhaus erforderlich für GK4/GK5")
+
+    # Fluchtweg-spezifisch
+    if fluchtweglaenge_m > 30:
+        anforderungen.append("Rauchmelder im Fluchtweg erforderlich")
+        anforderungen.append("Notbeleuchtung (90 min Batterieautonomie)")
+
+    erfuellt = len(mangel) == 0
+
+    return {
+        "gebaeudeklasse": gebaeudeklasse,
+        "erfuellt": erfuellt,
+        "mangel": mangel,
+        "anforderungen": anforderungen,
+        "rechtsgrundlage": "OIB-RL 2 (Brandschutz) - Rauchableitung und Entrauchung",
+        "hinweis": "RWA-Anlage muss 1x jährlich durch Fachfirma gewartet werden"
+    }
+
+
+def pruefe_gefahrenzonen(adresse_plz, adresse_ort, grundstueck_hoehe_m):
+    """
+    Prüft Gefahrenzonen (Lawinen, Hochwasser, Rutschung) via Hinweis auf hora.gv.at.
+
+    adresse_plz: Postleitzahl
+    adresse_ort: Ortsname
+    grundstueck_hoehe_m: Seehöhe des Grundstücks
+    """
+    hinweise = []
+    warnungen = []
+
+    # Höhenlage
+    if grundstueck_hoehe_m > 1200:
+        warnungen.append("⚠ Seehöhe >1200m - Lawinengefahr möglich! Prüfung über Lawinenkataster erforderlich")
+        hinweise.append("Kontakt: Wildbach- und Lawinenverbauung (WLV) des jeweiligen Bundeslandes")
+
+    if grundstueck_hoehe_m > 1500:
+        warnungen.append("⚠ Seehöhe >1500m - Erhöhte Schneelasten! Statik anpassen (Zone 4-5)")
+
+    # Allgemeine Hinweise
+    hinweise.append("🌐 hora.gv.at — Naturgefahren in Österreich (Hochwasser, Lawinen, Rutschung)")
+    hinweise.append("Prüfung erforderlich: HQ30, HQ100, HQ300 Überflutungsflächen")
+    hinweise.append("Bei roter/gelber Zone: Gutachten Ziviltechniker (Geologie) erforderlich")
+
+    # Bundesland-spezifische Gefahrenzonen
+    plz_prefix = int(str(adresse_plz)[:1])
+    if plz_prefix == 6:  # Tirol/Vorarlberg
+        hinweise.append("Tirol/Vorarlberg: Rote Zone = Bauverbot, Gelbe Zone = Auflagen")
+    elif plz_prefix == 5:  # Salzburg
+        hinweise.append("Salzburg: Pinzgau/Pongau besonders lawinengefährdet")
+
+    empfehlungen = [
+        "Grundbuch prüfen: Ist Bauland oder Sperr-/Vorbehaltsfläche?",
+        "Flächenwidmungsplan einsehen (Gemeinde)",
+        "Bei Hanglage: Hangwasser-Drainage vorsehen",
+        "Bei Hochwassergefahr: Keller wasserdicht + Rückstausicherung"
+    ]
+
+    return {
+        "adresse": f"{adresse_plz} {adresse_ort}",
+        "hoehe_m": grundstueck_hoehe_m,
+        "warnungen": warnungen,
+        "hinweise": hinweise,
+        "empfehlungen": empfehlungen,
+        "externe_pruefung": "https://www.hora.gv.at — Naturgefahrenkarte Österreich (BMLFUW)",
+        "kontakt_behoerde": "Wildbach- und Lawinenverbauung (WLV), Geologische Bundesanstalt (GBA)"
+    }
+
+
+# ═══════════════════════════════════════════════════════════════════════════
+# RAUMPROGRAMM-GENERATOR
+# ═══════════════════════════════════════════════════════════════════════════
+
+def generiere_raumprogramm(haushaltsgroesse, wohnwunsch_typ, budget_euro, besondere_wuensche=[]):
+    """
+    Generiert Raumprogramm basierend auf Haushaltsgröße und Wünschen.
+
+    haushaltsgroesse: Anzahl Personen
+    wohnwunsch_typ: "kompakt", "komfortabel", "grosszuegig"
+    budget_euro: Verfügbares Budget
+    besondere_wuensche: Liste z.B. ["homeoffice", "sauna", "garage", "keller"]
+    """
+    # Basis-Räume nach Haushaltsgröße
+    raeume = []
+
+    # Wohnbereich
+    if wohnwunsch_typ == "kompakt":
+        raeume.append({"raum": "Wohn-/Essbereich", "flaeche_m2": 25 + (haushaltsgroesse * 5)})
+    elif wohnwunsch_typ == "komfortabel":
+        raeume.append({"raum": "Wohnzimmer", "flaeche_m2": 30 + (haushaltsgroesse * 5)})
+        raeume.append({"raum": "Essbereich", "flaeche_m2": 12})
+    else:  # grosszuegig
+        raeume.append({"raum": "Wohnzimmer", "flaeche_m2": 40 + (haushaltsgroesse * 5)})
+        raeume.append({"raum": "Esszimmer", "flaeche_m2": 18})
+
+    # Küche
+    if wohnwunsch_typ == "kompakt":
+        raeume.append({"raum": "Küche (offen)", "flaeche_m2": 10})
+    else:
+        raeume.append({"raum": "Küche", "flaeche_m2": 15 if wohnwunsch_typ == "komfortabel" else 20})
+
+    # Schlafzimmer
+    raeume.append({"raum": "Elternschlafzimmer", "flaeche_m2": 14 if wohnwunsch_typ == "kompakt" else 18})
+    for i in range(haushaltsgroesse - 2):
+        raeume.append({"raum": f"Kinderzimmer {i+1}", "flaeche_m2": 12 if wohnwunsch_typ == "kompakt" else 15})
+    if haushaltsgroesse >= 2:
+        raeume.append({"raum": "Gästezimmer/Arbeitszimmer", "flaeche_m2": 10 if wohnwunsch_typ == "kompakt" else 13})
+
+    # Sanitär
+    if haushaltsgroesse <= 2:
+        raeume.append({"raum": "Bad", "flaeche_m2": 6 if wohnwunsch_typ == "kompakt" else 8})
+    else:
+        raeume.append({"raum": "Bad 1", "flaeche_m2": 8})
+        raeume.append({"raum": "WC/Dusche", "flaeche_m2": 4})
+
+    # Verkehrsflächen
+    raeume.append({"raum": "Flur/Eingang", "flaeche_m2": 8 if wohnwunsch_typ == "kompakt" else 12})
+
+    # Technik
+    raeume.append({"raum": "Technikraum/Abstellraum", "flaeche_m2": 4})
+
+    # Besondere Wünsche
+    if "homeoffice" in besondere_wuensche:
+        raeume.append({"raum": "Home-Office", "flaeche_m2": 12})
+    if "sauna" in besondere_wuensche:
+        raeume.append({"raum": "Sauna/Wellness", "flaeche_m2": 8})
+    if "garage" in besondere_wuensche:
+        raeume.append({"raum": "Garage (separat)", "flaeche_m2": 18})
+    if "keller" in besondere_wuensche:
+        raeume.append({"raum": "Kellerräume", "flaeche_m2": sum([r["flaeche_m2"] for r in raeume]) * 0.3})
+
+    # Summen
+    nf_gesamt = sum([r["flaeche_m2"] for r in raeume if r["raum"] not in ["Garage (separat)", "Kellerräume"]])
+    bgf_geschaetzt = nf_gesamt * 1.25  # +25% für Wände, Konstruktion
+
+    # Budget-Check
+    kosten_pro_m2 = 2700  # Durchschnitt
+    schaetzkosten = bgf_geschaetzt * kosten_pro_m2
+
+    budget_status = "✓ Budget ausreichend" if schaetzkosten <= budget_euro else f"⚠ Budget zu knapp ({int((schaetzkosten/budget_euro-1)*100)}% Überz iehung)"
+
+    return {
+        "haushaltsgroesse": haushaltsgroesse,
+        "wohnwunsch_typ": wohnwunsch_typ,
+        "raeume": raeume,
+        "nf_gesamt_m2": round(nf_gesamt, 1),
+        "bgf_geschaetzt_m2": round(bgf_geschaetzt, 1),
+        "budget_euro": budget_euro,
+        "schaetzkosten_euro": round(schaetzkosten, 0),
+        "budget_status": budget_status,
+        "hinweis": "Raumprogramm ist Orientierung - finale Planung mit Architekt erforderlich"
+    }
+
+
+# ============================================================================
+# KNOWLEDGE BASE VALIDATION & WEB INTEGRATION
+# ============================================================================
+
+def pruefe_wissensdatenbank(bundesland=None, vollstaendig=True):
+    """
+    Prüft die Aktualität der Wissensdatenbank und externe Quellen.
+
+    Integriert mit orion_kb_validation.py für:
+    - RIS Austria (Rechtsinformationssystem)
+    - OIB-Richtlinien Updates
+    - ÖNORM Standards Aktualität
+    - hora.gv.at Naturgefahren
+
+    Args:
+        bundesland: Spezifisches Bundesland (optional)
+        vollstaendig: Vollständige Prüfung (default: True)
+
+    Returns:
+        Dict mit Validierungsbericht
+    """
+    try:
+        # Versuche orion_kb_validation zu importieren
+        import sys
+        import os
+
+        # Füge parent directory zum path hinzu falls nötig
+        parent_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+        if parent_dir not in sys.path:
+            sys.path.insert(0, parent_dir)
+
+        from orion_kb_validation import validate_knowledge_base, check_all_standards
+
+        if vollstaendig:
+            return validate_knowledge_base(
+                bundesland=bundesland,
+                include_ris=True,
+                include_oib=True,
+                include_oenorm=True,
+                include_hora=False  # Optional, da oft nicht benötigt
+            )
+        else:
+            # Schnelle Prüfung nur der Standards
+            return {
+                "status": "schnell",
+                "standards": check_all_standards(),
+                "hinweis": "Für vollständige Prüfung: vollstaendig=True"
+            }
+
+    except ImportError as e:
+        # Fallback wenn orion_kb_validation nicht verfügbar
+        return {
+            "status": "warnung",
+            "nachricht": "Knowledge Base Validation Modul nicht verfügbar",
+            "fehler": str(e),
+            "hinweis": "Installieren Sie orion_kb_validation.py für volle Funktionalität",
+            "manuelle_pruefung": {
+                "ris": "https://www.ris.bka.gv.at",
+                "oib": "https://www.oib.or.at",
+                "oenorm": "https://www.austrian-standards.at",
+                "hora": "https://www.hora.gv.at"
+            }
+        }
+
+
+def pruefe_ris_updates(bundesland):
+    """
+    Prüft Rechtsinformationssystem Österreich auf Updates.
+
+    Args:
+        bundesland: Bundesland (z.B. "tirol", "wien")
+
+    Returns:
+        Dict mit RIS-Status
+    """
+    try:
+        from orion_kb_validation import check_ris_updates
+        return check_ris_updates(bundesland)
+    except ImportError:
+        return {
+            "status": "warnung",
+            "nachricht": "Bitte manuell auf ris.bka.gv.at prüfen",
+            "link": f"https://www.ris.bka.gv.at/Bundesrecht/"
+        }
+
+
+def pruefe_oib_richtlinien():
+    """
+    Prüft OIB-Richtlinien auf Updates.
+
+    Returns:
+        Dict mit OIB-Status für alle Richtlinien 1-6
+    """
+    try:
+        from orion_kb_validation import check_oib_updates
+        return check_oib_updates()
+    except ImportError:
+        return {
+            "status": "warnung",
+            "nachricht": "Bitte manuell auf oib.or.at prüfen",
+            "link": "https://www.oib.or.at",
+            "aktuelle_version": "2023",
+            "hinweis": "OIB-Richtlinien werden ca. alle 3 Jahre aktualisiert"
+        }
+
+
+def pruefe_oenorm(norm_nummer):
+    """
+    Prüft ÖNORM-Standard auf Aktualität.
+
+    Args:
+        norm_nummer: ÖNORM-Nummer (z.B. "B 1800", "A 6240")
+
+    Returns:
+        Dict mit ÖNORM-Status
+    """
+    try:
+        from orion_kb_validation import check_oenorm_updates
+        return check_oenorm_updates(norm_nummer)
+    except ImportError:
+        return {
+            "status": "warnung",
+            "nachricht": f"Bitte ÖNORM {norm_nummer} manuell prüfen",
+            "link": "https://www.austrian-standards.at",
+            "hinweis": "ÖNORM-Standards sind kostenpflichtig"
+        }
+
+
+def pruefe_naturgefahren(plz=None, gemeinde=None):
+    """
+    Prüft Naturgefahren über hora.gv.at.
+
+    Args:
+        plz: Postleitzahl (optional)
+        gemeinde: Gemeindename (optional)
+
+    Returns:
+        Dict mit Naturgefahren-Informationen
+    """
+    try:
+        from orion_kb_validation import check_naturgefahren
+        return check_naturgefahren(plz=plz, gemeinde=gemeinde)
+    except ImportError:
+        result = {
+            "status": "info",
+            "nachricht": "Bitte manuell auf hora.gv.at prüfen",
+            "link": "https://www.hora.gv.at",
+            "gefahren": [
+                "Hochwasser (HQ30, HQ100, HQ300)",
+                "Lawinen (ab ca. 1200m Seehöhe)",
+                "Hangwasser und Rutschungen"
+            ]
+        }
+        if plz:
+            result["plz"] = plz
+        if gemeinde:
+            result["gemeinde"] = gemeinde
+        return result
+
+
+def generiere_validierungsbericht(bundesland=None, format="text"):
+    """
+    Generiert vollständigen Validierungsbericht der Wissensdatenbank.
+
+    Args:
+        bundesland: Bundesland für spezifische Prüfungen (optional)
+        format: Ausgabeformat ("text" oder "json")
+
+    Returns:
+        Formatierter Bericht als String
+    """
+    try:
+        from orion_kb_validation import validate_knowledge_base, export_validation_report
+
+        report = validate_knowledge_base(
+            bundesland=bundesland,
+            include_ris=True,
+            include_oib=True,
+            include_oenorm=True,
+            include_hora=True
+        )
+
+        return export_validation_report(report, format=format)
+
+    except ImportError:
+        if format == "json":
+            return json.dumps({
+                "status": "warnung",
+                "nachricht": "Validation Modul nicht verfügbar",
+                "manuelle_pruefung_erforderlich": True
+            }, indent=2)
+        else:
+            return """
+⚠️ Knowledge Base Validation Modul nicht verfügbar
+
+Bitte manuell prüfen:
+- RIS Austria: https://www.ris.bka.gv.at
+- OIB-Richtlinien: https://www.oib.or.at
+- ÖNORM Standards: https://www.austrian-standards.at
+- Naturgefahren: https://www.hora.gv.at
+"""
+

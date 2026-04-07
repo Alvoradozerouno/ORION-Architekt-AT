@@ -1,0 +1,582 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="GENESIS DUAL-SYSTEM V3.0.1 - Production-ready safety validation for Austrian building compliance. ISO 26262 ASIL-D + EU AI Act compliant.">
+    <meta name="keywords" content="building safety, structural engineering, ISO 26262, EU AI Act, Austrian building codes, Eurocode 5, timber structures, ÖNORM">
+    <meta name="author" content="Elisabeth Steurer, Gerhard Hirschmann">
+
+    <!-- Open Graph / Social Media -->
+    <meta property="og:title" content="GENESIS DUAL-SYSTEM V3.0.1 - Building Safety Validation">
+    <meta property="og:description" content="Production-ready safety validation for Austrian building compliance. ISO 26262 ASIL-D + EU AI Act compliant. Open Source.">
+    <meta property="og:image" content="https://www.genesis-at.com/social-preview.png">
+    <meta property="og:url" content="https://www.genesis-at.com">
+    <meta property="og:type" content="website">
+    <meta property="og:locale" content="de_AT">
+
+    <!-- Twitter Card -->
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="GENESIS DUAL-SYSTEM V3.0.1">
+    <meta name="twitter:description" content="Production-ready safety validation for Austrian building compliance">
+    <meta name="twitter:image" content="https://www.genesis-at.com/social-preview.png">
+
+    <!-- Favicon -->
+    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🏗️</text></svg>">
+
+    <!-- Google Analytics - Replace G-XXXXXXXXXX with your Measurement ID -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-XXXXXXXXXX"></script>
+    <script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){dataLayer.push(arguments);}
+      gtag('js', new Date());
+      gtag('config', 'G-XXXXXXXXXX');
+    </script>
+
+    <title>GENESIS - Building Safety Validation | ISO 26262 + EU AI Act</title>
+
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --primary-blue: #1976D2;
+            --secondary-purple: #673AB7;
+            --success-green: #388E3C;
+            --warning-amber: #FFA000;
+            --error-red: #D32F2F;
+            --bg-light: #FAFAFA;
+            --text-dark: #212121;
+            --text-gray: #757575;
+        }
+
+        body {
+            font-family: 'Roboto', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            line-height: 1.6;
+            color: var(--text-dark);
+            background: var(--bg-light);
+        }
+
+        /* Header / Navigation */
+        header {
+            background: linear-gradient(135deg, var(--primary-blue) 0%, var(--secondary-purple) 100%);
+            color: white;
+            padding: 1rem 0;
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+
+        nav {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0 2rem;
+        }
+
+        .logo {
+            font-size: 1.5rem;
+            font-weight: bold;
+            font-family: 'Courier New', monospace;
+        }
+
+        nav ul {
+            display: flex;
+            list-style: none;
+            gap: 2rem;
+        }
+
+        nav a {
+            color: white;
+            text-decoration: none;
+            font-weight: 500;
+            transition: opacity 0.3s;
+        }
+
+        nav a:hover {
+            opacity: 0.8;
+        }
+
+        /* Hero Section */
+        .hero {
+            background: linear-gradient(135deg, var(--primary-blue) 0%, var(--secondary-purple) 100%);
+            color: white;
+            padding: 6rem 2rem;
+            text-align: center;
+        }
+
+        .hero h1 {
+            font-size: 3.5rem;
+            font-weight: bold;
+            margin-bottom: 1rem;
+            font-family: 'Courier New', monospace;
+        }
+
+        .hero p {
+            font-size: 1.5rem;
+            margin-bottom: 2rem;
+            opacity: 0.95;
+        }
+
+        .badges {
+            display: flex;
+            justify-content: center;
+            gap: 1rem;
+            flex-wrap: wrap;
+            margin: 2rem 0;
+        }
+
+        .badge {
+            background: rgba(255,255,255,0.2);
+            padding: 0.5rem 1rem;
+            border-radius: 20px;
+            font-size: 0.9rem;
+            backdrop-filter: blur(10px);
+        }
+
+        .cta-buttons {
+            display: flex;
+            gap: 1rem;
+            justify-content: center;
+            flex-wrap: wrap;
+            margin-top: 2rem;
+        }
+
+        .btn {
+            padding: 1rem 2rem;
+            border: none;
+            border-radius: 8px;
+            font-size: 1.1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.3s, box-shadow 0.3s;
+            text-decoration: none;
+            display: inline-block;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 16px rgba(0,0,0,0.2);
+        }
+
+        .btn-primary {
+            background: white;
+            color: var(--primary-blue);
+        }
+
+        .btn-secondary {
+            background: transparent;
+            color: white;
+            border: 2px solid white;
+        }
+
+        /* Features Section */
+        .section {
+            max-width: 1200px;
+            margin: 4rem auto;
+            padding: 0 2rem;
+        }
+
+        .section h2 {
+            font-size: 2.5rem;
+            text-align: center;
+            margin-bottom: 3rem;
+            color: var(--primary-blue);
+        }
+
+        .features-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 2rem;
+        }
+
+        .feature-card {
+            background: white;
+            padding: 2rem;
+            border-radius: 12px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+            transition: transform 0.3s, box-shadow 0.3s;
+        }
+
+        .feature-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 24px rgba(0,0,0,0.15);
+        }
+
+        .feature-icon {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+        }
+
+        .feature-card h3 {
+            font-size: 1.5rem;
+            margin-bottom: 1rem;
+            color: var(--primary-blue);
+        }
+
+        /* Stats Section */
+        .stats {
+            background: linear-gradient(135deg, var(--primary-blue) 0%, var(--secondary-purple) 100%);
+            color: white;
+            padding: 4rem 2rem;
+            margin: 4rem 0;
+        }
+
+        .stats-grid {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 2rem;
+            text-align: center;
+        }
+
+        .stat-item h3 {
+            font-size: 3rem;
+            font-weight: bold;
+            margin-bottom: 0.5rem;
+        }
+
+        .stat-item p {
+            font-size: 1.1rem;
+            opacity: 0.9;
+        }
+
+        /* Demo Form */
+        .demo-form {
+            background: white;
+            padding: 3rem;
+            border-radius: 12px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 500;
+            color: var(--text-dark);
+        }
+
+        .form-group input,
+        .form-group select,
+        .form-group textarea {
+            width: 100%;
+            padding: 0.75rem;
+            border: 2px solid #E0E0E0;
+            border-radius: 8px;
+            font-size: 1rem;
+            font-family: inherit;
+            transition: border-color 0.3s;
+        }
+
+        .form-group input:focus,
+        .form-group select:focus,
+        .form-group textarea:focus {
+            outline: none;
+            border-color: var(--primary-blue);
+        }
+
+        /* Footer */
+        footer {
+            background: #212121;
+            color: white;
+            padding: 3rem 2rem;
+            margin-top: 4rem;
+        }
+
+        .footer-content {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 2rem;
+        }
+
+        .footer-section h4 {
+            margin-bottom: 1rem;
+            color: var(--warning-amber);
+        }
+
+        .footer-section ul {
+            list-style: none;
+        }
+
+        .footer-section a {
+            color: #BDBDBD;
+            text-decoration: none;
+            transition: color 0.3s;
+        }
+
+        .footer-section a:hover {
+            color: white;
+        }
+
+        .copyright {
+            text-align: center;
+            margin-top: 2rem;
+            padding-top: 2rem;
+            border-top: 1px solid #424242;
+            color: #757575;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .hero h1 {
+                font-size: 2.5rem;
+            }
+
+            .hero p {
+                font-size: 1.2rem;
+            }
+
+            nav ul {
+                flex-direction: column;
+                gap: 1rem;
+            }
+
+            .cta-buttons {
+                flex-direction: column;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Navigation -->
+    <header>
+        <nav>
+            <div class="logo">GENESIS V3.0.1</div>
+            <ul>
+                <li><a href="#features">Features</a></li>
+                <li><a href="#demo">Demo</a></li>
+                <li><a href="#docs">Docs</a></li>
+                <li><a href="#pricing">Pricing</a></li>
+                <li><a href="https://github.com/Alvoradozerouno/ORION-Architekt-AT" target="_blank">GitHub</a></li>
+            </ul>
+        </nav>
+    </header>
+
+    <!-- Hero Section -->
+    <section class="hero">
+        <h1>GENESIS</h1>
+        <p>Production-Ready Safety Validation for Building Compliance</p>
+
+        <div class="badges">
+            <span class="badge">✅ TRL 5</span>
+            <span class="badge">🛡️ ISO 26262 ASIL-D</span>
+            <span class="badge">🇪🇺 EU AI Act Article 12</span>
+            <span class="badge">🇦🇹 ÖNORM B 1995-1-1</span>
+            <span class="badge">📖 Open Source</span>
+        </div>
+
+        <div class="cta-buttons">
+            <a href="#demo" class="btn btn-primary">Request Demo</a>
+            <a href="https://github.com/Alvoradozerouno/ORION-Architekt-AT" class="btn btn-secondary" target="_blank">View on GitHub</a>
+        </div>
+    </section>
+
+    <!-- Stats Section -->
+    <section class="stats">
+        <div class="stats-grid">
+            <div class="stat-item">
+                <h3>7,550+</h3>
+                <p>Lines of Production Code</p>
+            </div>
+            <div class="stat-item">
+                <h3>100%</h3>
+                <p>Deterministic & Reproducible</p>
+            </div>
+            <div class="stat-item">
+                <h3>TRL 5</h3>
+                <p>Validated Prototype</p>
+            </div>
+            <div class="stat-item">
+                <h3>7</h3>
+                <p>Compliance Standards</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- Features Section -->
+    <section class="section" id="features">
+        <h2>Key Features</h2>
+        <div class="features-grid">
+            <div class="feature-card">
+                <div class="feature-icon">🏗️</div>
+                <h3>DMACAS</h3>
+                <p>Multi-Agent Collision Avoidance System in C++17 with ISO 26262 ASIL-D safety principles.</p>
+            </div>
+
+            <div class="feature-card">
+                <div class="feature-icon">📐</div>
+                <h3>BSH-Träger EC5-AT</h3>
+                <p>Structural Engineering Validation for timber beams according to ÖNORM B 1995-1-1.</p>
+            </div>
+
+            <div class="feature-card">
+                <div class="feature-icon">🔒</div>
+                <h3>Audit Trail</h3>
+                <p>SHA-256 cryptographic chain for EU AI Act Article 12 compliance with 7-year retention.</p>
+            </div>
+
+            <div class="feature-card">
+                <div class="feature-icon">✅</div>
+                <h3>Deterministic</h3>
+                <p>100% reproducible calculations verified with 20 identical runs.</p>
+            </div>
+
+            <div class="feature-card">
+                <div class="feature-icon">🔓</div>
+                <h3>Open Source</h3>
+                <p>Apache 2.0 license - no blackbox, full transparency for compliance verification.</p>
+            </div>
+
+            <div class="feature-card">
+                <div class="feature-icon">🎓</div>
+                <h3>Academic Validated</h3>
+                <p>Fraunhofer IKS reviewed design, TU Wien collaboration, academic citations.</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- Demo Request Section -->
+    <section class="section" id="demo">
+        <h2>Request a Demo</h2>
+        <div class="demo-form">
+            <form id="demo-request-form" action="https://formsubmit.co/esteurer72@gmail.com" method="POST">
+                <!-- FormSubmit Configuration -->
+                <input type="hidden" name="_subject" value="GENESIS Demo Request">
+                <input type="hidden" name="_captcha" value="false">
+                <input type="hidden" name="_template" value="table">
+
+                <div class="form-group">
+                    <label for="name">Name *</label>
+                    <input type="text" id="name" name="name" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="email">Email *</label>
+                    <input type="email" id="email" name="email" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="company">Company / Institution</label>
+                    <input type="text" id="company" name="company">
+                </div>
+
+                <div class="form-group">
+                    <label for="role">Role *</label>
+                    <select id="role" name="role" required>
+                        <option value="">Select your role</option>
+                        <option value="ziviltechniker">Ziviltechniker</option>
+                        <option value="engineer">Structural Engineer</option>
+                        <option value="architect">Architect</option>
+                        <option value="researcher">Researcher / Academic</option>
+                        <option value="student">Student</option>
+                        <option value="investor">Investor</option>
+                        <option value="other">Other</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="message">Message</label>
+                    <textarea id="message" name="message" rows="4" placeholder="Tell us about your use case..."></textarea>
+                </div>
+
+                <button type="submit" class="btn btn-primary" style="width: 100%;">Request Demo</button>
+            </form>
+
+            <div id="form-success" style="display: none; margin-top: 1rem; padding: 1rem; background: #E8F5E9; border-radius: 8px; color: #2E7D32;">
+                ✅ Thank you! We'll contact you within 24 hours.
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer>
+        <div class="footer-content">
+            <div class="footer-section">
+                <h4>GENESIS</h4>
+                <p>Production-ready safety validation for Austrian building compliance.</p>
+                <p style="margin-top: 1rem;">
+                    <strong>Status:</strong> TRL 5<br>
+                    <strong>Version:</strong> 3.0.1<br>
+                    <strong>License:</strong> Apache 2.0
+                </p>
+            </div>
+
+            <div class="footer-section">
+                <h4>Resources</h4>
+                <ul>
+                    <li><a href="https://github.com/Alvoradozerouno/ORION-Architekt-AT">GitHub Repository</a></li>
+                    <li><a href="#">Documentation</a></li>
+                    <li><a href="#">API Reference</a></li>
+                    <li><a href="#">Research Papers</a></li>
+                    <li><a href="#">Zenodo DOI</a></li>
+                </ul>
+            </div>
+
+            <div class="footer-section">
+                <h4>Company</h4>
+                <ul>
+                    <li><a href="#">About Us</a></li>
+                    <li><a href="#">Team</a></li>
+                    <li><a href="#">Careers</a></li>
+                    <li><a href="#">Contact</a></li>
+                    <li><a href="#">Press Kit</a></li>
+                </ul>
+            </div>
+
+            <div class="footer-section">
+                <h4>Contact</h4>
+                <p>
+                    <strong>Email:</strong><br>
+                    esteurer72@gmail.com
+                </p>
+                <p style="margin-top: 1rem;">
+                    <strong>Location:</strong><br>
+                    Almdorf 9<br>
+                    6380 St. Johann in Tirol<br>
+                    Austria
+                </p>
+            </div>
+        </div>
+
+        <div class="copyright">
+            <p>&copy; 2024-2026 Elisabeth Steurer & Gerhard Hirschmann. All rights reserved.</p>
+            <p style="margin-top: 0.5rem;">GENESIS DUAL-SYSTEM V3.0.1 | Open Source | Apache License 2.0</p>
+        </div>
+    </footer>
+
+    <script>
+        // Demo form submission - FormSubmit handles the actual sending
+        document.getElementById('demo-request-form').addEventListener('submit', function(e) {
+            // FormSubmit will handle the submission via POST
+            // No need to prevent default - let the form submit naturally
+            console.log('Demo request submitted via FormSubmit');
+        });
+
+        // Smooth scroll for navigation
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                e.preventDefault();
+                const target = document.querySelector(this.getAttribute('href'));
+                if (target) {
+                    target.scrollIntoView({behavior: 'smooth', block: 'start'});
+                }
+            });
+        });
+    </script>
+</body>
+</html>

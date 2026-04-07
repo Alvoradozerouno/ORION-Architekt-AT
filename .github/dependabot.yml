@@ -1,0 +1,35 @@
+# Dependabot Configuration
+version: 2
+updates:
+  # Enable version updates for Python dependencies
+  - package-ecosystem: "pip"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+    open-pull-requests-limit: 10
+    labels:
+      - "dependencies"
+      - "python"
+    reviewers:
+      - "Alvoradozerouno"
+    assignees:
+      - "Alvoradozerouno"
+
+  # Enable version updates for Python BSH dependencies
+  - package-ecosystem: "pip"
+    directory: "/bsh_ec5_at"
+    schedule:
+      interval: "weekly"
+    open-pull-requests-limit: 5
+    labels:
+      - "dependencies"
+      - "bsh-traeger"
+
+  # Enable version updates for GitHub Actions
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+    labels:
+      - "dependencies"
+      - "github-actions"

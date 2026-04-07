@@ -1,0 +1,12 @@
+User-agent: *
+Allow: /
+
+# Sitemap
+Sitemap: https://www.genesis-at.com/sitemap.xml
+
+# Crawl-delay (polite to servers)
+Crawl-delay: 10
+
+# Disallow admin/private areas (none currently)
+# Disallow: /admin/
+# Disallow: /private/

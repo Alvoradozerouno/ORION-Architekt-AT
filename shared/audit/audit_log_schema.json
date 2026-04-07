@@ -1,0 +1,161 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "GENESIS Audit Log Schema",
+  "description": "EU AI Act Article 12 Compliant Audit Trail",
+  "version": "3.0.1",
+  "type": "object",
+  "properties": {
+    "audit_log_version": {
+      "type": "string",
+      "enum": ["3.0.1"],
+      "description": "Version of the audit log schema"
+    },
+    "system": {
+      "type": "string",
+      "enum": ["GENESIS Dual-System"],
+      "description": "System identifier"
+    },
+    "compliance": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "enum": [
+          "EU AI Act Article 12",
+          "ISO 26262 Part 8",
+          "ONR 24008-1:2014 Section 4.2"
+        ]
+      },
+      "minItems": 1,
+      "description": "Compliance standards met by this audit log"
+    },
+    "entries": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "timestamp": {
+            "type": "string",
+            "format": "date-time",
+            "description": "ISO 8601 timestamp of the decision"
+          },
+          "decision_id": {
+            "type": "integer",
+            "minimum": 1,
+            "description": "Unique identifier for this decision"
+          },
+          "system_component": {
+            "type": "string",
+            "enum": ["DMACAS", "BSH-Träger"],
+            "description": "Which component made the decision"
+          },
+          "input_hash": {
+            "type": "string",
+            "pattern": "^[a-f0-9]{64}$",
+            "description": "SHA-256 hash of input parameters"
+          },
+          "output_hash": {
+            "type": "string",
+            "pattern": "^[a-f0-9]{64}$",
+            "description": "SHA-256 hash of output/decision"
+          },
+          "chain_hash": {
+            "type": "string",
+            "pattern": "^[a-f0-9]{64}$",
+            "description": "SHA-256 hash linking to previous entry (blockchain-like)"
+          },
+          "computation_time_ms": {
+            "type": "number",
+            "minimum": 0,
+            "maximum": 200,
+            "description": "Time taken for computation in milliseconds"
+          },
+          "wcet_satisfied": {
+            "type": "boolean",
+            "description": "Whether Worst-Case Execution Time constraint was satisfied"
+          },
+          "input_parameters": {
+            "type": "object",
+            "description": "Optional: Actual input parameters for reproducibility"
+          },
+          "output_result": {
+            "type": "object",
+            "description": "Optional: Actual output result for reproducibility"
+          },
+          "safety_classification": {
+            "type": "string",
+            "enum": ["SAFE", "WARNING", "CAUTION", "CRITICAL", "UNSAFE"],
+            "description": "Safety classification of the decision"
+          },
+          "validation_status": {
+            "type": "string",
+            "enum": ["validated", "tested", "implemented", "not_started"],
+            "description": "Validation status of this component"
+          }
+        },
+        "required": [
+          "timestamp",
+          "decision_id",
+          "system_component",
+          "input_hash",
+          "output_hash",
+          "chain_hash"
+        ],
+        "additionalProperties": true
+      },
+      "minItems": 1,
+      "description": "Array of audit log entries"
+    },
+    "retention_policy": {
+      "type": "string",
+      "enum": ["7 years"],
+      "description": "Legal retention period (EU AI Act requirement)"
+    },
+    "hash_algorithm": {
+      "type": "string",
+      "enum": ["SHA-256"],
+      "description": "Cryptographic hash algorithm used"
+    },
+    "export_format": {
+      "type": "string",
+      "enum": ["JSON"],
+      "description": "Format for audit log export"
+    },
+    "reproducible": {
+      "type": "boolean",
+      "const": true,
+      "description": "Guarantee that decisions are reproducible"
+    },
+    "metadata": {
+      "type": "object",
+      "properties": {
+        "project_id": {
+          "type": "string",
+          "description": "Project identifier"
+        },
+        "location": {
+          "type": "string",
+          "description": "Physical location (e.g., building address)"
+        },
+        "responsible_engineer": {
+          "type": "string",
+          "description": "Name of responsible engineer/architect"
+        },
+        "regulatory_authority": {
+          "type": "string",
+          "description": "Relevant building authority (e.g., Magistrat Wien)"
+        }
+      },
+      "description": "Optional metadata for context"
+    }
+  },
+  "required": [
+    "audit_log_version",
+    "system",
+    "compliance",
+    "entries",
+    "retention_policy",
+    "hash_algorithm",
+    "reproducible"
+  ],
+  "additionalProperties": false
+}

@@ -8,6 +8,20 @@ Standards Compliance:
 - ÖNORM requirements for verifiable calculations
 """
 
-from .state_taxonomy import EpistemicState, KnowledgeType, VerificationLevel
+from .state_taxonomy import (
+    EpistemicState,
+    KnowledgeType,
+    VerificationLevel,
+    create_verified_state,
+    create_estimated_state,
+    create_unknown_state,
+)
 
-__all__ = ["EpistemicState", "KnowledgeType", "VerificationLevel"]
+__all__ = [
+    "EpistemicState",
+    "KnowledgeType",
+    "VerificationLevel",
+    "create_verified_state",
+    "create_estimated_state",
+    "create_unknown_state",
+]

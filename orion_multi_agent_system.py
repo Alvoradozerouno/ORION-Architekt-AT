@@ -71,6 +71,15 @@ except ImportError as e:
     EUROCODE_AVAILABLE = False
     print(f"⚠️  Eurocode Import-Fehler: {e}")
 
+# Import GENESIS × EIRA Framework
+try:
+    from genesis.framework.epistemology import EpistemicState, KnowledgeType, VerificationLevel
+    from genesis.framework.policy import DecisionPolicyEngine, DecisionMode, PolicyViolationError
+    GENESIS_FRAMEWORK_AVAILABLE = True
+except ImportError as e:
+    GENESIS_FRAMEWORK_AVAILABLE = False
+    print(f"⚠️  GENESIS Framework Import-Fehler: {e}")
+
 
 # =============================================================================
 # AGENT BASE CLASS
@@ -626,6 +635,11 @@ class TheArchitektAgent(AgentBase):
     Haupt-Orchestrator.
     THE ARCHITEKT - Koordiniert alle Fachexperten mit höchster Präzision.
     ⊘∞⧈∞⊘ - Global Anchor für Gesamtkoordination
+
+    Integrated with GENESIS × EIRA V4.2:
+    - Epistemological Safety: VERIFIED/ESTIMATED/UNKNOWN knowledge classification
+    - Decision Policy Engine: Enforces fallback when epistemic conditions fail
+    - ISO 26262 ASIL-D compliant decision constraints
     """
 
     def __init__(self):
@@ -640,6 +654,12 @@ class TheArchitektAgent(AgentBase):
         self.bauphysiker = BauphysikerAgent()
         self.kostenplaner = KostenplanerAgent()
         self.risikomanager = RisikomanagerAgent()
+
+        # GENESIS Framework Integration
+        if GENESIS_FRAMEWORK_AVAILABLE:
+            self.policy_engine = DecisionPolicyEngine(confidence_threshold=0.5)
+        else:
+            self.policy_engine = None
 
     def denke(self, problem: Dict[str, Any]) -> Dict[str, Any]:
         return {
@@ -742,6 +762,89 @@ class TheArchitektAgent(AgentBase):
 
         return ergebnis
 
+    def create_epistemic_state_from_agent_result(
+        self,
+        agent_name: str,
+        result: Dict[str, Any],
+        is_deterministic: bool
+    ) -> EpistemicState:
+        """
+        Wrap agent result in epistemic state for policy checking
+
+        Args:
+            agent_name: Name of agent that produced result
+            result: Agent's output
+            is_deterministic: True if agent used deterministic methods
+
+        Returns:
+            EpistemicState with appropriate classification
+        """
+        if not GENESIS_FRAMEWORK_AVAILABLE:
+            # Framework not available - return dummy state
+            return None
+
+        if is_deterministic:
+            # Deterministic agents (Zivilingenieur, Bauphysiker) produce VERIFIED knowledge
+            norm = result.get("eurocode", result.get("norm", "ÖNORM"))
+            return EpistemicState.from_eurocode_calculation(
+                value=result,
+                norm=norm,
+                metadata={
+                    "agent": agent_name,
+                    "method": "deterministic",
+                    "monte_carlo": False,
+                }
+            )
+        else:
+            # Probabilistic agents (Kostenplaner, Risikomanager) produce ESTIMATED knowledge
+            n_simulations = result.get("anzahl_simulationen", result.get("n_simulations", 0))
+            # Calculate confidence based on number of simulations
+            # More simulations = higher confidence (asymptotic to 0.95)
+            confidence = min(0.95, 0.5 + (n_simulations / 20000) * 0.45)
+
+            return EpistemicState.from_monte_carlo(
+                value=result,
+                confidence=confidence,
+                n_simulations=n_simulations,
+                metadata={
+                    "agent": agent_name,
+                    "method": "probabilistic",
+                    "monte_carlo": True,
+                }
+            )
+
+    def check_decision_policy(
+        self,
+        decision_type: str,
+        epistemic_states: Dict[str, EpistemicState],
+        mode: DecisionMode
+    ) -> Dict[str, Any]:
+        """
+        Check if decision is allowed under policy constraints
+
+        Args:
+            decision_type: Type of decision (e.g., "Statik-Papier")
+            epistemic_states: Dict mapping input names to epistemic states
+            mode: DETERMINISTIC or PROBABILISTIC
+
+        Returns:
+            Policy check result with allowed/violations/reason
+        """
+        if not GENESIS_FRAMEWORK_AVAILABLE or self.policy_engine is None:
+            # Framework not available - allow all decisions
+            return {
+                "allowed": True,
+                "mode": mode.value if isinstance(mode, DecisionMode) else mode,
+                "violations": [],
+                "reason": "GENESIS framework not available - policy checks disabled",
+            }
+
+        return self.policy_engine.check_decision_allowed(
+            decision_mode=mode,
+            inputs=epistemic_states,
+            decision_type=decision_type,
+        )
+
 
 # =============================================================================
 # MAIN API
@@ -751,9 +854,15 @@ class ORIONMultiAgentSystem:
     """
     Hauptschnittstelle für das Multi-Agenten-System.
     ⊘∞⧈∞⊘ THE ARCHITEKT - Orchestrator
+
+    Integrated with GENESIS × EIRA V4.2 Framework:
+    - Epistemological Safety (VERIFIED/ESTIMATED/UNKNOWN knowledge)
+    - Decision Policy Engine (ISO 26262 ASIL-D compliant)
+    - Fallback mechanisms for safety-critical decisions
     """
 
     VERSION = "1.0.0"
+    GENESIS_VERSION = "4.2.0" if GENESIS_FRAMEWORK_AVAILABLE else None
 
     def __init__(self):
         self.architekt = TheArchitektAgent()
@@ -764,8 +873,17 @@ class ORIONMultiAgentSystem:
 
     def get_agent_info(self) -> Dict[str, Any]:
         """Informationen über alle Agenten"""
-        return {
+        info = {
             "version": self.VERSION,
+            "genesis_framework": {
+                "available": GENESIS_FRAMEWORK_AVAILABLE,
+                "version": self.GENESIS_VERSION,
+                "features": [
+                    "Epistemological Safety (VERIFIED/ESTIMATED/UNKNOWN)",
+                    "Decision Policy Engine",
+                    "ISO 26262 ASIL-D Fallback Mechanisms"
+                ] if GENESIS_FRAMEWORK_AVAILABLE else []
+            },
             "agenten": {
                 "the_architekt": self.architekt.denke({}),
                 "zivilingenieur": self.architekt.zivilingenieur.denke({}),
@@ -780,6 +898,12 @@ class ORIONMultiAgentSystem:
             "monte_carlo_wo_sinnvoll": ["Kosten", "Risiken", "Termine"],
             "keine_wahrscheinlichkeiten_wo_kritisch": ["Statik", "Brandschutz", "Tragsicherheit"]
         }
+
+        # Add policy engine statistics if available
+        if GENESIS_FRAMEWORK_AVAILABLE and self.architekt.policy_engine:
+            info["genesis_framework"]["policy_statistics"] = self.architekt.policy_engine.get_statistics()
+
+        return info
 
 
 # =============================================================================

@@ -24,7 +24,8 @@ from api.routers import (
     reports,
     ai_recommendations,
     bim_integration,
-    collaboration
+    collaboration,
+    tendering
 )
 from api.middleware import RateLimitMiddleware, LoggingMiddleware
 from api.middleware.auth import router as auth_router
@@ -57,6 +58,7 @@ app = FastAPI(
     * 🏗️ **BIM Integration** - UNIQUE: IFC file processing
     * 👥 **Real-time Collaboration** - UNIQUE: Multi-user project work
     * 📊 **Advanced Analytics** - Performance metrics and insights
+    * 📝 **ÖNORM A 2063 Tendering** - UNIQUE: Professional Austrian tendering system
 
     ## Authentication
 
@@ -84,6 +86,7 @@ app = FastAPI(
         {"name": "validation", "description": "Knowledge base validation"},
         {"name": "bundesland", "description": "Bundesland-specific regulations"},
         {"name": "reports", "description": "Generate comprehensive reports"},
+        {"name": "tendering", "description": "📝 ÖNORM A 2063 Tendering & Bid Management (UNIQUE)"},
         {"name": "ai", "description": "🤖 AI-powered recommendations (UNIQUE)"},
         {"name": "bim", "description": "🏗️ BIM integration (UNIQUE)"},
         {"name": "collaboration", "description": "👥 Real-time collaboration (UNIQUE)"},
@@ -113,6 +116,7 @@ app.include_router(compliance.router, prefix="/api/v1/compliance", tags=["compli
 app.include_router(validation.router, prefix="/api/v1/validation", tags=["validation"])
 app.include_router(bundesland.router, prefix="/api/v1/bundesland", tags=["bundesland"])
 app.include_router(reports.router, prefix="/api/v1/reports", tags=["reports"])
+app.include_router(tendering.router, tags=["tendering"])  # Uses own prefix
 app.include_router(ai_recommendations.router, prefix="/api/v1/ai", tags=["ai"])
 app.include_router(bim_integration.router, prefix="/api/v1/bim", tags=["bim"])
 app.include_router(collaboration.router, prefix="/api/v1/collaboration", tags=["collaboration"])

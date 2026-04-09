@@ -52,6 +52,8 @@ class LVPosition:
         kostengruppe: ÖNORM B 1801-1 Kostengruppe (300-700)
         bim_ref: Optional: IFC-GUID für BIM-Integration
         stlb_code: Optional: StLB-BAU Positionscode
+        version: Versionsnummer der Position
+        aenderungs_historie: Liste der Änderungen
     """
     oz: str
     kurztext: str
@@ -64,10 +66,176 @@ class LVPosition:
     kostengruppe: int = 300
     bim_ref: Optional[str] = None
     stlb_code: Optional[str] = None
+    version: str = "1.0"
+    aenderungs_historie: Optional[List[Dict[str, Any]]] = None
 
     def __post_init__(self):
         """Berechne Gesamtpreis automatisch"""
         self.gp = round(self.menge * self.ep, 2)
+        if self.aenderungs_historie is None:
+            self.aenderungs_historie = []
+
+
+@dataclass
+class LVAenderung:
+    """
+    Dokumentiert eine Änderung im Leistungsverzeichnis
+
+    Attributes:
+        timestamp: Zeitstempel der Änderung
+        version: Versionsnummer nach Änderung
+        autor: Person/System, das die Änderung durchgeführt hat
+        aenderung_typ: Art der Änderung (ERSTELLT, GEAENDERT, GELOESCHT)
+        betroffene_positionen: Liste der OZ-Nummern
+        beschreibung: Textuelle Beschreibung der Änderung
+        checksum: SHA-256 Hash des geänderten LV-Stands
+    """
+    timestamp: str
+    version: str
+    autor: str
+    aenderung_typ: str  # ERSTELLT, GEAENDERT, GELOESCHT
+    betroffene_positionen: List[str]
+    beschreibung: str
+    checksum: str = ""
+
+    def __post_init__(self):
+        if not self.checksum:
+            # Generate checksum from change data
+            data = f"{self.timestamp}{self.version}{self.aenderung_typ}{''.join(self.betroffene_positionen)}"
+            self.checksum = hashlib.sha256(data.encode()).hexdigest()[:16]
+
+
+def erstelle_lv_aenderung(
+    positionen_alt: List[LVPosition],
+    positionen_neu: List[LVPosition],
+    version_neu: str,
+    autor: str = "THE ARCHITEKT"
+) -> LVAenderung:
+    """
+    Erstellt Änderungsdokumentation zwischen zwei LV-Versionen
+
+    Args:
+        positionen_alt: Alte LV-Positionen
+        positionen_neu: Neue LV-Positionen
+        version_neu: Versionsnummer der neuen Version
+        autor: Autor der Änderung
+
+    Returns:
+        LVAenderung mit Details zu allen Änderungen
+    """
+    oz_alt = {p.oz for p in positionen_alt}
+    oz_neu = {p.oz for p in positionen_neu}
+
+    gelöscht = oz_alt - oz_neu
+    hinzugefügt = oz_neu - oz_alt
+    geändert = []
+
+    # Check for changes in existing positions
+    for pos_neu in positionen_neu:
+        if pos_neu.oz in oz_alt:
+            pos_alt = next(p for p in positionen_alt if p.oz == pos_neu.oz)
+            if (pos_neu.menge != pos_alt.menge or
+                pos_neu.ep != pos_alt.ep or
+                pos_neu.kurztext != pos_alt.kurztext):
+                geändert.append(pos_neu.oz)
+
+    beschreibung_teile = []
+    if hinzugefügt:
+        beschreibung_teile.append(f"{len(hinzugefügt)} neue Positionen")
+    if geändert:
+        beschreibung_teile.append(f"{len(geändert)} geänderte Positionen")
+    if gelöscht:
+        beschreibung_teile.append(f"{len(gelöscht)} gelöschte Positionen")
+
+    aenderung_typ = "GEAENDERT"
+    if not positionen_alt:
+        aenderung_typ = "ERSTELLT"
+    elif not positionen_neu:
+        aenderung_typ = "GELOESCHT"
+
+    betroffene = list(hinzugefügt) + geändert + list(gelöscht)
+
+    return LVAenderung(
+        timestamp=datetime.now(timezone.utc).isoformat().replace('+00:00', 'Z'),
+        version=version_neu,
+        autor=autor,
+        aenderung_typ=aenderung_typ,
+        betroffene_positionen=sorted(betroffene),
+        beschreibung=", ".join(beschreibung_teile) if beschreibung_teile else "Keine Änderungen",
+    )
+
+
+def vergleiche_lv_versionen(
+    positionen_v1: List[LVPosition],
+    positionen_v2: List[LVPosition]
+) -> Dict[str, Any]:
+    """
+    Vergleicht zwei LV-Versionen und zeigt Unterschiede
+
+    Args:
+        positionen_v1: LV Version 1
+        positionen_v2: LV Version 2
+
+    Returns:
+        Dict mit detailliertem Versionsvergleich
+    """
+    oz_v1 = {p.oz for p in positionen_v1}
+    oz_v2 = {p.oz for p in positionen_v2}
+
+    neu = oz_v2 - oz_v1
+    gelöscht = oz_v1 - oz_v2
+    geändert_details = []
+
+    for pos_v2 in positionen_v2:
+        if pos_v2.oz in oz_v1:
+            pos_v1 = next(p for p in positionen_v1 if p.oz == pos_v2.oz)
+
+            änderungen = []
+            if pos_v2.menge != pos_v1.menge:
+                änderungen.append(f"Menge: {pos_v1.menge} → {pos_v2.menge}")
+            if pos_v2.ep != pos_v1.ep:
+                änderungen.append(f"EP: {pos_v1.ep} € → {pos_v2.ep} €")
+            if pos_v2.kurztext != pos_v1.kurztext:
+                änderungen.append("Kurztext geändert")
+
+            if änderungen:
+                geändert_details.append({
+                    "oz": pos_v2.oz,
+                    "kurztext": pos_v2.kurztext,
+                    "änderungen": änderungen,
+                    "gp_alt": pos_v1.gp,
+                    "gp_neu": pos_v2.gp,
+                    "differenz_eur": round(pos_v2.gp - pos_v1.gp, 2),
+                })
+
+    return {
+        "anzahl_neu": len(neu),
+        "anzahl_geloescht": len(gelöscht),
+        "anzahl_geaendert": len(geändert_details),
+        "neue_positionen": sorted(list(neu)),
+        "geloeschte_positionen": sorted(list(gelöscht)),
+        "geaenderte_positionen": geändert_details,
+        "zusammenfassung": f"{len(neu)} neu, {len(geändert_details)} geändert, {len(gelöscht)} gelöscht",
+    }
+
+
+# ═══════════════════════════════════════════════════════════════════════════
+# VERSCHNITT- UND VERLUSTZUSCHLÄGE (Österreich-spezifisch)
+# ═══════════════════════════════════════════════════════════════════════════
+
+WASTE_FACTORS_AT = {
+    # Quelle: Österreichische Baupraxis, BKI-Baukosten 2024
+    "beton": 0.03,           # 3% Verschnitt bei Betonarbeiten
+    "mauerwerk": 0.08,       # 8% Verschnitt bei Mauersteinen
+    "estrich": 0.05,         # 5% Verschnitt bei Estrichen
+    "erdarbeiten": 0.10,     # 10% Auflockerung + Sackung bei Erdarbeiten
+    "holz": 0.06,            # 6% Verschnitt bei Holzkonstruktionen
+    "dachziegel": 0.10,      # 10% Verschnitt bei Dachziegeln
+    "gipskarton": 0.12,      # 12% Verschnitt bei Trockenbau
+    "fliesen": 0.08,         # 8% Verschnitt bei Fliesenarbeiten
+    "putz": 0.05,            # 5% Verschnitt bei Putzarbeiten
+    "default": 0.05,         # 5% Standard für sonstige Gewerke
+}
 
 
 # ═══════════════════════════════════════════════════════════════════════════
@@ -151,6 +319,260 @@ GEWERKE_KATALOG_AT = {
 
 
 # ═══════════════════════════════════════════════════════════════════════════
+# BAUPHASEN-STRUKTUR (Österreich-spezifisch)
+# ═══════════════════════════════════════════════════════════════════════════
+
+BAUPHASEN_AT = {
+    "01_rohbau": {
+        "name": "Rohbau",
+        "beschreibung": "Erdarbeiten, Fundamente, Mauerwerk, Decken, Dach",
+        "kostengruppen": [300, 310, 320, 330, 360],
+        "phase_prozent": 0.45,  # Ca. 45% der Baukosten
+    },
+    "02_ausbau": {
+        "name": "Innenausbau",
+        "beschreibung": "Fenster, Türen, Estrich, Böden, Sanitär, Elektro, HLK",
+        "kostengruppen": [330, 340, 370, 440, 450, 460],
+        "phase_prozent": 0.40,  # Ca. 40% der Baukosten
+    },
+    "03_fertigstellung": {
+        "name": "Fertigstellung",
+        "beschreibung": "Maler, Fliesen, Außenanlagen",
+        "kostengruppen": [370, 500],
+        "phase_prozent": 0.15,  # Ca. 15% der Baukosten
+    },
+}
+
+
+# ═══════════════════════════════════════════════════════════════════════════
+# REGIONALE KOSTENFAKTOREN (9 Bundesländer Österreichs)
+# ═══════════════════════════════════════════════════════════════════════════
+
+REGIONALE_FAKTOREN_AT = {
+    "wien": {
+        "name": "Wien",
+        "faktor": 1.15,  # 15% höher als Durchschnitt
+        "beschreibung": "Metropolregion, höhere Lohn- und Materialkosten",
+        "lohnkosten_index": 115,
+        "materialkosten_index": 110,
+    },
+    "tirol": {
+        "name": "Tirol",
+        "faktor": 1.12,  # 12% höher
+        "beschreibung": "Bergregion, höhere Transport- und Logistikkosten",
+        "lohnkosten_index": 112,
+        "materialkosten_index": 115,
+    },
+    "vorarlberg": {
+        "name": "Vorarlberg",
+        "faktor": 1.10,  # 10% höher
+        "beschreibung": "Grenzregion, hohe Lohnkosten",
+        "lohnkosten_index": 114,
+        "materialkosten_index": 108,
+    },
+    "salzburg": {
+        "name": "Salzburg",
+        "faktor": 1.08,  # 8% höher
+        "beschreibung": "Tourismusregion, mittlere bis hohe Kosten",
+        "lohnkosten_index": 108,
+        "materialkosten_index": 108,
+    },
+    "oberoesterreich": {
+        "name": "Oberösterreich",
+        "faktor": 1.03,  # 3% höher
+        "beschreibung": "Industrieregion, Durchschnittskosten",
+        "lohnkosten_index": 104,
+        "materialkosten_index": 102,
+    },
+    "niederoesterreich": {
+        "name": "Niederösterreich",
+        "faktor": 1.00,  # Referenz
+        "beschreibung": "Referenzregion, Durchschnittskosten",
+        "lohnkosten_index": 100,
+        "materialkosten_index": 100,
+    },
+    "steiermark": {
+        "name": "Steiermark",
+        "faktor": 0.98,  # 2% niedriger
+        "beschreibung": "Ländliche Region, leicht unterdurchschnittliche Kosten",
+        "lohnkosten_index": 98,
+        "materialkosten_index": 98,
+    },
+    "kaernten": {
+        "name": "Kärnten",
+        "faktor": 0.96,  # 4% niedriger
+        "beschreibung": "Grenzregion, unterdurchschnittliche Kosten",
+        "lohnkosten_index": 96,
+        "materialkosten_index": 96,
+    },
+    "burgenland": {
+        "name": "Burgenland",
+        "faktor": 0.92,  # 8% niedriger
+        "beschreibung": "Ländliche Region, niedrigste Baukosten",
+        "lohnkosten_index": 92,
+        "materialkosten_index": 92,
+    },
+}
+
+
+def berechne_regionale_anpassung(
+    positionen: List[LVPosition],
+    bundesland: str = "niederoesterreich"
+) -> Dict[str, Any]:
+    """
+    Berechnet regionale Kostenanpassung für ein Bundesland
+
+    Args:
+        positionen: LV-Positionen mit Einheitspreisen
+        bundesland: Bundesland-Schlüssel (lowercase)
+
+    Returns:
+        Dict mit angepassten Kosten und Faktor
+    """
+    bundesland_lower = bundesland.lower().replace("ö", "oe").replace("ü", "ue")
+
+    if bundesland_lower not in REGIONALE_FAKTOREN_AT:
+        bundesland_lower = "niederoesterreich"  # Fallback
+
+    region_info = REGIONALE_FAKTOREN_AT[bundesland_lower]
+    faktor = region_info["faktor"]
+
+    positionen_angepasst = []
+    kosten_original = 0.0
+    kosten_angepasst = 0.0
+
+    for pos in positionen:
+        pos_neu = LVPosition(
+            oz=pos.oz,
+            kurztext=pos.kurztext,
+            langtext=pos.langtext,
+            einheit=pos.einheit,
+            menge=pos.menge,
+            ep=round(pos.ep * faktor, 2),
+            gewerk=pos.gewerk,
+            kostengruppe=pos.kostengruppe,
+            bim_ref=pos.bim_ref,
+            stlb_code=pos.stlb_code,
+        )
+
+        kosten_original += pos.gp
+        kosten_angepasst += pos_neu.gp
+
+        positionen_angepasst.append(pos_neu)
+
+    return {
+        "bundesland": region_info["name"],
+        "faktor": faktor,
+        "beschreibung": region_info["beschreibung"],
+        "lohnkosten_index": region_info["lohnkosten_index"],
+        "materialkosten_index": region_info["materialkosten_index"],
+        "kosten_original_eur": round(kosten_original, 2),
+        "kosten_angepasst_eur": round(kosten_angepasst, 2),
+        "differenz_eur": round(kosten_angepasst - kosten_original, 2),
+        "differenz_prozent": round((faktor - 1.0) * 100, 2),
+        "positionen_angepasst": positionen_angepasst,
+    }
+
+
+# ═══════════════════════════════════════════════════════════════════════════
+# PARAMETRISCHE POSITIONS-TEMPLATES (Wiederverwendbare Bauelemente)
+# ═══════════════════════════════════════════════════════════════════════════
+
+def erstelle_template_erdarbeiten(grundflaeche_m2: float, tiefe_m: float = 3.0) -> LVPosition:
+    """Parametrisches Template: Erdarbeiten mit Auflockerungszuschlag"""
+    menge_netto = grundflaeche_m2 * tiefe_m
+    menge_brutto = round(menge_netto * (1 + WASTE_FACTORS_AT["erdarbeiten"]), 2)
+
+    return LVPosition(
+        oz="01.001",
+        kurztext="Erdarbeiten Aushub",
+        langtext=f"Erdaushub maschinell bis {tiefe_m}m Tiefe, inkl. Zwischenlagerung und Abtransport (inkl. 10% Auflockerungszuschlag)",
+        einheit="m³",
+        menge=menge_brutto,
+        gewerk="01",
+        kostengruppe=300,
+        stlb_code="001.01.001"
+    )
+
+
+def erstelle_template_betondecke(flaeche_m2: float, dicke_cm: int = 20, betonfestigkeitsklasse: str = "C25/30") -> LVPosition:
+    """Parametrisches Template: Stahlbetondecke"""
+    volumen_netto = flaeche_m2 * (dicke_cm / 100)
+    volumen_brutto = round(volumen_netto * (1 + WASTE_FACTORS_AT["beton"]), 2)
+
+    return LVPosition(
+        oz="01.004",
+        kurztext=f"Decke Stahlbeton {dicke_cm}cm",
+        langtext=f"Stahlbetondecke {dicke_cm}cm, {betonfestigkeitsklasse}, bewehrt mit Baustahlgewebe, inkl. Schalung gemäß Statik (inkl. 3% Betonverschnitt)",
+        einheit="m²",
+        menge=flaeche_m2,
+        gewerk="01",
+        kostengruppe=320,
+    )
+
+
+def erstelle_template_mauerwerk(umfang_m: float, hoehe_m: float = 2.5, dicke_cm: int = 25) -> LVPosition:
+    """Parametrisches Template: Mauerwerk mit Verschnittzuschlag"""
+    flaeche_netto = umfang_m * hoehe_m
+    flaeche_brutto = round(flaeche_netto * (1 + WASTE_FACTORS_AT["mauerwerk"]), 2)
+
+    return LVPosition(
+        oz="01.003",
+        kurztext=f"Mauerwerk {dicke_cm}cm",
+        langtext=f"Mauerwerk {dicke_cm}cm, Ziegel HLz {dicke_cm}, vermörtelt, inkl. Horizontalsperre (inkl. 8% Ziegelverschnitt)",
+        einheit="m²",
+        menge=flaeche_brutto,
+        gewerk="01",
+        kostengruppe=320,
+    )
+
+
+def erstelle_template_dacheindeckung(dachflaeche_m2: float, material: str = "Tondachziegel") -> LVPosition:
+    """Parametrisches Template: Dacheindeckung mit Verschnittzuschlag"""
+    flaeche_brutto = round(dachflaeche_m2 * (1 + WASTE_FACTORS_AT["dachziegel"]), 2)
+
+    return LVPosition(
+        oz="03.001",
+        kurztext=f"Dacheindeckung {material}",
+        langtext=f"Dachdeckung {material} Wienerberger Alegra, inkl. Unterdach und Dampfsperre (inkl. 10% Ziegelverschnitt)",
+        einheit="m²",
+        menge=flaeche_brutto,
+        gewerk="03",
+        kostengruppe=360,
+    )
+
+
+def erstelle_template_estrich(nutzflaeche_m2: float, typ: str = "Heizestrich", dicke_cm: int = 6) -> LVPosition:
+    """Parametrisches Template: Estrich mit Verschnittzuschlag"""
+    flaeche_brutto = round(nutzflaeche_m2 * (1 + WASTE_FACTORS_AT["estrich"]), 2)
+
+    return LVPosition(
+        oz="08.001",
+        kurztext=f"{typ} {dicke_cm}cm",
+        langtext=f"{typ} {dicke_cm}cm über Fußbodenheizung, inkl. Dämmung EPS 10cm (inkl. 5% Estrichverschnitt)",
+        einheit="m²",
+        menge=flaeche_brutto,
+        gewerk="08",
+        kostengruppe=370,
+    )
+
+
+def erstelle_template_fenster(anzahl: int, flaeche_m2_pro_stueck: float = 1.5, u_wert: float = 0.9) -> LVPosition:
+    """Parametrisches Template: Fenster nach OIB-RL 6"""
+    flaeche_gesamt = anzahl * flaeche_m2_pro_stueck
+
+    return LVPosition(
+        oz="04.001",
+        kurztext="Fenster Holz-Alu",
+        langtext=f"Fenster Holz-Aluminium, 3-fach-Verglasung Ug=0.7 W/m²K, Uw≤{u_wert} W/m²K nach OIB-RL 6",
+        einheit="m²",
+        menge=round(flaeche_gesamt, 2),
+        gewerk="04",
+        kostengruppe=330,
+    )
+
+
+# ═══════════════════════════════════════════════════════════════════════════
 # LV-GENERATOR: BEISPIELPOSITIONEN FÜR EINFAMILIENHAUS
 # ═══════════════════════════════════════════════════════════════════════════
 
@@ -172,9 +594,9 @@ def generiere_beispiel_lv_einfamilienhaus(bgf_m2: float = 150, geschosse: int = 
         LVPosition(
             oz="01.001",
             kurztext="Erdarbeiten Aushub",
-            langtext="Erdaushub für Keller/Fundament, maschinell, inkl. Zwischenlagerung und Abtransport überschüssiger Erde",
+            langtext="Erdaushub für Keller/Fundament, maschinell, inkl. Zwischenlagerung und Abtransport überschüssiger Erde (inkl. 10% Auflockerungszuschlag)",
             einheit="m³",
-            menge=round(bgf_m2 * 0.8, 2),  # Ca. 80% der BGF für Keller
+            menge=round(bgf_m2 * 0.8 * (1 + WASTE_FACTORS_AT["erdarbeiten"]), 2),
             gewerk="01",
             kostengruppe=300,
             stlb_code="001.01.001"
@@ -182,27 +604,27 @@ def generiere_beispiel_lv_einfamilienhaus(bgf_m2: float = 150, geschosse: int = 
         LVPosition(
             oz="01.002",
             kurztext="Fundament Streifenfundament",
-            langtext="Streifenfundament C25/30, bewehrt, inkl. Schalung und Verdichtung, gemäß Statik",
+            langtext="Streifenfundament C25/30, bewehrt, inkl. Schalung und Verdichtung, gemäß Statik (inkl. 3% Betonverschnitt)",
             einheit="m³",
-            menge=round(bgf_m2 * 0.15, 2),  # Ca. 15% für Fundament
+            menge=round(bgf_m2 * 0.15 * (1 + WASTE_FACTORS_AT["beton"]), 2),
             gewerk="01",
             kostengruppe=310,
         ),
         LVPosition(
             oz="01.003",
             kurztext="Kellermauerwerk 25cm",
-            langtext="Kellermauerwerk 25cm, Ziegel HLz 25, vermörtelt, inkl. Horizontalsperre",
+            langtext="Kellermauerwerk 25cm, Ziegel HLz 25, vermörtelt, inkl. Horizontalsperre (inkl. 8% Ziegelverschnitt)",
             einheit="m²",
-            menge=round((bgf_m2 ** 0.5 * 4) * 2.5, 2) if geschosse >= 1 else 0,  # Umfang × Höhe
+            menge=round((bgf_m2 ** 0.5 * 4) * 2.5 * (1 + WASTE_FACTORS_AT["mauerwerk"]), 2) if geschosse >= 1 else 0,
             gewerk="01",
             kostengruppe=320,
         ),
         LVPosition(
             oz="01.004",
             kurztext="Decke Stahlbeton 20cm",
-            langtext="Stahlbetondecke 20cm, C25/30, bewehrt mit Baustahlgewebe, inkl. Schalung gemäß Statik",
+            langtext="Stahlbetondecke 20cm, C25/30, bewehrt mit Baustahlgewebe, inkl. Schalung gemäß Statik (inkl. 3% Betonverschnitt)",
             einheit="m²",
-            menge=bgf_m2 * (geschosse - 1),  # Eine Decke weniger als Geschosse
+            menge=round(bgf_m2 * (geschosse - 1) * (1 + WASTE_FACTORS_AT["beton"]), 2),
             gewerk="01",
             kostengruppe=320,
         ),
@@ -213,9 +635,9 @@ def generiere_beispiel_lv_einfamilienhaus(bgf_m2: float = 150, geschosse: int = 
         LVPosition(
             oz="02.001",
             kurztext="Dachstuhl Pfettendach",
-            langtext="Pfettendachstuhl, Konstruktionsvollholz C24, inkl. Lattung und Konterlattung, Dachneigung 35°",
+            langtext="Pfettendachstuhl, Konstruktionsvollholz C24, inkl. Lattung und Konterlattung, Dachneigung 35° (inkl. 6% Holzverschnitt)",
             einheit="m²",
-            menge=round(bgf_m2 * 0.7, 2),  # Ca. 70% der BGF als Dachfläche
+            menge=round(bgf_m2 * 0.7 * (1 + WASTE_FACTORS_AT["holz"]), 2),
             gewerk="02",
             kostengruppe=330,
         ),
@@ -226,9 +648,9 @@ def generiere_beispiel_lv_einfamilienhaus(bgf_m2: float = 150, geschosse: int = 
         LVPosition(
             oz="03.001",
             kurztext="Dacheindeckung Ziegel",
-            langtext="Dachdeckung Tondachziegel Wienerberger Alegra, inkl. Unterdach und Dampfsperre",
+            langtext="Dachdeckung Tondachziegel Wienerberger Alegra, inkl. Unterdach und Dampfsperre (inkl. 10% Ziegelverschnitt)",
             einheit="m²",
-            menge=round(bgf_m2 * 0.7, 2),
+            menge=round(bgf_m2 * 0.7 * (1 + WASTE_FACTORS_AT["dachziegel"]), 2),
             gewerk="03",
             kostengruppe=360,
         ),
@@ -309,18 +731,18 @@ def generiere_beispiel_lv_einfamilienhaus(bgf_m2: float = 150, geschosse: int = 
         LVPosition(
             oz="08.001",
             kurztext="Estrich Heizestrich",
-            langtext="Heizestrich 6cm über Fußbodenheizung, inkl. Dämmung EPS 10cm",
+            langtext="Heizestrich 6cm über Fußbodenheizung, inkl. Dämmung EPS 10cm (inkl. 5% Estrichverschnitt)",
             einheit="m²",
-            menge=bgf_m2 * 0.8,  # Ca. 80% der BGF
+            menge=round(bgf_m2 * 0.8 * (1 + WASTE_FACTORS_AT["estrich"]), 2),
             gewerk="08",
             kostengruppe=370,
         ),
         LVPosition(
             oz="08.002",
             kurztext="Bodenbelag Parkett/Fliesen",
-            langtext="Bodenbeläge: Parkett Eiche gebürstet (Wohnbereich), Fliesen (Nassbereiche)",
+            langtext="Bodenbeläge: Parkett Eiche gebürstet (Wohnbereich), Fliesen (Nassbereiche) (inkl. 8% Fliesenverschnitt)",
             einheit="m²",
-            menge=bgf_m2 * 0.8,
+            menge=round(bgf_m2 * 0.8 * (1 + WASTE_FACTORS_AT["fliesen"]), 2),
             gewerk="08",
             kostengruppe=370,
         ),
@@ -331,9 +753,9 @@ def generiere_beispiel_lv_einfamilienhaus(bgf_m2: float = 150, geschosse: int = 
         LVPosition(
             oz="09.001",
             kurztext="Malerarbeiten innen",
-            langtext="Innenanstrich Wände/Decken, 2× Dispersionsfarbe weiß, inkl. Spachteln",
+            langtext="Innenanstrich Wände/Decken, 2× Dispersionsfarbe weiß, inkl. Spachteln (inkl. 5% Materialverschnitt)",
             einheit="m²",
-            menge=round(bgf_m2 * 3.5, 2),  # Wandfläche ca. 3.5× BGF
+            menge=round(bgf_m2 * 3.5 * (1 + WASTE_FACTORS_AT["putz"]), 2),
             gewerk="09",
             kostengruppe=370,
         ),
@@ -353,6 +775,45 @@ def generiere_beispiel_lv_einfamilienhaus(bgf_m2: float = 150, geschosse: int = 
     ])
 
     return positionen
+
+
+def berechne_phasen_kosten(positionen: List[LVPosition]) -> Dict[str, Any]:
+    """
+    Berechnet Kostenverteilung nach Bauphasen
+
+    Args:
+        positionen: Liste der LV-Positionen
+
+    Returns:
+        Dict mit Phasenkosten und Prozentanteilen
+    """
+    phasen_kosten = {}
+    total_gp = sum(p.gp for p in positionen)
+
+    for phase_key, phase_info in BAUPHASEN_AT.items():
+        phase_positionen = [
+            p for p in positionen
+            if p.kostengruppe in phase_info["kostengruppen"]
+        ]
+
+        phase_summe = sum(p.gp for p in phase_positionen)
+        phase_prozent = (phase_summe / total_gp * 100) if total_gp > 0 else 0.0
+
+        phasen_kosten[phase_key] = {
+            "name": phase_info["name"],
+            "beschreibung": phase_info["beschreibung"],
+            "anzahl_positionen": len(phase_positionen),
+            "summe_eur": round(phase_summe, 2),
+            "prozent": round(phase_prozent, 2),
+            "soll_prozent": phase_info["phase_prozent"] * 100,
+            "abweichung_prozent": round(phase_prozent - phase_info["phase_prozent"] * 100, 2),
+        }
+
+    return {
+        "total_eur": round(total_gp, 2),
+        "phasen": phasen_kosten,
+        "anzahl_phasen": len(phasen_kosten),
+    }
 
 
 # ═══════════════════════════════════════════════════════════════════════════
@@ -432,7 +893,8 @@ def exportiere_lv_oenorm_json(
             "baufortschritt_prozent": 60,
             "schlussrechnung_prozent": 10,
             "hinweis": "Zahlungen erfolgen nach Baufortschritt gemäß ÖNORM B 2110"
-        }
+        },
+        "phasen_kosten": berechne_phasen_kosten(positionen) if any(p.ep > 0 for p in positionen) else None,
     }
 
     return lv_dokument
@@ -532,6 +994,38 @@ def vergleiche_angebote_detailliert(
         empfehlung.append("✓ Marktübliche Preise, gute Vergleichbarkeit")
         empfehlung.append(f"Vergabeempfehlung: {guenstigstes.get('firma', 'Bieter 1')}")
 
+    # Scoring-System for bid evaluation
+    bewertungen = []
+    for angebot in angebote_sortiert:
+        # Calculate score based on multiple criteria
+        preis_score = 100 - ((angebot["gesamt_netto"] - guenstigstes["gesamt_netto"]) / guenstigstes["gesamt_netto"] * 100)
+        preis_score = max(0, min(100, preis_score))  # Clamp to 0-100
+
+        # Check for outliers
+        ausreisser_count = 0
+        for pos in preisspiegelmatrix:
+            firma_preis = next((p for p in pos["preise_pro_firma"] if p["firma"] == angebot.get("firma")), None)
+            if firma_preis and firma_preis["ep"] > pos["ep_durchschnitt"] * 1.5:
+                ausreisser_count += 1
+
+        ausreisser_penalty = min(30, ausreisser_count * 10)  # Max 30 point penalty
+
+        # Calculate final score (price weighted 70%, outlier penalty 30%)
+        final_score = (preis_score * 0.7) - ausreisser_penalty
+
+        bewertung = {
+            "firma": angebot.get("firma", "Unbekannt"),
+            "gesamt_netto": angebot["gesamt_netto"],
+            "preis_score": round(preis_score, 1),
+            "ausreisser_count": ausreisser_count,
+            "ausreisser_penalty": ausreisser_penalty,
+            "final_score": round(final_score, 1),
+        }
+        bewertungen.append(bewertung)
+
+    # Sort by final score
+    bewertungen_sortiert = sorted(bewertungen, key=lambda x: x["final_score"], reverse=True)
+
     return {
         "anzahl_angebote": len(angebote),
         "guenstigstes_angebot": {
@@ -559,6 +1053,8 @@ def vergleiche_angebote_detailliert(
             for i, a in enumerate(angebote_sortiert)
         ],
         "vergabe_status": "Vergabereif" if len(empfehlung) > 1 and not warnung else "Prüfung erforderlich",
+        "bewertungen": bewertungen_sortiert,
+        "empfohlener_bieter": bewertungen_sortiert[0]["firma"] if bewertungen_sortiert else None,
     }
 
 
@@ -610,7 +1106,7 @@ def verknuepfe_lv_mit_bim(
 # GAEB/XML EXPORT (Datenaustausch mit AVA-Software)
 # ═══════════════════════════════════════════════════════════════════════════
 
-def exportiere_gaeb_xml(lv_positionen: List[LVPosition], projekt_info: Dict) -> str:
+def exportiere_gaeb_xml(lv_positionen: List[LVPosition], projekt_info: Dict, version: str = "1.0") -> str:
     """
     Exportiert LV im GAEB XML-Format (D83/X31) für AVA-Software
 
@@ -620,12 +1116,17 @@ def exportiere_gaeb_xml(lv_positionen: List[LVPosition], projekt_info: Dict) -> 
     Args:
         lv_positionen: LV-Positionen
         projekt_info: Projektdaten
+        version: Versionsnummer des Leistungsverzeichnisses
 
     Returns:
-        XML-String im GAEB-Format
+        XML-String im GAEB-Format mit Versionstracking
     """
     # Vereinfachte GAEB-Struktur
     # Für Produktion: GAEB-Bibliothek verwenden (z.B. python-gaeb)
+
+    dokument_id = str(uuid.uuid4())
+    timestamp = datetime.now(timezone.utc).isoformat().replace('+00:00', 'Z')
+    version_hash = hashlib.sha256(f"{timestamp}{version}".encode()).hexdigest()[:16]
 
     xml_header = '''<?xml version="1.0" encoding="UTF-8"?>
 <GAEB xmlns="http://www.gaeb.de/GAEB_DA_XML/200407">
@@ -633,17 +1134,26 @@ def exportiere_gaeb_xml(lv_positionen: List[LVPosition], projekt_info: Dict) -> 
     <Version>3.1</Version>
     <Datum>{datum}</Datum>
     <Absender>THE ARCHITEKT</Absender>
+    <DokumentID>{dokument_id}</DokumentID>
+    <VersionsNr>{version}</VersionsNr>
+    <VersionsHash>{version_hash}</VersionsHash>
+    <Erstellt>{timestamp}</Erstellt>
   </GAEBInfo>
   <PrjInfo>
     <Projektname>{projektname}</Projektname>
     <Projektnummer>{projekt_id}</Projektnummer>
+    <Beschreibung>Leistungsverzeichnis Version {version}</Beschreibung>
   </PrjInfo>
   <Award>
     <BoQ>
 '''.format(
         datum=datetime.now().strftime("%Y-%m-%d"),
         projektname=projekt_info.get("name", "Projekt"),
-        projekt_id=projekt_info.get("id", str(uuid.uuid4())[:8])
+        projekt_id=projekt_info.get("id", str(uuid.uuid4())[:8]),
+        dokument_id=dokument_id,
+        version=version,
+        version_hash=version_hash,
+        timestamp=timestamp
     )
 
     xml_positionen = ""
@@ -657,6 +1167,18 @@ def exportiere_gaeb_xml(lv_positionen: List[LVPosition], projekt_info: Dict) -> 
           <Qty>{pos.menge}</Qty>
           <UP>{pos.ep}</UP>
           <TP>{pos.gp}</TP>
+          <Gewerk>{pos.gewerk}</Gewerk>
+          <Kostengruppe>{pos.kostengruppe}</Kostengruppe>'''
+
+        if pos.bim_ref:
+            xml_positionen += f'''
+          <BIM_Referenz>{pos.bim_ref}</BIM_Referenz>'''
+
+        if pos.stlb_code:
+            xml_positionen += f'''
+          <StLB_Code>{pos.stlb_code}</StLB_Code>'''
+
+        xml_positionen += '''
         </Item>
       </Itemlist>
 '''

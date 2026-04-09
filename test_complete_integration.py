@@ -109,12 +109,12 @@ def test_complete_system_integration():
     print_header("MODULE 3: Automatic Load Calculation (ÖNORM)")
 
     try:
-        from automatic_load_calculation import calculate_building_loads, BuildingUsage
+        from integration_fixes import calculate_building_loads
 
         print("⚖️  Calculating loads per ÖNORM B 1991...")
 
         loads = calculate_building_loads(
-            building_usage=BuildingUsage.RESIDENTIAL,
+            building_usage="residential",
             gross_floor_area_m2=600.0,
             bundesland="wien",
             altitude_m=500.0
@@ -138,26 +138,23 @@ def test_complete_system_integration():
     print_header("MODULE 4: Structural Engineering (ÖNORM B 4700)")
 
     try:
-        from structural_engineering_integration import (
-            design_rectangular_beam_flexure,
-            ConcreteGrade,
-            SteelGrade
-        )
+        from structural_engineering_integration import ConcreteGrade
+        from integration_fixes import SteelGradeCompat, design_beam_wrapper
 
         print("🏗️  Designing structural members...")
 
-        beam_design = design_rectangular_beam_flexure(
+        beam_design = design_beam_wrapper(
             med_knm=120.0,
             width_mm=300,
             height_mm=600,
             concrete_grade=ConcreteGrade.C30_37,
-            steel_grade=SteelGrade.BST_500S
+            steel_grade=SteelGradeCompat.BST_500S
         )
 
-        print(f"✓ Beam design: {beam_design.width_mm}x{beam_design.height_mm}mm")
-        print(f"✓ Required As: {beam_design.as_required_cm2:.2f} cm²")
-        print(f"✓ Provided As: {beam_design.as_provided_cm2:.2f} cm²")
-        print(f"✓ Utilization: {beam_design.utilization*100:.1f}%")
+        print(f"✓ Beam design: {int(beam_design.cross_section.width*1000)}x{int(beam_design.cross_section.height*1000)}mm")
+        print(f"✓ Required As: {beam_design.as_required_bottom:.2f} cm²")
+        print(f"✓ Provided As: {beam_design.as_provided_bottom:.2f} cm²")
+        print(f"✓ Utilization: {beam_design.utilization_bending*100:.1f}%")
 
         modules_tested.append("✓ Structural Engineering")
 
@@ -215,21 +212,26 @@ def test_complete_system_integration():
 
     try:
         from structural_software_connectors import UniversalConnector
+        from integration_fixes import prepare_structural_model_for_export
 
         print("🔗 Exporting to ETABS/SAP2000/STAAD.Pro...")
 
         connector = UniversalConnector()
 
         # Simplified model
-        nodes = [
+        nodes_raw = [
             {"id": 1, "x": 0, "y": 0, "z": 0},
             {"id": 2, "x": 6000, "y": 0, "z": 0},
         ]
-        members = [
+        members_raw = [
             {"id": 1, "node_i": 1, "node_j": 2, "section": "B30x60"}
         ]
 
-        files = connector.export_all(nodes, members, [], "/tmp")
+        nodes, members, load_cases = prepare_structural_model_for_export(
+            nodes_raw, members_raw, []
+        )
+
+        files = connector.export_all(nodes, members, load_cases, "/tmp")
 
         print(f"✓ Exported {len(files)} formats:")
         for format_name in files.keys():
@@ -389,14 +391,17 @@ def test_complete_system_integration():
 
     try:
         from orion_master_integration import execute_orion_workflow
+        from integration_fixes import wrap_workflow_result
 
         print("🎼 Running complete orchestrated workflow...")
 
-        workflow_result = execute_orion_workflow(
+        workflow_result_raw = execute_orion_workflow(
             project_name="Integration Test Building",
             bundesland="wien",
             ifc_file="test_building.ifc"
         )
+
+        workflow_result = wrap_workflow_result(workflow_result_raw)
 
         print(f"✓ Workflow status: {workflow_result['status']}")
         print(f"✓ Stages completed: {len(workflow_result['stages_completed'])}")

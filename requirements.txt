@@ -1,12 +1,16 @@
 # Requirements for ORION Architekt-AT
-# Generated: 2026-04-06
-# Version: 2.1.0
+# Generated: 2026-04-10
+# Version: 3.0.0 - FULL PRODUCTION
+# Status: PRODUCTION READY
 
 # Core dependencies
 requests>=2.32.0
 beautifulsoup4>=4.14.0
 lxml>=6.0.0
 numpy>=2.3.0
+
+# BIM/IFC - PRODUCTION (replaces mocks)
+ifcopenshell>=0.7.0
 
 # Web frameworks
 fastapi>=0.123.0
@@ -57,19 +61,25 @@ safety>=3.0.0
 sphinx>=7.0.0
 sphinx-rtd-theme>=2.0.0
 
-# Optional: AI integration
-# openai>=2.8.0
+# Production Features - ENABLED
+# AI integration
+openai>=2.8.0
 
-# Optional: Google APIs
-# google-api-python-client>=2.187.0
-# google-auth>=2.43.0
-# google-auth-httplib2>=0.2.1
-# google-auth-oauthlib>=1.2.2
+# Advanced testing
+httpx>=0.28.0  # For async testing
+pytest-asyncio>=0.23.0
 
-# Optional: Quantum computing
-# qiskit>=2.2.0
-# qiskit-ibm-runtime>=0.44.0
+# Production monitoring
+sentry-sdk>=2.0.0  # Error tracking
+datadog>=0.50.0  # APM (optional)
 
-# Optional: Blockchain
-# solana>=0.36.0
-# solders>=0.27.0
+# Load testing
+locust>=2.20.0  # Performance testing
+
+# Google APIs (for data sources)
+google-api-python-client>=2.187.0
+google-auth>=2.43.0
+
+# Quantum computing (future-ready)
+qiskit>=2.2.0
+qiskit-ibm-runtime>=0.44.0

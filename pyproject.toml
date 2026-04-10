@@ -3,8 +3,8 @@ name = "orion-architekt-at"
 version = "2.1.0"
 description = "Comprehensive Austrian building regulations tool with OIB-RL compliance, ÖNORM standards, and knowledge base validation for all 9 Bundesländer"
 authors = [
-    {name = "Elisabeth Steurer", email = ""},
-    {name = "Gerhard Hirschmann", email = ""}
+    {name = "Elisabeth Steurer", email = "orion@genesis-ai.at"},
+    {name = "Gerhard Hirschmann", email = "orion@genesis-ai.at"}
 ]
 readme = "README.md"
 requires-python = ">=3.11"

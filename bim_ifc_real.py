@@ -95,7 +95,7 @@ class IFCProcessor:
                 "ifcopenshell not available. Install with: pip install ifcopenshell"
             )
 
-    def load_ifc_file(self, file_path: str) -> ifcopenshell.file:
+    def load_ifc_file(self, file_path: str):
         """Load IFC file"""
         self.logger.info(f"Loading IFC file: {file_path}")
 

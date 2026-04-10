@@ -163,8 +163,16 @@ def design_beam_wrapper(
 ):
     """
     Wrapper for design_rectangular_beam_flexure that handles both naming conventions
+    AND creates the missing CrossSection object
     """
-    from structural_engineering_integration import design_rectangular_beam_flexure
+    from structural_engineering_integration import (
+        design_rectangular_beam_flexure,
+        get_concrete_properties,
+        get_steel_properties,
+        Material,
+        CrossSection,
+        StructuralElement
+    )
 
     # Handle different parameter names
     moment = med if med is not None else (med_knm if med_knm is not None else 120.0)  # kNm
@@ -187,6 +195,41 @@ def design_beam_wrapper(
         }
         concrete_grade = grade_map.get(concrete_grade, ConcreteGrade.C30_37)
 
+    # Get material properties
+    concrete_props = get_concrete_properties(concrete_grade)
+    steel_props = get_steel_properties(steel_grade)
+
+    # Create Material objects
+    concrete_obj = Material(
+        material_id=f"CONCRETE-{concrete_grade.value}",
+        material_type="Beton",
+        concrete_grade=concrete_grade,
+        fck=concrete_props["fck"],
+        fcd=concrete_props["fcd"],
+        e_modulus=concrete_props["Ecm"],
+        density=25.0
+    )
+
+    steel_obj = Material(
+        material_id=f"STEEL-{steel_grade.value}",
+        material_type="Betonstahl",
+        steel_grade=steel_grade,
+        fyk=steel_props["fyk"],
+        fyd=steel_props["fyd"]
+    )
+
+    # Create CrossSection object
+    cross_section = CrossSection(
+        section_id=f"BEAM-{int(w*1000)}x{int(h*1000)}",
+        element_type=StructuralElement.BEAM,
+        width=w,
+        height=h,
+        length=5.0,  # Default beam length
+        concrete=concrete_obj,
+        steel=steel_obj
+    )
+
+    # Call actual design function
     result = design_rectangular_beam_flexure(
         med=moment,
         width=w,
@@ -195,6 +238,12 @@ def design_beam_wrapper(
         steel_grade=steel_grade,
         **kwargs
     )
+
+    # FIX: Set the cross_section object (was None)
+    result.cross_section = cross_section
+
+    # FIX: Normalize utilization_bending from 0-100 to 0-1 scale
+    result.utilization_bending = result.utilization_bending / 100.0
 
     return result
 
@@ -205,58 +254,111 @@ def design_beam_wrapper(
 
 def prepare_structural_model_for_export(nodes_raw, members_raw, load_cases_raw):
     """
-    Convert dict-based nodes/members to objects with proper attributes
+    Convert dict-based nodes/members to proper StructuralNode and StructuralMember objects
     """
-    from dataclasses import dataclass
+    from structural_engineering_integration import (
+        StructuralNode,
+        StructuralMember,
+        CrossSection,
+        Material,
+        StructuralElement,
+        ConcreteGrade,
+        SteelGrade,
+        get_concrete_properties,
+        get_steel_properties
+    )
 
-    @dataclass
-    class Node:
-        id: int
-        x: float
-        y: float
-        z: float
+    def parse_section_string(section_str):
+        """Parse 'B30x60' -> width=0.3m, height=0.6m"""
+        import re
+        match = re.match(r'B(\d+)x(\d+)', section_str)
+        if match:
+            width_cm = float(match.group(1))
+            height_cm = float(match.group(2))
+            return {
+                'width': width_cm / 100.0,  # cm to m
+                'height': height_cm / 100.0
+            }
+        return {'width': 0.3, 'height': 0.6}  # Default
 
-    @dataclass
-    class Member:
-        id: int
-        node_i: int
-        node_j: int
-        cross_section: str
+    def create_default_materials():
+        """Create default C30/37 concrete and BSt 500S steel"""
+        concrete_grade = ConcreteGrade.C30_37
+        steel_grade = SteelGrade.BSt_500S
 
-    @dataclass
-    class LoadCase:
-        id: int
-        name: str
-        load_type: str
-        value: float
+        concrete_props = get_concrete_properties(concrete_grade)
+        steel_props = get_steel_properties(steel_grade)
 
-    # Convert nodes
-    nodes = [Node(**n) for n in nodes_raw]
+        concrete = Material(
+            material_id=f"CONCRETE-{concrete_grade.value}",
+            material_type="Beton",
+            concrete_grade=concrete_grade,
+            fck=concrete_props["fck"],
+            fcd=concrete_props["fcd"],
+            e_modulus=concrete_props["Ecm"],
+            density=25.0
+        )
 
-    # Convert members - add default cross_section if missing
+        steel = Material(
+            material_id=f"STEEL-{steel_grade.value}",
+            material_type="Betonstahl",
+            steel_grade=steel_grade,
+            fyk=steel_props["fyk"],
+            fyd=steel_props["fyd"]
+        )
+
+        return concrete, steel
+
+    # Convert nodes to StructuralNode objects
+    nodes = []
+    for n in nodes_raw:
+        if isinstance(n, dict):
+            node = StructuralNode(
+                node_id=f"N{n['id']}",
+                x=n['x'],
+                y=n['y'],
+                z=n['z'],
+                restraints={}  # Add missing restraints
+            )
+            nodes.append(node)
+        else:
+            nodes.append(n)
+
+    # Convert members to StructuralMember objects with proper CrossSection
     members = []
+    concrete, steel = create_default_materials()
+
     for m in members_raw:
         if isinstance(m, dict):
-            # Normalize field names
-            member_data = {
-                'id': m.get('id'),
-                'node_i': m.get('node_i'),
-                'node_j': m.get('node_j'),
-                'cross_section': m.get('cross_section', m.get('section', 'B30x60'))
-            }
-            members.append(Member(**member_data))
+            # Parse cross section string
+            section_str = m.get('cross_section', m.get('section', 'B30x60'))
+            dims = parse_section_string(section_str)
+
+            # Create CrossSection object
+            cross_section = CrossSection(
+                section_id=section_str,
+                element_type=StructuralElement.BEAM,
+                width=dims['width'],
+                height=dims['height'],
+                length=5.0,
+                concrete=concrete,
+                steel=steel
+            )
+
+            # Create StructuralMember
+            member = StructuralMember(
+                member_id=f"M{m['id']}",
+                element_type=StructuralElement.BEAM,
+                start_node=f"N{m['node_i']}",
+                end_node=f"N{m['node_j']}",
+                cross_section=cross_section,
+                loads=[]  # Add missing loads
+            )
+            members.append(member)
         else:
             members.append(m)
 
-    # Convert load cases
-    load_cases = []
-    for lc in load_cases_raw:
-        if isinstance(lc, dict):
-            load_cases.append(LoadCase(**lc))
-        else:
-            load_cases.append(lc)
-
-    return nodes, members, load_cases
+    return nodes, members, load_cases_raw
 
 
 # ==============================================================================

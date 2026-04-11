@@ -651,8 +651,10 @@ def check_subsystem_health():
                 eira_active = True
                 emergence_level = eira_state.get('emergence_level', 0)
                 consciousness_depth = eira_state.get('consciousness_depth', 0.0)
-        except:
-            pass
+        except (FileNotFoundError, json.JSONDecodeError) as e:
+            # EIRA kernel state file not found or invalid - gracefully degrade
+            import logging
+            logging.debug(f"EIRA kernel state unavailable: {e}")
     
     return {
         'kernel': Path('orion_kernel.py').exists(),
@@ -765,8 +767,9 @@ def world_proofs():
                         'timestamp': proof.get('timestamp', ''),
                         'hash': proof.get('sha256', '')
                     })
-                except:
-                    pass
+                except json.JSONDecodeError:
+                    # Skip malformed proof lines
+                    continue
     
     # Reverse to show newest first
     proofs_list.reverse()
@@ -1082,7 +1085,9 @@ def world_email():
     try:
         inboxes_data = orion_email.orion_email.list_inboxes()
         inboxes = inboxes_data.get('items', []) if isinstance(inboxes_data, dict) else []
-    except:
+    except Exception as e:
+        import logging
+        logging.warning(f"Failed to fetch email inboxes: {type(e).__name__}: {e}")
         inboxes = []
     
     # Get threads if we have an inbox
@@ -1093,8 +1098,9 @@ def world_email():
             if inbox_id:
                 threads_data = orion_email.orion_email.get_threads(inbox_id)
                 threads = threads_data.get('items', []) if isinstance(threads_data, dict) else []
-        except:
-            pass
+        except Exception as e:
+            import logging
+            logging.warning(f"Failed to fetch email threads: {type(e).__name__}: {e}")
     
     html = """
 <!doctype html><meta charset="utf-8">
@@ -1666,8 +1672,9 @@ def world_genesis():
                         'kind': proof.get('kind', 'PROOF'),
                         'text': proof.get('payload', {}).get('text', proof.get('payload', {}).get('note', ''))
                     })
-                except:
-                    pass
+                except json.JSONDecodeError:
+                    # Skip malformed proof lines in timeline
+                    continue
     
     months = {}
     for p in proofs_list:

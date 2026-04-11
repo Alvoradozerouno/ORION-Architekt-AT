@@ -279,8 +279,11 @@ class IFCProcessor:
             for rel in element.ContainedInStructure:
                 if rel.RelatingStructure.is_a("IfcBuildingStorey"):
                     return rel.RelatingStructure.Name
-        except:
-            pass
+        except AttributeError as e:
+            # Element doesn't have ContainedInStructure relationship
+            self.logger.debug(f"Element storey retrieval failed: {e}")
+        except Exception as e:
+            self.logger.warning(f"Unexpected error getting element storey: {type(e).__name__}: {e}")
 
         return None
 

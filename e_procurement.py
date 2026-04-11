@@ -439,8 +439,10 @@ def validiere_oenorm_konformitaet(tender_notice: TenderNotice) -> Dict[str, Any]
         days_until_submission = (deadline_sub - datetime.now(timezone.utc)).days
         if days_until_submission < 30:
             warnings.append(f"Angebotsfrist sehr kurz ({days_until_submission} Tage) - ÖNORM empfiehlt mind. 30 Tage")
-    except:
-        errors.append("Ungültiges Datumsformat")
+    except ValueError as e:
+        errors.append(f"Ungültiges Datumsformat: {e}")
+    except TypeError as e:
+        errors.append(f"Datumsfeld fehlt oder hat falschen Typ: {e}")
 
     # Check award criteria
     total_weight = tender_notice.award_criteria_price_weight + tender_notice.award_criteria_quality_weight

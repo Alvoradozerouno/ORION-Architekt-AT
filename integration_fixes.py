@@ -146,8 +146,10 @@ try:
     SteelGradeCompat.BST_500S = SteelGrade.BSt_500S
     SteelGradeCompat.BST_500M = SteelGrade.BSt_500M
     SteelGradeCompat.BST_500A = SteelGrade.BSt_500A
-except:
-    pass
+except ImportError as e:
+    import logging
+    logging.warning(f"SteelGrade compatibility layer failed to initialize: {e}")
+    # Graceful degradation - continue without steel grade compatibility
 
 
 def design_beam_wrapper(
@@ -444,8 +446,10 @@ if __name__ == "__main__":
         grade = SteelGradeCompat.BST_500S
         print(f"✓ BST_500S = {grade}")
         print("✓ PASS")
+    except AttributeError as e:
+        print(f"✗ FAIL - SteelGrade not initialized: {e}")
     except Exception as e:
-        print(f"✗ FAIL: {e}")
+        print(f"✗ FAIL - Unexpected error: {type(e).__name__}: {e}")
 
     # Test 3: Software Connector Data Preparation
     print("\nTest 3: Software Connector Data Preparation")
@@ -487,8 +491,10 @@ if __name__ == "__main__":
         print(f"✓ Status via dict: {result_dict['status']}")
         print(f"✓ Stages: {len(result_dict['stages_completed'])}")
         print("✓ PASS")
+    except KeyError as e:
+        print(f"✗ FAIL - Missing key: {e}")
     except Exception as e:
-        print(f"✗ FAIL: {e}")
+        print(f"✗ FAIL - Unexpected error: {type(e).__name__}: {e}")
 
     print("\n" + "=" * 80)
     print("✓ All Integration Fixes Verified!")

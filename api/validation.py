@@ -11,7 +11,7 @@ Status: PRODUCTION
 """
 
 from pydantic import BaseModel, Field, validator, root_validator
-from typing import List, Optional, Dict, Any
+from typing import List, Optional, Dict, Any, ClassVar
 from enum import Enum
 import re
 
@@ -207,7 +207,7 @@ class ValidatedFlaecheRequest(BaseModel):
             raise ValueError("Height too low: < 1.5m (Austrian minimum)")
         return v
 
-    @root_validator
+    @root_validator(skip_on_failure=True)
     def validate_area(cls, values):
         laenge = values.get('laenge_m', 0)
         breite = values.get('breite_m', 0)
@@ -332,8 +332,8 @@ class ValidatedFileUpload(BaseModel):
     file_size_bytes: int = Field(..., gt=0, le=104857600)  # 100 MB max
     mime_type: str
 
-    ALLOWED_EXTENSIONS = {'.ifc', '.ifcxml', '.pdf', '.dwg', '.dxf', '.rvt', '.jpg', '.png'}
-    ALLOWED_MIME_TYPES = {
+    ALLOWED_EXTENSIONS: ClassVar[set] = {'.ifc', '.ifcxml', '.pdf', '.dwg', '.dxf', '.rvt', '.jpg', '.png'}
+    ALLOWED_MIME_TYPES: ClassVar[set] = {
         'application/pdf',
         'image/jpeg',
         'image/png',

@@ -9,14 +9,19 @@ import time
 from datetime import datetime, timedelta
 import redis
 import os
+import logging
 
 # Redis connection for distributed rate limiting
 REDIS_URL = os.getenv("REDIS_URL", "redis://localhost:6379")
 
 try:
     redis_client = redis.from_url(REDIS_URL, decode_responses=True)
-except:
+except redis.RedisError as e:
+    logging.warning(f"Redis connection failed, falling back to in-memory rate limiting: {e}")
     redis_client = None  # Fall back to in-memory
+except Exception as e:
+    logging.error(f"Unexpected error connecting to Redis: {type(e).__name__}: {e}")
+    redis_client = None
 
 # In-memory rate limit storage (fallback)
 rate_limit_storage: Dict[str, Dict] = {}
@@ -188,8 +193,9 @@ class RateLimitMiddleware(BaseHTTPMiddleware):
                 key = f"rate_limit:{client_id}"
                 count = redis_client.zcard(key)
                 return max(0, tier["limit"] - count)
-            except:
-                return tier["limit"]
+            except redis.RedisError as e:
+                logging.warning(f"Redis query failed in rate limit check: {e}")
+                return tier["limit"]  # Fail open on Redis error
         else:
             if client_id in rate_limit_storage:
                 count = len(rate_limit_storage[client_id]["requests"])
@@ -205,8 +211,10 @@ class RateLimitMiddleware(BaseHTTPMiddleware):
                 if oldest:
                     # Get window from tier (assume 3600 for now)
                     return int(oldest[0][1]) + 3600
-            except:
-                pass
+            except redis.RedisError as e:
+                logging.debug(f"Redis query failed getting reset time: {e}")
+            except (IndexError, ValueError) as e:
+                logging.warning(f"Invalid reset time data from Redis: {e}")
 
         return int(time.time()) + 3600
 

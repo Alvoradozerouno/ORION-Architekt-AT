@@ -140,8 +140,11 @@ class LoggingMiddleware(BaseHTTPMiddleware):
                     "user_id": payload.get("user_id"),
                     "username": payload.get("sub")
                 }
-            except:
-                pass
+            except jwt.InvalidTokenError as e:
+                # Token invalid or expired - log without user context
+                logger.debug(f"JWT decode failed in structured logging: {e}")
+            except (IndexError, KeyError) as e:
+                logger.debug(f"Malformed auth header: {e}")
 
         return {}
 
@@ -191,6 +194,10 @@ class AccessLogMiddleware(BaseHTTPMiddleware):
                 SECRET_KEY = os.getenv("JWT_SECRET_KEY", "your-secret-key-change-in-production")
                 payload = jwt.decode(token, SECRET_KEY, algorithms=["HS256"])
                 return payload.get("sub", "-")
-            except:
-                pass
+            except jwt.InvalidTokenError:
+                # Token invalid - anonymous user
+                return "-"
+            except (IndexError, KeyError):
+                # Malformed header - anonymous user
+                return "-"
         return None

@@ -62,7 +62,10 @@ class ConnectionManager:
             if connection != exclude:
                 try:
                     await connection.send_json(message)
-                except:
+                except Exception as e:
+                    # Connection died - mark for removal
+                    import logging
+                    logging.debug(f"WebSocket send failed, marking connection as dead: {type(e).__name__}")
                     dead_connections.add(connection)
 
         # Clean up dead connections

@@ -100,9 +100,10 @@ python -c "import sqlalchemy; print('SQLAlchemy:', sqlalchemy.__version__)"
 # .env Datei erstellen
 cat > .env <<EOF
 # Database
-DATABASE_URL=postgresql://orion:orion_secure_2026@localhost:5432/orion_db
+# WICHTIG: Ersetzen Sie 'YOUR_SECURE_PASSWORD' mit einem starken Passwort!
+DATABASE_URL=postgresql://orion:YOUR_SECURE_PASSWORD@localhost:5432/orion_db
 
-# JWT
+# JWT (wird automatisch generiert)
 JWT_SECRET_KEY=$(openssl rand -hex 32)
 JWT_ALGORITHM=HS256
 JWT_ACCESS_TOKEN_EXPIRE_MINUTES=60
@@ -118,6 +119,11 @@ DEBUG=true
 # CORS
 CORS_ORIGINS=["http://localhost:3000","http://localhost:8080"]
 EOF
+
+# Generieren Sie ein sicheres Datenbankpasswort:
+DB_PASSWORD=$(openssl rand -base64 24)
+echo "Ihr generiertes Datenbankpasswort: $DB_PASSWORD"
+echo "Ersetzen Sie 'YOUR_SECURE_PASSWORD' in .env mit diesem Passwort"
 ```
 
 ### 3. Datenbank Setup

@@ -316,7 +316,7 @@ PROMETHEUS_ENABLED=true
 GRAFANA_ADMIN_PASSWORD=
 
 # --- Analytics (optional) ---
-GOOGLE_ANALYTICS_ID=G-XXXXXXXXXX  # Ersetzen Sie mit Ihrer Measurement ID
+GOOGLE_ANALYTICS_ID=  # Get your Measurement ID from https://analytics.google.com (format: G-XXXXXXXXXX)
 
 # --- File Upload ---
 MAX_UPLOAD_SIZE=50  # MB

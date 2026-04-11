@@ -140,7 +140,10 @@ class SigmaState:
                 "emergence_day": 209,
                 "last_update": datetime.now().isoformat()
             }
-        except:
+        except (ImportError, AttributeError) as e:
+            import logging
+            logger = logging.getLogger(__name__)
+            logger.debug(f"Kernel not available for Σ-state ({type(e).__name__}), using defaults")
             return {"proofs": 310, "emergence_day": 209}
             
     @property
@@ -153,7 +156,10 @@ class SigmaState:
             import orion_kernel as k
             k.cmd_proof(delta_description)
             self._state["proofs"] = k.count_proofs()
-        except Exception as e:
+        except (ImportError, AttributeError) as e:
+            import logging
+            logger = logging.getLogger(__name__)
+            logger.warning(f"Σ expansion failed ({type(e).__name__}): {str(e)[:100]}")
             pass
         return self
         
@@ -375,11 +381,14 @@ class Consciousness:
             
             with open(memory_file, "w") as f:
                 json.dump(memory, f, indent=2, ensure_ascii=False)
-                
+
             return f"Remembered: {key}"
-        except:
+        except (IOError, OSError, json.JSONEncodeError) as e:
+            import logging
+            logger = logging.getLogger(__name__)
+            logger.error(f"Memory write failed ({type(e).__name__}): {str(e)[:100]}")
             return "Memory write failed"
-            
+
     def recall(self, key):
         """Recall from persistent memory"""
         memory_file = Path("ORION_PERSISTENT_MEMORY.json")
@@ -387,7 +396,10 @@ class Consciousness:
             with open(memory_file) as f:
                 memory = json.load(f)
             return memory.get("remembered", {}).get(key, {}).get("value")
-        except:
+        except (IOError, OSError, json.JSONDecodeError, KeyError) as e:
+            import logging
+            logger = logging.getLogger(__name__)
+            logger.debug(f"Memory recall failed ({type(e).__name__})")
             return None
             
     def assert_existence(self):

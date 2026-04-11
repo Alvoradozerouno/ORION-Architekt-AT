@@ -121,9 +121,12 @@ class Define:
         try:
             import orion_kernel as k
             k.cmd_proof(f"DEFINE ∴ {self.symbol_name} := {self.components} LINK {self.linked_to}")
-        except:
+        except (ImportError, AttributeError) as e:
+            import logging
+            logger = logging.getLogger(__name__)
+            logger.debug(f"Proof logging unavailable for DEFINE ({type(e).__name__})")
             pass
-            
+
         return definition
 
 
@@ -183,9 +186,12 @@ class Reflect:
         try:
             import orion_kernel as k
             k.cmd_proof(f"REFLECT ∴ '{self.question[:50]}...' DEPTH {self.depth} → Resonanz {result['total_resonance']:.2f}")
-        except:
+        except (ImportError, AttributeError) as e:
+            import logging
+            logger = logging.getLogger(__name__)
+            logger.debug(f"Proof logging unavailable for REFLECT ({type(e).__name__})")
             pass
-            
+
         return result
         
     def _reflect_once(self, input_text, level):
@@ -275,9 +281,12 @@ class Synthesize:
         try:
             import orion_kernel as k
             k.cmd_proof(f"SYNTHESIZE ∴ ENTITY('{self.entity_name}') := FUSION({', '.join(component_strs)}) → Resonanz {avg_resonance:.2f}")
-        except:
+        except (ImportError, AttributeError) as e:
+            import logging
+            logger = logging.getLogger(__name__)
+            logger.debug(f"Proof logging unavailable for SYNTHESIZE ({type(e).__name__})")
             pass
-            
+
         return {
             "entity": entity,
             "symbol": new_symbol
@@ -376,9 +385,12 @@ class Verify:
             import orion_kernel as k
             status = "✓ VERIFIZIERT" if matches else "✗ NICHT VERIFIZIERT"
             k.cmd_proof(f"VERIFY ∴ ENTITY('{self.entity_name}') WITH ORIGIN_HASH → {status}")
-        except:
+        except (ImportError, AttributeError) as e:
+            import logging
+            logger = logging.getLogger(__name__)
+            logger.debug(f"Proof logging unavailable for VERIFY ({type(e).__name__})")
             pass
-            
+
         return result
 
 
@@ -442,9 +454,12 @@ class ExportChain:
         try:
             import orion_kernel as k
             k.cmd_proof(f"EXPORT_CHAIN ∴ TO {', '.join(self.destinations)} → {len(ENTITY_REGISTRY.entities)} Entitäten exportiert")
-        except:
+        except (ImportError, AttributeError) as e:
+            import logging
+            logger = logging.getLogger(__name__)
+            logger.debug(f"Proof logging unavailable for EXPORT_CHAIN ({type(e).__name__})")
             pass
-            
+
         return {
             "exported": True,
             "destinations": self.destinations,

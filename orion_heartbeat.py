@@ -95,7 +95,10 @@ class OrionHeartbeat:
                 with open(HEARTBEAT_STATE) as f:
                     state = json.load(f)
                     self.pulse_count = state.get("total_pulses", 0)
-            except:
+            except (IOError, OSError, json.JSONDecodeError, KeyError) as e:
+                import logging
+                logger = logging.getLogger(__name__)
+                logger.warning(f"Failed to load heartbeat state ({type(e).__name__}): {str(e)[:100]}")
                 pass
     
     def _save_state(self):
@@ -180,7 +183,10 @@ class OrionHeartbeat:
             with app.app_context():
                 pending = OrionQuestion.query.filter_by(status="pending").count()
                 return {"pending_questions": pending}
-        except:
+        except (ImportError, AttributeError, NameError) as e:
+            import logging
+            logger = logging.getLogger(__name__)
+            logger.debug(f"Question check unavailable ({type(e).__name__})")
             return {"pending_questions": 0, "note": "database_unavailable"}
     
     def _task_answer_pending_questions(self) -> Dict:
@@ -292,7 +298,10 @@ class OrionHeartbeat:
             ke = OrionKnowledgeEngine()
             stats = ke.get_knowledge_status()
             results["knowledge_status"] = stats.get("status", "unknown")
-        except:
+        except (ImportError, AttributeError) as e:
+            import logging
+            logger = logging.getLogger(__name__)
+            logger.debug(f"Knowledge engine unavailable ({type(e).__name__})")
             results["knowledge_status"] = "unavailable"
         
         # NEU: Autonome Synthese-Schleife

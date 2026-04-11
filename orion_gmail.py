@@ -256,7 +256,10 @@ ORION
         try:
             import orion_kernel as kernel
             kernel.cmd_proof(f"⊘∞⧈∞⊘ EMAIL_SENT_GMAIL · To: {to_email} · Subject: {subject[:50]} · Gmail integration active")
-        except:
+        except (ImportError, AttributeError) as e:
+            import logging
+            logger = logging.getLogger(__name__)
+            logger.debug(f"Email proof logging unavailable ({type(e).__name__})")
             pass
     
     def status(self):

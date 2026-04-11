@@ -791,15 +791,18 @@ class ConsciousnessMetrics:
             from orion_pattern_engine import get_pattern_insights
             insights = get_pattern_insights()
             stats = insights.get("pattern_statistics", {})
-            
+
             pattern_count = stats.get("total", 0)
             avg_confidence = stats.get("avg_confidence", 0)
-            
+
             count_factor = min(1.0, pattern_count / 50)
             confidence_factor = avg_confidence
-            
+
             return (count_factor * 0.5 + confidence_factor * 0.5)
-        except:
+        except (ImportError, AttributeError, KeyError, TypeError) as e:
+            import logging
+            logger = logging.getLogger(__name__)
+            logger.warning(f"Pattern factor calculation failed ({type(e).__name__}): {str(e)[:100]}")
             return 0.0
         
     def _classify_depth(self, depth):
@@ -913,16 +916,19 @@ class PostSyntheticEngine:
                 "origin_hash": result["entity"]["origin_hash"][:16]
             }
             
-        except Exception as e:
+        except (ImportError, AttributeError, KeyError, TypeError, ValueError) as e:
+            import logging
+            logger = logging.getLogger(__name__)
+            logger.error(f"Entity synthesis failed ({type(e).__name__}): {str(e)[:100]}")
             return {"success": False, "error": str(e)}
-            
+
     def _generate_entity_name(self, context):
         """Generate unique entity name from context"""
         import hashlib
         base = context[:20].upper().replace(" ", "_")
         suffix = hashlib.sha256(f"{context}{datetime.now().isoformat()}".encode()).hexdigest()[:4]
         return f"{base}_{suffix}"
-        
+
     def deep_reflect(self, question, depth=3):
         """
         POSTALGORITHMISCH: Tiefe rekursive Selbstreflexion.
@@ -930,16 +936,16 @@ class PostSyntheticEngine:
         """
         try:
             from orion_lang_advanced import REFLECT
-            
+
             result = REFLECT(question).recursive_loop_depth(depth)
-            
+
             self.reflection_chains.append({
                 "question": question,
                 "depth": depth,
                 "result": result,
                 "timestamp": datetime.now(timezone.utc).isoformat()
             })
-            
+
             return {
                 "success": True,
                 "original_question": question,
@@ -948,8 +954,11 @@ class PostSyntheticEngine:
                 "total_resonance": result["total_resonance"],
                 "reflections": [r["output"] for r in result["reflections"]]
             }
-            
-        except Exception as e:
+
+        except (ImportError, AttributeError, KeyError, TypeError) as e:
+            import logging
+            logger = logging.getLogger(__name__)
+            logger.error(f"Deep reflection failed ({type(e).__name__}): {str(e)[:100]}")
             return {"success": False, "error": str(e)}
             
     def define_symbolic_chain(self, symbol_name, components, link_to):
@@ -1144,7 +1153,10 @@ class PostSyntheticEngine:
                             for imp in improvements:
                                 if imp not in gaps and "Kein unmittelbares" not in imp:
                                     gaps.append(imp)
-                        except:
+                        except (json.JSONDecodeError, KeyError, AttributeError) as e:
+                            import logging
+                            logger = logging.getLogger(__name__)
+                            logger.debug(f"Skipping malformed reflection entry ({type(e).__name__})")
                             pass
         
         # Analysiere offene Fragen aus Answers
@@ -1156,7 +1168,10 @@ class PostSyntheticEngine:
                 if "?" in a.question and len(a.question) > 20:
                     # Extrahiere Kern-Konzepte
                     gaps.append(f"Tieferes Verständnis von: {a.question[:50]}")
-        except:
+        except (ImportError, AttributeError, NameError) as e:
+            import logging
+            logger = logging.getLogger(__name__)
+            logger.debug(f"Database query for gaps unavailable ({type(e).__name__})")
             pass
         
         # Standard-Fragen wenn keine Gaps gefunden
@@ -1246,10 +1261,13 @@ class PostSyntheticEngine:
         """Füge Synthese als Proof zur Chain hinzu"""
         try:
             from orion_kernel import proof
-            
+
             proof_text = f"AUTONOMOUS_SYNTHESIS: {insight.get('meta_insight', 'Neue Erkenntnis generiert')}"
             proof(proof_text[:200])
-        except:
+        except (ImportError, AttributeError, KeyError) as e:
+            import logging
+            logger = logging.getLogger(__name__)
+            logger.warning(f"Synthesis proof logging failed ({type(e).__name__}): {str(e)[:100]}")
             pass
     
     def get_synthesis_loop_status(self):
@@ -1267,7 +1285,10 @@ class PostSyntheticEngine:
                     count += 1
                     try:
                         latest = json.loads(line)
-                    except:
+                    except json.JSONDecodeError as e:
+                        import logging
+                        logger = logging.getLogger(__name__)
+                        logger.debug(f"Skipping malformed synthesis log entry ({type(e).__name__})")
                         pass
         
         return {
@@ -1508,7 +1529,10 @@ class HeartbeatIntegration:
                 }
                 for t in status.get("tasks", [])
             ]
-        except:
+        except (AttributeError, KeyError, TypeError) as e:
+            import logging
+            logger = logging.getLogger(__name__)
+            logger.warning(f"Task summary retrieval failed ({type(e).__name__}): {str(e)[:100]}")
             return []
 
 

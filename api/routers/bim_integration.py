@@ -220,69 +220,120 @@ async def calculate_uwert_from_bim(file: UploadFile = File(...)):
         if os.path.exists(tmp_file_path):
             os.unlink(tmp_file_path)
 
-# Helper functions (simplified - in production, use ifcopenshell library)
+# Helper functions - Real IFC processing using ifcopenshell
 
 def _parse_ifc_file(file_path: str, bundesland: str, building_type: str) -> IFCAnalysisResult:
-    """Parse IFC file and extract basic information"""
-    # Simplified implementation - real version would use ifcopenshell
+    """
+    Parse IFC file using real ifcopenshell library
 
-    # Simulate IFC parsing
-    building_elements = {
-        "IfcWall": 45,
-        "IfcSlab": 12,
-        "IfcWindow": 28,
-        "IfcDoor": 15,
-        "IfcStair": 2,
-        "IfcRoof": 1,
-        "IfcColumn": 8,
-        "IfcBeam": 24
-    }
+    Replaces mock implementation with actual BIM processing
+    """
+    try:
+        from bim_ifc_real import IFCProcessor
+        import logging
 
-    compliance_checks = [
-        {
-            "check": "Minimum Room Height",
-            "status": "pass",
-            "details": "All rooms meet 2.50m minimum height (OIB-RL 3)",
-            "standard": "OIB-RL 3"
-        },
-        {
-            "check": "Door Widths",
-            "status": "warning",
-            "details": "3 doors are 80cm (minimum for Barrierefreiheit: 90cm)",
-            "standard": "ÖNORM B 1600"
-        },
-        {
-            "check": "Window Areas",
-            "status": "pass",
-            "details": "Natural light requirements met in all habitable rooms",
-            "standard": "OIB-RL 3"
-        }
-    ]
+        logger = logging.getLogger(__name__)
+        logger.info(f"Processing IFC file: {file_path}")
 
-    warnings = [
-        "3 doors below recommended width for barrier-free access",
-        "Stairway in Axis A between floors 1-2 is 1.15m wide (recommended: 1.20m)"
-    ]
+        # Initialize IFC processor
+        processor = IFCProcessor()
 
-    material_list = [
-        {"name": "Concrete C30/37", "category": "Structural", "quantity": "120 m3"},
-        {"name": "EPS Insulation 200mm", "category": "Thermal", "quantity": "450 m2"},
-        {"name": "Brick Masonry", "category": "Wall", "quantity": "380 m2"},
-        {"name": "Acoustic Insulation", "category": "Sound", "quantity": "280 m2"}
-    ]
+        # Process IFC file with geometry extraction
+        ifc_project = processor.process_ifc_file(file_path, extract_geometry=True)
 
-    return IFCAnalysisResult(
-        file_name=os.path.basename(file_path),
-        ifc_version="IFC4",
-        building_elements=building_elements,
-        total_area_m2=1250.5,
-        total_volume_m3=4200.8,
-        stories=4,
-        compliance_checks=compliance_checks,
-        warnings=warnings,
-        material_list=material_list,
-        geometry_valid=True
-    )
+        # Count building elements by type
+        building_elements = {}
+        for element in ifc_project.elements:
+            element_type = element.get("type", "Unknown")
+            building_elements[element_type] = building_elements.get(element_type, 0) + 1
+
+        # Extract compliance checks from processed data
+        compliance_checks = []
+        warnings = []
+
+        # Basic room height check (OIB-RL 3: minimum 2.50m)
+        min_height = float('inf')
+        for storey in ifc_project.storeys:
+            height = storey.get("height_m", 0)
+            if height > 0 and height < min_height:
+                min_height = height
+
+        if min_height >= 2.5:
+            compliance_checks.append({
+                "check": "Minimum Room Height",
+                "status": "pass",
+                "details": f"Minimum storey height: {min_height:.2f}m (OIB-RL 3: ≥2.50m)",
+                "standard": "OIB-RL 3"
+            })
+        else:
+            compliance_checks.append({
+                "check": "Minimum Room Height",
+                "status": "fail",
+                "details": f"Minimum storey height: {min_height:.2f}m (required: ≥2.50m)",
+                "standard": "OIB-RL 3"
+            })
+            warnings.append(f"Room height below minimum: {min_height:.2f}m")
+
+        # Door width check (ÖNORM B 1600: minimum 80cm, recommended 90cm for accessibility)
+        door_count = building_elements.get("IfcDoor", 0)
+        if door_count > 0:
+            compliance_checks.append({
+                "check": "Door Widths",
+                "status": "info",
+                "details": f"Found {door_count} doors - manual verification recommended for accessibility (ÖNORM B 1600: ≥90cm)",
+                "standard": "ÖNORM B 1600"
+            })
+
+        # Window area check (OIB-RL 3: natural light requirements)
+        window_count = building_elements.get("IfcWindow", 0)
+        if window_count > 0:
+            compliance_checks.append({
+                "check": "Window Areas",
+                "status": "info",
+                "details": f"Found {window_count} windows - verify natural light requirements per room",
+                "standard": "OIB-RL 3"
+            })
+
+        # Extract material list
+        material_list = []
+        material_types = {}
+        for element in ifc_project.elements:
+            material = element.get("material", "")
+            if material and material != "Not specified":
+                material_types[material] = material_types.get(material, 0) + 1
+
+        for material, count in material_types.items():
+            material_list.append({
+                "name": material,
+                "category": "Building Material",
+                "quantity": f"{count} elements"
+            })
+
+        return IFCAnalysisResult(
+            file_name=os.path.basename(file_path),
+            ifc_version=ifc_project.ifc_schema,
+            building_elements=building_elements,
+            total_area_m2=sum(s.get("area_m2", 0) for s in ifc_project.storeys),
+            total_volume_m3=ifc_project.total_volume,
+            stories=len(ifc_project.storeys),
+            compliance_checks=compliance_checks,
+            warnings=warnings,
+            material_list=material_list[:10],  # Limit to top 10 materials
+            geometry_valid=len(ifc_project.elements) > 0
+        )
+
+    except ImportError as e:
+        logger.error(f"ifcopenshell not available: {e}")
+        raise HTTPException(
+            status_code=500,
+            detail="BIM processing library not installed. Install with: pip install ifcopenshell"
+        )
+    except Exception as e:
+        logger.error(f"IFC processing failed: {type(e).__name__}: {e}")
+        raise HTTPException(
+            status_code=400,
+            detail=f"IFC file processing failed: {str(e)}"
+        )
 
 def _validate_bim_compliance(file_path: str, validation: BIMValidationRequest) -> Dict:
     """Validate BIM model against Austrian regulations"""

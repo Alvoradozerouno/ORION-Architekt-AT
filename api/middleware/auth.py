@@ -1,7 +1,7 @@
 """
 API Authentication Middleware for ORION Architekt AT
 """
-from fastapi import Depends, HTTPException, Security, status
+from fastapi import Depends, HTTPException, Security, status, APIRouter
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from jose import JWTError, jwt
 from datetime import datetime, timedelta
@@ -12,6 +12,9 @@ from pydantic import BaseModel
 
 logger = logging.getLogger(__name__)
 security = HTTPBearer()
+
+# Create auth router
+router = APIRouter()
 
 SECRET_KEY = os.getenv("JWT_SECRET_KEY", "")
 ALGORITHM = os.getenv("JWT_ALGORITHM", "HS256")
@@ -42,3 +45,21 @@ async def get_current_user(credentials: HTTPAuthorizationCredentials = Security(
     except JWTError as e:
         logger.warning(f"JWT validation failed: {e}")
         raise HTTPException(status_code=401, detail="Invalid credentials")
+
+async def get_current_active_user(current_user: User = Depends(get_current_user)) -> User:
+    """Get current active user"""
+    if not current_user.is_active:
+        raise HTTPException(status_code=403, detail="Inactive user")
+    return current_user
+
+async def require_admin(current_user: User = Depends(get_current_active_user)) -> User:
+    """Require admin role"""
+    if "admin" not in current_user.roles:
+        raise HTTPException(status_code=403, detail="Admin access required")
+    return current_user
+
+async def require_premium(current_user: User = Depends(get_current_active_user)) -> User:
+    """Require premium subscription"""
+    if "premium" not in current_user.roles and "admin" not in current_user.roles:
+        raise HTTPException(status_code=403, detail="Premium subscription required")
+    return current_user

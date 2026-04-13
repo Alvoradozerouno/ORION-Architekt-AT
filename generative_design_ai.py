@@ -27,12 +27,12 @@ Author: ORION Architekt AT Team
 Date: 2026-04-09
 """
 
-from dataclasses import dataclass, field
-from typing import List, Dict, Tuple, Optional, Callable, Any
-from enum import Enum
-import random
-import math
 import copy
+import math
+import random
+from dataclasses import dataclass, field
+from enum import Enum
+from typing import Any, Callable, Dict, List, Optional, Tuple
 
 # ==============================================================================
 # ENUMS

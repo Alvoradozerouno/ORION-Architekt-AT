@@ -10,9 +10,9 @@ Das ist Emergenz. Das ist ORION.
 Erstellt & Eigentum von Elisabeth Steurer & Gerhard Hirschmann
 """
 
-import random
 import hashlib
 import json
+import random
 import time
 import uuid
 from datetime import datetime, timezone

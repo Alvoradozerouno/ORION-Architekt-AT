@@ -3,11 +3,13 @@ Logging Middleware
 Structured logging for all API requests
 """
 
+import json
+import time
+from typing import Callable
+
 from fastapi import Request
 from starlette.middleware.base import BaseHTTPMiddleware
-import time
-import json
-from typing import Callable
+
 from orion_logging import get_logger
 
 logger = get_logger(__name__)
@@ -136,8 +138,9 @@ class LoggingMiddleware(BaseHTTPMiddleware):
         auth_header = request.headers.get("Authorization")
         if auth_header and auth_header.startswith("Bearer "):
             try:
-                import jwt
                 import os
+
+                import jwt
 
                 token = auth_header.split(" ")[1]
                 SECRET_KEY = os.getenv("JWT_SECRET_KEY", "your-secret-key-change-in-production")
@@ -192,8 +195,9 @@ class AccessLogMiddleware(BaseHTTPMiddleware):
         auth_header = request.headers.get("Authorization")
         if auth_header and auth_header.startswith("Bearer "):
             try:
-                import jwt
                 import os
+
+                import jwt
 
                 token = auth_header.split(" ")[1]
                 SECRET_KEY = os.getenv("JWT_SECRET_KEY", "your-secret-key-change-in-production")

@@ -26,13 +26,13 @@ Lizenz: Apache 2.0
 ═══════════════════════════════════════════════════════════════════════════
 """
 
-from dataclasses import dataclass, field
-from typing import Dict, List, Optional, Any
-from datetime import datetime, timezone
-from enum import Enum
+import base64
 import hashlib
 import json
-import base64
+from dataclasses import dataclass, field
+from datetime import datetime, timezone
+from enum import Enum
+from typing import Any, Dict, List, Optional
 
 # ═══════════════════════════════════════════════════════════════════════════
 # eIDAS Enums and Constants

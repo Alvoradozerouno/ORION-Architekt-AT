@@ -21,13 +21,13 @@ Status: PRODUCTION
 ═══════════════════════════════════════════════════════════════════════════
 """
 
-import json
 import hashlib
+import json
 import re
 import sys
+from datetime import datetime, timedelta, timezone
 from pathlib import Path
-from datetime import datetime, timezone, timedelta
-from typing import Dict, List, Any
+from typing import Any, Dict, List
 
 # Add parent directory to path
 sys.path.insert(0, str(Path(__file__).parent.parent))
@@ -41,17 +41,17 @@ class SkipException(Exception):
 
 # Import modules to test
 try:
-    from api.safety.audit_trail import AuditTrail, AuditEntry
+    from api.safety.audit_trail import AuditEntry, AuditTrail
     from api.validation import (
+        ValidatedComplianceRequest,
+        ValidatedFileUpload,
         sanitize_string,
         validate_api_key,
         validate_jwt_format,
-        ValidatedFileUpload,
-        ValidatedComplianceRequest,
     )
     from eidas_signature import (
-        SignatureType,
         SignatureFormat,
+        SignatureType,
         TrustServiceProvider,
         berechne_dokument_hash,
         erstelle_signatur_placeholder,
@@ -520,8 +520,9 @@ class TestAccessibilityCompliance:
         """WCAG 2.1 - Guideline 3.3 Input Assistance"""
         if not MODULES_AVAILABLE:
             raise SkipException("Modules not available")
-        from api.validation import ValidatedUWertRequest
         from pydantic import ValidationError
+
+        from api.validation import ValidatedUWertRequest
 
         # Test clear error messages
         try:

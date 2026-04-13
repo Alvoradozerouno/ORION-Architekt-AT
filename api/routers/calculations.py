@@ -3,11 +3,12 @@ Building Calculations Router
 U-Wert, Stellplätze, Flächenberechnung, etc.
 """
 
+import os
+import sys
+from typing import Dict, List, Optional
+
 from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel, Field
-from typing import List, Dict, Optional
-import sys
-import os
 
 # Add parent directory to path
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))

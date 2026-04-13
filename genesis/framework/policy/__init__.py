@@ -8,6 +8,6 @@ Standards Compliance:
 - Building authority compliance (Austrian ZiviltechnikerG)
 """
 
-from .decision_policy import DecisionPolicyEngine, DecisionMode, PolicyViolationError
+from .decision_policy import DecisionMode, DecisionPolicyEngine, PolicyViolationError
 
 __all__ = ["DecisionPolicyEngine", "DecisionMode", "PolicyViolationError"]

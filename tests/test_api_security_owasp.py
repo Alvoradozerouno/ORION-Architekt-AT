@@ -10,11 +10,12 @@ Date: 2026-04-12
 Status: PRODUCTION SECURITY
 """
 
-import pytest
-import httpx
-import time
 import os
-from typing import Dict, Any
+import time
+from typing import Any, Dict
+
+import httpx
+import pytest
 
 # Base URL from environment or default
 BASE_URL = os.getenv("TEST_API_URL", "http://localhost")

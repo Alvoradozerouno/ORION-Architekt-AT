@@ -3,36 +3,37 @@ ORION Architekt-AT FastAPI Main Application
 Production-ready API with all Austrian building regulations endpoints
 """
 
-from fastapi import FastAPI, HTTPException, Depends, status, Request
-from fastapi.middleware.cors import CORSMiddleware
-from fastapi.middleware.gzip import GZipMiddleware
-from fastapi.responses import JSONResponse
-from fastapi.openapi.utils import get_openapi
-from prometheus_fastapi_instrumentator import Instrumentator
+import os
+import sys
 import time
 from typing import Optional
-import sys
-import os
+
+from fastapi import Depends, FastAPI, HTTPException, Request, status
+from fastapi.middleware.cors import CORSMiddleware
+from fastapi.middleware.gzip import GZipMiddleware
+from fastapi.openapi.utils import get_openapi
+from fastapi.responses import JSONResponse
+from prometheus_fastapi_instrumentator import Instrumentator
 
 # Add parent directory to path
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
+from api.database import Base, engine
+from api.middleware import LoggingMiddleware, RateLimitMiddleware
+from api.middleware.auth import router as auth_router
+from api.models import User
 from api.routers import (
-    calculations,
-    compliance,
-    validation,
-    bundesland,
-    reports,
     ai_recommendations,
     bim_integration,
+    bundesland,
+    calculations,
     collaboration,
+    compliance,
+    reports,
     tendering,
+    validation,
 )
-from api.middleware import RateLimitMiddleware, LoggingMiddleware
-from api.middleware.auth import router as auth_router
-from api.database import engine, Base
-from api.models import User
-from orion_logging import setup_default_logging, get_logger
+from orion_logging import get_logger, setup_default_logging
 
 # Setup logging
 setup_default_logging()

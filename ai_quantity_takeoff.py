@@ -27,12 +27,12 @@ Lizenz: Apache 2.0
 ═══════════════════════════════════════════════════════════════════════════
 """
 
+import hashlib
+import json
 from dataclasses import dataclass, field
-from typing import Dict, List, Optional, Any, Tuple
 from datetime import datetime, timezone
 from enum import Enum
-import json
-import hashlib
+from typing import Any, Dict, List, Optional, Tuple
 
 # ═══════════════════════════════════════════════════════════════════════════
 # IFC/BIM Integration

@@ -35,10 +35,10 @@ import hashlib
 import json
 import math
 import os
-from dataclasses import dataclass, field, asdict
+from dataclasses import asdict, dataclass, field
 from datetime import datetime
 from enum import Enum
-from typing import List, Tuple, Dict, Any
+from typing import Any, Dict, List, Tuple
 
 
 class ValidationStatus(Enum):

@@ -10,10 +10,11 @@ Date: 2026-04-11
 Status: PRODUCTION
 """
 
-from pydantic import BaseModel, Field, validator, root_validator
-from typing import List, Optional, Dict, Any, ClassVar
-from enum import Enum
 import re
+from enum import Enum
+from typing import Any, ClassVar, Dict, List, Optional
+
+from pydantic import BaseModel, Field, root_validator, validator
 
 # ============================================================================
 # AUSTRIAN BUILDING CODE CONSTANTS

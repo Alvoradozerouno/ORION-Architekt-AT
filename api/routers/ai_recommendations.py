@@ -3,11 +3,12 @@ UNIQUE FEATURE: AI-Powered Building Recommendations
 Uses machine learning to optimize building designs for Austrian regulations
 """
 
-from fastapi import APIRouter, HTTPException, Depends
-from pydantic import BaseModel, Field
-from typing import List, Dict, Optional, Any
-import numpy as np
 from datetime import datetime
+from typing import Any, Dict, List, Optional
+
+import numpy as np
+from fastapi import APIRouter, Depends, HTTPException
+from pydantic import BaseModel, Field
 
 router = APIRouter()
 

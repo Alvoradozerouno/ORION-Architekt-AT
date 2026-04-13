@@ -3,38 +3,39 @@
 Complete API for Austrian construction tendering
 """
 
-from fastapi import APIRouter, HTTPException, BackgroundTasks, Depends, status
-from pydantic import BaseModel, Field, validator
-from typing import List, Dict, Optional, Any
+import os
+import sys
 from datetime import datetime
 from enum import Enum
-import sys
-import os
+from typing import Any, Dict, List, Optional
+
+from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, status
+from pydantic import BaseModel, Field, validator
 
 # Add parent directory to path
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
 
 from orion_oenorm_a2063 import (
-    LVPosition,
-    LVAenderung,
-    generiere_beispiel_lv_einfamilienhaus,
-    exportiere_lv_oenorm_json,
-    exportiere_gaeb_xml,
-    vergleiche_angebote_detailliert,
-    berechne_regionale_anpassung,
-    berechne_phasen_kosten,
-    erstelle_lv_aenderung,
-    vergleiche_lv_versionen,
-    erstelle_template_erdarbeiten,
-    erstelle_template_betondecke,
-    erstelle_template_mauerwerk,
-    erstelle_template_dacheindeckung,
-    erstelle_template_estrich,
-    erstelle_template_fenster,
-    WASTE_FACTORS_AT,
-    REGIONALE_FAKTOREN_AT,
     BAUPHASEN_AT,
     GEWERKE_KATALOG_AT,
+    REGIONALE_FAKTOREN_AT,
+    WASTE_FACTORS_AT,
+    LVAenderung,
+    LVPosition,
+    berechne_phasen_kosten,
+    berechne_regionale_anpassung,
+    erstelle_lv_aenderung,
+    erstelle_template_betondecke,
+    erstelle_template_dacheindeckung,
+    erstelle_template_erdarbeiten,
+    erstelle_template_estrich,
+    erstelle_template_fenster,
+    erstelle_template_mauerwerk,
+    exportiere_gaeb_xml,
+    exportiere_lv_oenorm_json,
+    generiere_beispiel_lv_einfamilienhaus,
+    vergleiche_angebote_detailliert,
+    vergleiche_lv_versionen,
 )
 
 router = APIRouter(

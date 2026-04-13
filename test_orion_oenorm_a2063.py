@@ -5,16 +5,18 @@ Tests für ORION ÖNORM A 2063 - Angebotslegung & Ausschreibung
 Testet alle Funktionen des Ausschreibungs- und Angebotsmoduls
 """
 
-import pytest
 import json
+
+import pytest
+
 from orion_oenorm_a2063 import (
+    GEWERKE_KATALOG_AT,
     LVPosition,
-    generiere_beispiel_lv_einfamilienhaus,
-    exportiere_lv_oenorm_json,
-    vergleiche_angebote_detailliert,
     erstelle_vollstaendige_ausschreibung,
     exportiere_gaeb_xml,
-    GEWERKE_KATALOG_AT,
+    exportiere_lv_oenorm_json,
+    generiere_beispiel_lv_einfamilienhaus,
+    vergleiche_angebote_detailliert,
 )
 
 

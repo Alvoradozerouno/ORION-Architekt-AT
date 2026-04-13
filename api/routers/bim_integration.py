@@ -2,6 +2,7 @@
 UNIQUE FEATURE: BIM Integration Layer
 Processes IFC files and integrates with Austrian building regulations
 """
+
 from fastapi import APIRouter, HTTPException, UploadFile, File, Depends
 from pydantic import BaseModel, Field
 from typing import List, Dict, Optional, Any
@@ -11,8 +12,10 @@ from datetime import datetime
 
 router = APIRouter()
 
+
 class IFCAnalysisResult(BaseModel):
     """Result of IFC file analysis"""
+
     file_name: str
     ifc_version: str
     building_elements: Dict[str, int]
@@ -24,8 +27,10 @@ class IFCAnalysisResult(BaseModel):
     material_list: List[Dict[str, str]]
     geometry_valid: bool
 
+
 class ComplianceCheckResult(BaseModel):
     """BIM compliance check result"""
+
     check_name: str
     category: str
     status: str  # "pass", "fail", "warning"
@@ -33,8 +38,10 @@ class ComplianceCheckResult(BaseModel):
     relevant_standard: Optional[str] = None
     affected_elements: List[str] = []
 
+
 class BIMValidationRequest(BaseModel):
     """Request for BIM validation"""
+
     bundesland: str
     building_type: str
     check_oib_rl: List[int] = Field(default=[1, 2, 3, 4, 5, 6])
@@ -42,11 +49,10 @@ class BIMValidationRequest(BaseModel):
     check_fluchtwege: bool = True
     check_stellplaetze: bool = True
 
+
 @router.post("/upload-ifc", response_model=IFCAnalysisResult)
 async def upload_ifc_file(
-    file: UploadFile = File(...),
-    bundesland: str = "wien",
-    building_type: str = "mehrfamilienhaus"
+    file: UploadFile = File(...), bundesland: str = "wien", building_type: str = "mehrfamilienhaus"
 ):
     """
     🏗️ **UNIQUE FEATURE**: Upload and Analyze IFC File
@@ -61,11 +67,11 @@ async def upload_ifc_file(
 
     Supported IFC versions: IFC2x3, IFC4, IFC4.3
     """
-    if not file.filename.endswith(('.ifc', '.IFC')):
+    if not file.filename.endswith((".ifc", ".IFC")):
         raise HTTPException(status_code=400, detail="Only IFC files are supported")
 
     # Save uploaded file temporarily
-    with tempfile.NamedTemporaryFile(delete=False, suffix='.ifc') as tmp_file:
+    with tempfile.NamedTemporaryFile(delete=False, suffix=".ifc") as tmp_file:
         content = await file.read()
         tmp_file.write(content)
         tmp_file_path = tmp_file.name
@@ -81,10 +87,10 @@ async def upload_ifc_file(
         if os.path.exists(tmp_file_path):
             os.unlink(tmp_file_path)
 
+
 @router.post("/validate-bim")
 async def validate_bim_compliance(
-    file: UploadFile = File(...),
-    validation: BIMValidationRequest = None
+    file: UploadFile = File(...), validation: BIMValidationRequest = None
 ):
     """
     ✅ **UNIQUE FEATURE**: Complete BIM Compliance Validation
@@ -99,14 +105,14 @@ async def validate_bim_compliance(
 
     Returns detailed compliance report with visual references.
     """
-    if not file.filename.endswith(('.ifc', '.IFC')):
+    if not file.filename.endswith((".ifc", ".IFC")):
         raise HTTPException(status_code=400, detail="Only IFC files are supported")
 
     if validation is None:
         validation = BIMValidationRequest(bundesland="wien", building_type="mehrfamilienhaus")
 
     # Save uploaded file temporarily
-    with tempfile.NamedTemporaryFile(delete=False, suffix='.ifc') as tmp_file:
+    with tempfile.NamedTemporaryFile(delete=False, suffix=".ifc") as tmp_file:
         content = await file.read()
         tmp_file.write(content)
         tmp_file_path = tmp_file.name
@@ -121,6 +127,7 @@ async def validate_bim_compliance(
         if os.path.exists(tmp_file_path):
             os.unlink(tmp_file_path)
 
+
 @router.post("/extract-materials")
 async def extract_materials_from_bim(file: UploadFile = File(...)):
     """
@@ -134,10 +141,10 @@ async def extract_materials_from_bim(file: UploadFile = File(...)):
 
     Automatically checks against ÖNORM material database.
     """
-    if not file.filename.endswith(('.ifc', '.IFC')):
+    if not file.filename.endswith((".ifc", ".IFC")):
         raise HTTPException(status_code=400, detail="Only IFC files are supported")
 
-    with tempfile.NamedTemporaryFile(delete=False, suffix='.ifc') as tmp_file:
+    with tempfile.NamedTemporaryFile(delete=False, suffix=".ifc") as tmp_file:
         content = await file.read()
         tmp_file.write(content)
         tmp_file_path = tmp_file.name
@@ -151,11 +158,9 @@ async def extract_materials_from_bim(file: UploadFile = File(...)):
         if os.path.exists(tmp_file_path):
             os.unlink(tmp_file_path)
 
+
 @router.post("/clash-detection")
-async def clash_detection(
-    file: UploadFile = File(...),
-    bundesland: str = "wien"
-):
+async def clash_detection(file: UploadFile = File(...), bundesland: str = "wien"):
     """
     ⚠️ **UNIQUE FEATURE**: Regulation Clash Detection
 
@@ -168,10 +173,10 @@ async def clash_detection(
 
     Much faster than manual checking!
     """
-    if not file.filename.endswith(('.ifc', '.IFC')):
+    if not file.filename.endswith((".ifc", ".IFC")):
         raise HTTPException(status_code=400, detail="Only IFC files are supported")
 
-    with tempfile.NamedTemporaryFile(delete=False, suffix='.ifc') as tmp_file:
+    with tempfile.NamedTemporaryFile(delete=False, suffix=".ifc") as tmp_file:
         content = await file.read()
         tmp_file.write(content)
         tmp_file_path = tmp_file.name
@@ -182,13 +187,14 @@ async def clash_detection(
             "total_clashes": len(clashes),
             "critical_clashes": len([c for c in clashes if c["severity"] == "critical"]),
             "warnings": len([c for c in clashes if c["severity"] == "warning"]),
-            "clashes": clashes
+            "clashes": clashes,
         }
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Clash detection failed: {str(e)}")
     finally:
         if os.path.exists(tmp_file_path):
             os.unlink(tmp_file_path)
+
 
 @router.post("/uwert-from-bim")
 async def calculate_uwert_from_bim(file: UploadFile = File(...)):
@@ -203,10 +209,10 @@ async def calculate_uwert_from_bim(file: UploadFile = File(...)):
 
     No manual input needed!
     """
-    if not file.filename.endswith(('.ifc', '.IFC')):
+    if not file.filename.endswith((".ifc", ".IFC")):
         raise HTTPException(status_code=400, detail="Only IFC files are supported")
 
-    with tempfile.NamedTemporaryFile(delete=False, suffix='.ifc') as tmp_file:
+    with tempfile.NamedTemporaryFile(delete=False, suffix=".ifc") as tmp_file:
         content = await file.read()
         tmp_file.write(content)
         tmp_file_path = tmp_file.name
@@ -220,7 +226,9 @@ async def calculate_uwert_from_bim(file: UploadFile = File(...)):
         if os.path.exists(tmp_file_path):
             os.unlink(tmp_file_path)
 
+
 # Helper functions - Real IFC processing using ifcopenshell
+
 
 def _parse_ifc_file(file_path: str, bundesland: str, building_type: str) -> IFCAnalysisResult:
     """
@@ -252,47 +260,55 @@ def _parse_ifc_file(file_path: str, bundesland: str, building_type: str) -> IFCA
         warnings = []
 
         # Basic room height check (OIB-RL 3: minimum 2.50m)
-        min_height = float('inf')
+        min_height = float("inf")
         for storey in ifc_project.storeys:
             height = storey.get("height_m", 0)
             if height > 0 and height < min_height:
                 min_height = height
 
         if min_height >= 2.5:
-            compliance_checks.append({
-                "check": "Minimum Room Height",
-                "status": "pass",
-                "details": f"Minimum storey height: {min_height:.2f}m (OIB-RL 3: ≥2.50m)",
-                "standard": "OIB-RL 3"
-            })
+            compliance_checks.append(
+                {
+                    "check": "Minimum Room Height",
+                    "status": "pass",
+                    "details": f"Minimum storey height: {min_height:.2f}m (OIB-RL 3: ≥2.50m)",
+                    "standard": "OIB-RL 3",
+                }
+            )
         else:
-            compliance_checks.append({
-                "check": "Minimum Room Height",
-                "status": "fail",
-                "details": f"Minimum storey height: {min_height:.2f}m (required: ≥2.50m)",
-                "standard": "OIB-RL 3"
-            })
+            compliance_checks.append(
+                {
+                    "check": "Minimum Room Height",
+                    "status": "fail",
+                    "details": f"Minimum storey height: {min_height:.2f}m (required: ≥2.50m)",
+                    "standard": "OIB-RL 3",
+                }
+            )
             warnings.append(f"Room height below minimum: {min_height:.2f}m")
 
         # Door width check (ÖNORM B 1600: minimum 80cm, recommended 90cm for accessibility)
         door_count = building_elements.get("IfcDoor", 0)
         if door_count > 0:
-            compliance_checks.append({
-                "check": "Door Widths",
-                "status": "info",
-                "details": f"Found {door_count} doors - manual verification recommended for accessibility (ÖNORM B 1600: ≥90cm)",
-                "standard": "ÖNORM B 1600"
-            })
+            compliance_checks.append(
+                {
+                    "check": "Door Widths",
+                    "status": "info",
+                    "details": f"Found {door_count} doors - manual verification recommended for accessibility (ÖNORM B 1600: ≥90cm)",
+                    "standard": "ÖNORM B 1600",
+                }
+            )
 
         # Window area check (OIB-RL 3: natural light requirements)
         window_count = building_elements.get("IfcWindow", 0)
         if window_count > 0:
-            compliance_checks.append({
-                "check": "Window Areas",
-                "status": "info",
-                "details": f"Found {window_count} windows - verify natural light requirements per room",
-                "standard": "OIB-RL 3"
-            })
+            compliance_checks.append(
+                {
+                    "check": "Window Areas",
+                    "status": "info",
+                    "details": f"Found {window_count} windows - verify natural light requirements per room",
+                    "standard": "OIB-RL 3",
+                }
+            )
 
         # Extract material list
         material_list = []
@@ -303,11 +319,9 @@ def _parse_ifc_file(file_path: str, bundesland: str, building_type: str) -> IFCA
                 material_types[material] = material_types.get(material, 0) + 1
 
         for material, count in material_types.items():
-            material_list.append({
-                "name": material,
-                "category": "Building Material",
-                "quantity": f"{count} elements"
-            })
+            material_list.append(
+                {"name": material, "category": "Building Material", "quantity": f"{count} elements"}
+            )
 
         return IFCAnalysisResult(
             file_name=os.path.basename(file_path),
@@ -319,21 +333,19 @@ def _parse_ifc_file(file_path: str, bundesland: str, building_type: str) -> IFCA
             compliance_checks=compliance_checks,
             warnings=warnings,
             material_list=material_list[:10],  # Limit to top 10 materials
-            geometry_valid=len(ifc_project.elements) > 0
+            geometry_valid=len(ifc_project.elements) > 0,
         )
 
     except ImportError as e:
         logger.error(f"ifcopenshell not available: {e}")
         raise HTTPException(
             status_code=500,
-            detail="BIM processing library not installed. Install with: pip install ifcopenshell"
+            detail="BIM processing library not installed. Install with: pip install ifcopenshell",
         )
     except Exception as e:
         logger.error(f"IFC processing failed: {type(e).__name__}: {e}")
-        raise HTTPException(
-            status_code=400,
-            detail=f"IFC file processing failed: {str(e)}"
-        )
+        raise HTTPException(status_code=400, detail=f"IFC file processing failed: {str(e)}")
+
 
 def _validate_bim_compliance(file_path: str, validation: BIMValidationRequest) -> Dict:
     """Validate BIM model against Austrian regulations"""
@@ -342,84 +354,100 @@ def _validate_bim_compliance(file_path: str, validation: BIMValidationRequest) -
 
     # OIB-RL checks
     if 1 in validation.check_oib_rl:
-        compliance_results.append({
-            "check_name": "Fire Safety - Escape Routes",
-            "category": "OIB-RL 1",
-            "status": "pass",
-            "details": "All rooms have maximum 40m distance to emergency exit",
-            "relevant_standard": "OIB-RL 1",
-            "affected_elements": []
-        })
+        compliance_results.append(
+            {
+                "check_name": "Fire Safety - Escape Routes",
+                "category": "OIB-RL 1",
+                "status": "pass",
+                "details": "All rooms have maximum 40m distance to emergency exit",
+                "relevant_standard": "OIB-RL 1",
+                "affected_elements": [],
+            }
+        )
 
     if 2 in validation.check_oib_rl:
-        compliance_results.append({
-            "check_name": "Fire Resistance of Building Elements",
-            "category": "OIB-RL 2",
-            "status": "pass",
-            "details": "All structural elements meet REI 90 requirements",
-            "relevant_standard": "OIB-RL 2",
-            "affected_elements": ["IfcWall_001", "IfcSlab_001"]
-        })
+        compliance_results.append(
+            {
+                "check_name": "Fire Resistance of Building Elements",
+                "category": "OIB-RL 2",
+                "status": "pass",
+                "details": "All structural elements meet REI 90 requirements",
+                "relevant_standard": "OIB-RL 2",
+                "affected_elements": ["IfcWall_001", "IfcSlab_001"],
+            }
+        )
 
     if 3 in validation.check_oib_rl:
-        compliance_results.append({
-            "check_name": "Hygiene, Health and Environment",
-            "category": "OIB-RL 3",
-            "status": "warning",
-            "details": "2 bathrooms do not meet minimum ventilation requirements",
-            "relevant_standard": "OIB-RL 3",
-            "affected_elements": ["IfcSpace_012", "IfcSpace_024"]
-        })
+        compliance_results.append(
+            {
+                "check_name": "Hygiene, Health and Environment",
+                "category": "OIB-RL 3",
+                "status": "warning",
+                "details": "2 bathrooms do not meet minimum ventilation requirements",
+                "relevant_standard": "OIB-RL 3",
+                "affected_elements": ["IfcSpace_012", "IfcSpace_024"],
+            }
+        )
 
     if 6 in validation.check_oib_rl:
-        compliance_results.append({
-            "check_name": "Energy Efficiency",
-            "category": "OIB-RL 6",
-            "status": "pass",
-            "details": "Building envelope U-values comply with Energy Class A requirements",
-            "relevant_standard": "OIB-RL 6",
-            "affected_elements": []
-        })
+        compliance_results.append(
+            {
+                "check_name": "Energy Efficiency",
+                "category": "OIB-RL 6",
+                "status": "pass",
+                "details": "Building envelope U-values comply with Energy Class A requirements",
+                "relevant_standard": "OIB-RL 6",
+                "affected_elements": [],
+            }
+        )
 
     # Barrierefreiheit checks
     if validation.check_barrierefreiheit:
-        compliance_results.append({
-            "check_name": "Barrier-free Access - Doors",
-            "category": "Barrierefreiheit",
-            "status": "fail",
-            "details": "3 doors are 80cm wide (minimum: 90cm for barrier-free)",
-            "relevant_standard": "ÖNORM B 1600",
-            "affected_elements": ["IfcDoor_003", "IfcDoor_007", "IfcDoor_014"]
-        })
+        compliance_results.append(
+            {
+                "check_name": "Barrier-free Access - Doors",
+                "category": "Barrierefreiheit",
+                "status": "fail",
+                "details": "3 doors are 80cm wide (minimum: 90cm for barrier-free)",
+                "relevant_standard": "ÖNORM B 1600",
+                "affected_elements": ["IfcDoor_003", "IfcDoor_007", "IfcDoor_014"],
+            }
+        )
 
-        compliance_results.append({
-            "check_name": "Barrier-free Access - Elevator",
-            "category": "Barrierefreiheit",
-            "status": "pass",
-            "details": "Elevator present with 1.10m x 1.40m cabin (compliant)",
-            "relevant_standard": "ÖNORM B 1600",
-            "affected_elements": ["IfcTransportElement_001"]
-        })
+        compliance_results.append(
+            {
+                "check_name": "Barrier-free Access - Elevator",
+                "category": "Barrierefreiheit",
+                "status": "pass",
+                "details": "Elevator present with 1.10m x 1.40m cabin (compliant)",
+                "relevant_standard": "ÖNORM B 1600",
+                "affected_elements": ["IfcTransportElement_001"],
+            }
+        )
 
     # Fluchtweg checks
     if validation.check_fluchtwege:
-        compliance_results.append({
-            "check_name": "Emergency Exit Distances",
-            "category": "Fluchtwege",
-            "status": "pass",
-            "details": "Maximum escape route length: 38m (limit: 40m)",
-            "relevant_standard": "OIB-RL 4",
-            "affected_elements": []
-        })
+        compliance_results.append(
+            {
+                "check_name": "Emergency Exit Distances",
+                "category": "Fluchtwege",
+                "status": "pass",
+                "details": "Maximum escape route length: 38m (limit: 40m)",
+                "relevant_standard": "OIB-RL 4",
+                "affected_elements": [],
+            }
+        )
 
-        compliance_results.append({
-            "check_name": "Stairway Widths",
-            "category": "Fluchtwege",
-            "status": "warning",
-            "details": "Main stairway is 1.15m wide (recommended: 1.20m for buildings >4 stories)",
-            "relevant_standard": "OIB-RL 4",
-            "affected_elements": ["IfcStair_001"]
-        })
+        compliance_results.append(
+            {
+                "check_name": "Stairway Widths",
+                "category": "Fluchtwege",
+                "status": "warning",
+                "details": "Main stairway is 1.15m wide (recommended: 1.20m for buildings >4 stories)",
+                "relevant_standard": "OIB-RL 4",
+                "affected_elements": ["IfcStair_001"],
+            }
+        )
 
     # Stellplatz calculation
     if validation.check_stellplaetze:
@@ -427,14 +455,16 @@ def _validate_bim_compliance(file_path: str, validation: BIMValidationRequest) -
         required_stellplaetze = _calculate_stellplaetze(validation.bundesland, wohnungen)
         found_stellplaetze = 15  # Extracted from IFC
 
-        compliance_results.append({
-            "check_name": f"Parking Spaces ({validation.bundesland})",
-            "category": "Stellplätze",
-            "status": "pass" if found_stellplaetze >= required_stellplaetze else "fail",
-            "details": f"Found: {found_stellplaetze} parking spaces, Required: {required_stellplaetze}",
-            "relevant_standard": f"{validation.bundesland.title()} Bauordnung",
-            "affected_elements": []
-        })
+        compliance_results.append(
+            {
+                "check_name": f"Parking Spaces ({validation.bundesland})",
+                "category": "Stellplätze",
+                "status": "pass" if found_stellplaetze >= required_stellplaetze else "fail",
+                "details": f"Found: {found_stellplaetze} parking spaces, Required: {required_stellplaetze}",
+                "relevant_standard": f"{validation.bundesland.title()} Bauordnung",
+                "affected_elements": [],
+            }
+        )
 
     summary = {
         "total_checks": len(compliance_results),
@@ -446,11 +476,14 @@ def _validate_bim_compliance(file_path: str, validation: BIMValidationRequest) -
     return {
         "summary": summary,
         "compliance_results": compliance_results,
-        "overall_status": "fail" if summary["failed"] > 0 else ("warning" if summary["warnings"] > 0 else "pass"),
+        "overall_status": (
+            "fail" if summary["failed"] > 0 else ("warning" if summary["warnings"] > 0 else "pass")
+        ),
         "bundesland": validation.bundesland,
         "building_type": validation.building_type,
-        "timestamp": datetime.now().isoformat()
+        "timestamp": datetime.now().isoformat(),
     }
+
 
 def _extract_materials(file_path: str) -> List[Dict]:
     """Extract materials from IFC file"""
@@ -462,7 +495,7 @@ def _extract_materials(file_path: str) -> List[Dict]:
             "thermal_conductivity": "2.3 W/mK",
             "density": "2400 kg/m3",
             "fire_rating": "A1",
-            "elements_using": ["IfcWall", "IfcSlab", "IfcColumn"]
+            "elements_using": ["IfcWall", "IfcSlab", "IfcColumn"],
         },
         {
             "name": "EPS Insulation 200mm",
@@ -470,7 +503,7 @@ def _extract_materials(file_path: str) -> List[Dict]:
             "thermal_conductivity": "0.035 W/mK",
             "density": "20 kg/m3",
             "fire_rating": "B2",
-            "elements_using": ["IfcWall"]
+            "elements_using": ["IfcWall"],
         },
         {
             "name": "Brick Masonry 250mm",
@@ -478,16 +511,17 @@ def _extract_materials(file_path: str) -> List[Dict]:
             "thermal_conductivity": "0.65 W/mK",
             "density": "1600 kg/m3",
             "fire_rating": "A1",
-            "elements_using": ["IfcWall"]
+            "elements_using": ["IfcWall"],
         },
         {
             "name": "Triple-glazed Window",
             "ifc_type": "IfcMaterial",
             "thermal_conductivity": "0.7 W/m2K (Uw)",
             "fire_rating": "N/A",
-            "elements_using": ["IfcWindow"]
-        }
+            "elements_using": ["IfcWindow"],
+        },
     ]
+
 
 def _detect_clashes(file_path: str, bundesland: str) -> List[Dict]:
     """Detect regulation clashes in BIM model"""
@@ -501,7 +535,7 @@ def _detect_clashes(file_path: str, bundesland: str) -> List[Dict]:
             "element": "IfcDoor_007",
             "location": "Floor 2, Apartment 2B",
             "regulation": "ÖNORM B 1600",
-            "suggested_fix": "Increase door width to 90cm"
+            "suggested_fix": "Increase door width to 90cm",
         },
         {
             "clash_id": "CLASH-002",
@@ -511,7 +545,7 @@ def _detect_clashes(file_path: str, bundesland: str) -> List[Dict]:
             "element": "IfcSpace_018",
             "location": "Floor 3, Corridor",
             "regulation": "OIB-RL 4",
-            "suggested_fix": "Consider widening corridor to 1.20m"
+            "suggested_fix": "Consider widening corridor to 1.20m",
         },
         {
             "clash_id": "CLASH-003",
@@ -521,7 +555,7 @@ def _detect_clashes(file_path: str, bundesland: str) -> List[Dict]:
             "element": "IfcSpace_024",
             "location": "Floor 2, Apartment 2C",
             "regulation": "OIB-RL 3",
-            "suggested_fix": "Add mechanical ventilation system"
+            "suggested_fix": "Add mechanical ventilation system",
         },
         {
             "clash_id": "CLASH-004",
@@ -531,9 +565,10 @@ def _detect_clashes(file_path: str, bundesland: str) -> List[Dict]:
             "element": "IfcWindow_015",
             "location": "Floor 1, Living Room",
             "regulation": "OIB-RL 6",
-            "suggested_fix": "Consider better insulated window for A+ energy class"
-        }
+            "suggested_fix": "Consider better insulated window for A+ energy class",
+        },
     ]
+
 
 def _calculate_uwert_from_bim(file_path: str) -> Dict:
     """Calculate U-values from BIM materials"""
@@ -544,50 +579,51 @@ def _calculate_uwert_from_bim(file_path: str) -> Dict:
                 {"layer": "Plaster", "thickness_mm": 15, "lambda": 0.7},
                 {"layer": "Brick", "thickness_mm": 250, "lambda": 0.65},
                 {"layer": "EPS Insulation", "thickness_mm": 200, "lambda": 0.035},
-                {"layer": "Plaster", "thickness_mm": 15, "lambda": 0.7}
+                {"layer": "Plaster", "thickness_mm": 15, "lambda": 0.7},
             ],
             "calculated_uwert": 0.16,
             "required_uwert_oib_rl6": 0.25,
             "status": "compliant",
-            "energy_class": "A+"
+            "energy_class": "A+",
         },
         "roof": {
             "construction": [
                 {"layer": "Roofing", "thickness_mm": 5, "lambda": 0.2},
                 {"layer": "Mineral Wool", "thickness_mm": 300, "lambda": 0.035},
-                {"layer": "Concrete", "thickness_mm": 200, "lambda": 2.3}
+                {"layer": "Concrete", "thickness_mm": 200, "lambda": 2.3},
             ],
             "calculated_uwert": 0.11,
             "required_uwert_oib_rl6": 0.15,
             "status": "compliant",
-            "energy_class": "A+"
+            "energy_class": "A+",
         },
         "ground_floor": {
             "construction": [
                 {"layer": "Tile", "thickness_mm": 10, "lambda": 1.5},
                 {"layer": "Screed", "thickness_mm": 60, "lambda": 1.4},
                 {"layer": "EPS", "thickness_mm": 180, "lambda": 0.035},
-                {"layer": "Concrete", "thickness_mm": 200, "lambda": 2.3}
+                {"layer": "Concrete", "thickness_mm": 200, "lambda": 2.3},
             ],
             "calculated_uwert": 0.18,
             "required_uwert_oib_rl6": 0.30,
             "status": "compliant",
-            "energy_class": "A"
+            "energy_class": "A",
         },
         "windows": {
             "type": "Triple-glazed",
             "uwert": 0.7,
             "required_uwert_oib_rl6": 1.0,
             "status": "compliant",
-            "energy_class": "A+"
+            "energy_class": "A+",
         },
         "overall_assessment": {
             "building_envelope_compliant": True,
             "estimated_hwb": "12 kWh/m2a",
             "energy_class": "A+",
-            "improvement_potential": "Minimal - already excellent thermal performance"
-        }
+            "improvement_potential": "Minimal - already excellent thermal performance",
+        },
     }
+
 
 def _calculate_stellplaetze(bundesland: str, wohnungen: int) -> int:
     """Calculate required parking spaces"""
@@ -600,7 +636,7 @@ def _calculate_stellplaetze(bundesland: str, wohnungen: int) -> int:
         "kaernten": 1.2,
         "steiermark": 1.3,
         "oberoesterreich": 1.3,
-        "niederoesterreich": 1.2
+        "niederoesterreich": 1.2,
     }
     factor = stellplatz_factors.get(bundesland, 1.0)
     return int(wohnungen * factor)

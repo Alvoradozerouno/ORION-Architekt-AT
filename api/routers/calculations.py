@@ -2,6 +2,7 @@
 Building Calculations Router
 U-Wert, Stellplätze, Flächenberechnung, etc.
 """
+
 from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel, Field
 from typing import List, Dict, Optional
@@ -13,56 +14,72 @@ sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspa
 
 router = APIRouter()
 
+
 # Models
 class Schicht(BaseModel):
     """Layer in construction"""
+
     material: str
     dicke_mm: float = Field(..., gt=0)
     lambda_wert: float = Field(..., gt=0)
 
+
 class UWertRequest(BaseModel):
     """U-value calculation request"""
+
     schichten: List[Schicht]
     innen_uebergang: float = Field(0.13, description="Internal heat transfer coefficient")
     aussen_uebergang: float = Field(0.04, description="External heat transfer coefficient")
 
+
 class UWertResult(BaseModel):
     """U-value calculation result"""
+
     uwert: float
     gesamtdicke_mm: float
     r_gesamt: float
     oib_rl6_compliant: bool
     energy_class: str
 
+
 class StellplatzRequest(BaseModel):
     """Parking space calculation request"""
+
     bundesland: str
     wohnungen: int = Field(..., gt=0)
     building_type: str = Field("mehrfamilienhaus")
 
+
 class StellplatzResult(BaseModel):
     """Parking space calculation result"""
+
     required_stellplaetze: int
     factor: float
     bundesland: str
     regulation: str
 
+
 class FlaecheRequest(BaseModel):
     """Area calculation request (ÖNORM B 1800)"""
+
     raumtyp: str
     laenge_m: float = Field(..., gt=0)
     breite_m: float = Field(..., gt=0)
     hoehe_m: float = Field(..., gt=0)
 
+
 class FlaecheResult(BaseModel):
     """Area calculation result"""
+
     bgf_m2: float
     ngf_m2: float
     nrf_m2: float
     vgf_m2: float
     standard: str = "ÖNORM B 1800"
 
+
 # Endpoints
+
 
 @router.post("/uwert", response_model=UWertResult)
 async def berechne_uwert(request: UWertRequest):
@@ -80,8 +97,7 @@ async def berechne_uwert(request: UWertRequest):
     r_aussen = request.aussen_uebergang
 
     r_schichten = sum(
-        schicht.dicke_mm / 1000 / schicht.lambda_wert
-        for schicht in request.schichten
+        schicht.dicke_mm / 1000 / schicht.lambda_wert for schicht in request.schichten
     )
 
     r_gesamt = r_innen + r_schichten + r_aussen
@@ -110,8 +126,9 @@ async def berechne_uwert(request: UWertRequest):
         gesamtdicke_mm=gesamtdicke_mm,
         r_gesamt=round(r_gesamt, 3),
         oib_rl6_compliant=oib_rl6_compliant,
-        energy_class=energy_class
+        energy_class=energy_class,
     )
+
 
 @router.post("/stellplaetze", response_model=StellplatzResult)
 async def berechne_stellplaetze(request: StellplatzRequest):
@@ -136,16 +153,13 @@ async def berechne_stellplaetze(request: StellplatzRequest):
         "kaernten": 1.2,
         "steiermark": 1.3,
         "oberoesterreich": 1.3,
-        "niederoesterreich": 1.2
+        "niederoesterreich": 1.2,
     }
 
     bundesland_lower = request.bundesland.lower()
 
     if bundesland_lower not in stellplatz_factors:
-        raise HTTPException(
-            status_code=400,
-            detail=f"Invalid Bundesland: {request.bundesland}"
-        )
+        raise HTTPException(status_code=400, detail=f"Invalid Bundesland: {request.bundesland}")
 
     factor = stellplatz_factors[bundesland_lower]
     required = int(request.wohnungen * factor)
@@ -154,8 +168,9 @@ async def berechne_stellplaetze(request: StellplatzRequest):
         required_stellplaetze=required,
         factor=factor,
         bundesland=request.bundesland,
-        regulation=f"{request.bundesland.title()} Bauordnung"
+        regulation=f"{request.bundesland.title()} Bauordnung",
     )
+
 
 @router.post("/flaeche", response_model=FlaecheResult)
 async def berechne_flaeche(request: FlaecheRequest):
@@ -187,8 +202,9 @@ async def berechne_flaeche(request: FlaecheRequest):
         bgf_m2=round(bgf_m2, 2),
         ngf_m2=round(ngf_m2, 2),
         nrf_m2=round(nrf_m2, 2),
-        vgf_m2=round(vgf_m2, 2)
+        vgf_m2=round(vgf_m2, 2),
     )
+
 
 @router.post("/barrierefreiheit-check")
 async def check_barrierefreiheit(
@@ -196,7 +212,7 @@ async def check_barrierefreiheit(
     rampe_vorhanden: bool,
     rampe_steigung_prozent: Optional[float] = None,
     aufzug_vorhanden: bool = False,
-    geschosse: int = 1
+    geschosse: int = 1,
 ):
     """
     ♿ **Barrierefreiheit Check**
@@ -225,15 +241,16 @@ async def check_barrierefreiheit(
         "compliant": len(mangel) == 0,
         "standard": "ÖNORM B 1600",
         "mangel": mangel,
-        "status": "pass" if len(mangel) == 0 else "fail"
+        "status": "pass" if len(mangel) == 0 else "fail",
     }
+
 
 @router.post("/fluchtweg-check")
 async def check_fluchtweg(
     max_entfernung_m: float,
     treppenhaus_breite_m: float,
     geschosse: int,
-    gebaudetyp: str = "wohngebaeude"
+    gebaudetyp: str = "wohngebaeude",
 ):
     """
     🚨 **Fluchtweg Check**
@@ -256,7 +273,9 @@ async def check_fluchtweg(
     if treppenhaus_breite_m < min_breite:
         mangel.append(f"Treppenhaus {treppenhaus_breite_m}m zu schmal (minimum: {min_breite}m)")
     elif treppenhaus_breite_m < min_breite + 0.1:
-        warnings.append(f"Treppenhaus {treppenhaus_breite_m}m knapp bemessen (empfohlen: >{min_breite}m)")
+        warnings.append(
+            f"Treppenhaus {treppenhaus_breite_m}m knapp bemessen (empfohlen: >{min_breite}m)"
+        )
 
     # High-rise requirements
     if geschosse >= 5:
@@ -267,14 +286,12 @@ async def check_fluchtweg(
         "standard": "OIB-RL 4",
         "mangel": mangel,
         "warnings": warnings,
-        "status": "pass" if len(mangel) == 0 else ("warning" if len(warnings) > 0 else "fail")
+        "status": "pass" if len(mangel) == 0 else ("warning" if len(warnings) > 0 else "fail"),
     }
 
+
 @router.post("/schallschutz-berechnung")
-async def berechne_schallschutz(
-    wandaufbau: List[Schicht],
-    gebaudetyp: str = "mehrfamilienhaus"
-):
+async def berechne_schallschutz(wandaufbau: List[Schicht], gebaudetyp: str = "mehrfamilienhaus"):
     """
     🔊 **Schallschutz-Berechnung**
 
@@ -291,7 +308,7 @@ async def berechne_schallschutz(
 
     # Simplified mass law: R = 20*log10(m*f) - 47
     # Using reference frequency 500 Hz
-    rw_estimated = 20 * (gesamtmasse_kg_m2 ** 0.5)  # Simplified
+    rw_estimated = 20 * (gesamtmasse_kg_m2**0.5)  # Simplified
 
     # Requirements
     required_rw = 55 if gebaudetyp == "mehrfamilienhaus" else 52
@@ -302,8 +319,9 @@ async def berechne_schallschutz(
         "compliant": rw_estimated >= required_rw,
         "standard": "ÖNORM B 8115-2",
         "wandmasse_kg_m2": round(gesamtmasse_kg_m2, 1),
-        "status": "pass" if rw_estimated >= required_rw else "fail"
+        "status": "pass" if rw_estimated >= required_rw else "fail",
     }
+
 
 @router.post("/heizlast-berechnung")
 async def berechne_heizlast(
@@ -311,7 +329,7 @@ async def berechne_heizlast(
     uwert_wand: float,
     uwert_dach: float,
     uwert_fenster: float,
-    bundesland: str = "wien"
+    bundesland: str = "wien",
 ):
     """
     🔥 **Heizlast-Berechnung**
@@ -331,7 +349,7 @@ async def berechne_heizlast(
         "steiermark": 1.05,
         "oberoesterreich": 1.05,
         "niederoesterreich": 0.95,
-        "burgenland": 0.9
+        "burgenland": 0.9,
     }
 
     klima_faktor = klima_faktoren.get(bundesland.lower(), 1.0)
@@ -362,8 +380,9 @@ async def berechne_heizlast(
         "q_ventilation_w": round(q_ventilation, 0),
         "klima_faktor": klima_faktor,
         "bundesland": bundesland,
-        "standard": "ÖNORM EN 12831"
+        "standard": "ÖNORM EN 12831",
     }
+
 
 @router.get("/materialdatenbank")
 async def get_materialdatenbank(material_typ: Optional[str] = None):

@@ -23,6 +23,7 @@ try:
     import ifcopenshell.geom
     import ifcopenshell.util.element
     import ifcopenshell.util.unit
+
     IFC_AVAILABLE = True
 except ImportError:
     IFC_AVAILABLE = False
@@ -31,6 +32,7 @@ except ImportError:
 
 class IFCElementType(Enum):
     """IFC element types"""
+
     WALL = "IfcWall"
     SLAB = "IfcSlab"
     BEAM = "IfcBeam"
@@ -48,6 +50,7 @@ class IFCElementType(Enum):
 @dataclass
 class IFCGeometry:
     """IFC geometry representation"""
+
     element_id: str
     element_type: str
     vertices: List[Tuple[float, float, float]]
@@ -60,6 +63,7 @@ class IFCGeometry:
 @dataclass
 class IFCElement:
     """IFC building element"""
+
     global_id: str
     element_type: str
     name: Optional[str]
@@ -74,6 +78,7 @@ class IFCElement:
 @dataclass
 class IFCProject:
     """Complete IFC project data"""
+
     project_name: str
     project_id: str
     site_name: Optional[str]
@@ -91,9 +96,7 @@ class IFCProcessor:
     def __init__(self):
         self.logger = logging.getLogger(__name__)
         if not IFC_AVAILABLE:
-            raise RuntimeError(
-                "ifcopenshell not available. Install with: pip install ifcopenshell"
-            )
+            raise RuntimeError("ifcopenshell not available. Install with: pip install ifcopenshell")
 
     def load_ifc_file(self, file_path: str):
         """Load IFC file"""
@@ -126,8 +129,16 @@ class IFCProcessor:
         if sites:
             project_info["site_name"] = sites[0].Name
             project_info["site_location"] = {
-                "latitude": getattr(sites[0].RefLatitude, "wrappedValue", None) if hasattr(sites[0], "RefLatitude") else None,
-                "longitude": getattr(sites[0].RefLongitude, "wrappedValue", None) if hasattr(sites[0], "RefLongitude") else None,
+                "latitude": (
+                    getattr(sites[0].RefLatitude, "wrappedValue", None)
+                    if hasattr(sites[0], "RefLatitude")
+                    else None
+                ),
+                "longitude": (
+                    getattr(sites[0].RefLongitude, "wrappedValue", None)
+                    if hasattr(sites[0], "RefLongitude")
+                    else None
+                ),
             }
 
         # Get building
@@ -165,11 +176,11 @@ class IFCProcessor:
 
             # Get vertices
             verts = shape.geometry.verts
-            vertices = [(verts[i], verts[i+1], verts[i+2]) for i in range(0, len(verts), 3)]
+            vertices = [(verts[i], verts[i + 1], verts[i + 2]) for i in range(0, len(verts), 3)]
 
             # Get faces
             faces_raw = shape.geometry.faces
-            faces = [list(faces_raw[i:i+3]) for i in range(0, len(faces_raw), 3)]
+            faces = [list(faces_raw[i : i + 3]) for i in range(0, len(faces_raw), 3)]
 
             # Calculate volume and area
             volume = 0.0
@@ -177,8 +188,16 @@ class IFCProcessor:
 
             # Get bounding box
             bbox = {
-                "min": (min(v[0] for v in vertices), min(v[1] for v in vertices), min(v[2] for v in vertices)),
-                "max": (max(v[0] for v in vertices), max(v[1] for v in vertices), max(v[2] for v in vertices)),
+                "min": (
+                    min(v[0] for v in vertices),
+                    min(v[1] for v in vertices),
+                    min(v[2] for v in vertices),
+                ),
+                "max": (
+                    max(v[0] for v in vertices),
+                    max(v[1] for v in vertices),
+                    max(v[2] for v in vertices),
+                ),
             }
 
             # Calculate volume from bounding box (approximation)
@@ -188,7 +207,7 @@ class IFCProcessor:
             volume = dx * dy * dz
 
             # Calculate surface area (approximation)
-            surface_area = 2 * (dx*dy + dy*dz + dz*dx)
+            surface_area = 2 * (dx * dy + dy * dz + dz * dx)
 
             return IFCGeometry(
                 element_id=element.GlobalId,
@@ -197,7 +216,7 @@ class IFCProcessor:
                 faces=faces,
                 volume=volume,
                 surface_area=surface_area,
-                bounding_box=bbox
+                bounding_box=bbox,
             )
 
         except Exception as e:
@@ -256,8 +275,7 @@ class IFCProcessor:
         """Extract element material"""
         try:
             material_associations = [
-                rel for rel in element.HasAssociations
-                if rel.is_a("IfcRelAssociatesMaterial")
+                rel for rel in element.HasAssociations if rel.is_a("IfcRelAssociatesMaterial")
             ]
 
             if material_associations:
@@ -307,8 +325,14 @@ class IFCProcessor:
         total_area = 0.0
 
         element_types = [
-            "IfcWall", "IfcSlab", "IfcBeam", "IfcColumn",
-            "IfcWindow", "IfcDoor", "IfcRoof", "IfcStair"
+            "IfcWall",
+            "IfcSlab",
+            "IfcBeam",
+            "IfcColumn",
+            "IfcWindow",
+            "IfcDoor",
+            "IfcRoof",
+            "IfcStair",
         ]
 
         for element_type in element_types:
@@ -344,7 +368,7 @@ class IFCProcessor:
                     geometry=geometry,
                     material=material,
                     quantities=quantities,
-                    storey=storey
+                    storey=storey,
                 )
 
                 elements.append(ifc_element)
@@ -360,7 +384,7 @@ class IFCProcessor:
             elements=elements,
             total_volume=total_volume,
             total_area=total_area,
-            ifc_version=project_info["ifc_version"]
+            ifc_version=project_info["ifc_version"],
         )
 
     def export_to_json(self, ifc_project: IFCProject, output_path: str):
@@ -377,7 +401,7 @@ class IFCProcessor:
             "total_volume": ifc_project.total_volume,
             "total_area": ifc_project.total_area,
             "element_count": len(ifc_project.elements),
-            "elements": []
+            "elements": [],
         }
 
         for element in ifc_project.elements:
@@ -403,7 +427,7 @@ class IFCProcessor:
 
             data["elements"].append(elem_data)
 
-        with open(output_path, 'w', encoding='utf-8') as f:
+        with open(output_path, "w", encoding="utf-8") as f:
             json.dump(data, f, indent=2, ensure_ascii=False)
 
         self.logger.info(f"JSON export complete: {output_path}")
@@ -430,12 +454,15 @@ class IFCProcessor:
 
             # By material
             if element.material:
-                stats["by_material"][element.material] = stats["by_material"].get(element.material, 0) + 1
+                stats["by_material"][element.material] = (
+                    stats["by_material"].get(element.material, 0) + 1
+                )
 
         return stats
 
 
 # Convenience functions for integration
+
 
 def load_and_process_ifc(file_path: str, extract_geometry: bool = True) -> IFCProject:
     """Load and process IFC file - production function"""
@@ -467,7 +494,8 @@ def ifc_to_orion_format(ifc_project: IFCProject) -> Dict[str, Any]:
                     "material": e.material,
                     "volume": e.geometry.volume if e.geometry else 0.0,
                     "length": e.quantities.get("Length", 0.0),
-                } for e in beams
+                }
+                for e in beams
             ],
             "columns": [
                 {
@@ -476,7 +504,8 @@ def ifc_to_orion_format(ifc_project: IFCProject) -> Dict[str, Any]:
                     "material": e.material,
                     "volume": e.geometry.volume if e.geometry else 0.0,
                     "height": e.quantities.get("Height", 0.0),
-                } for e in columns
+                }
+                for e in columns
             ],
             "slabs": [
                 {
@@ -485,7 +514,8 @@ def ifc_to_orion_format(ifc_project: IFCProject) -> Dict[str, Any]:
                     "material": e.material,
                     "area": e.geometry.surface_area if e.geometry else 0.0,
                     "thickness": e.quantities.get("Depth", 0.0),
-                } for e in slabs
+                }
+                for e in slabs
             ],
             "walls": [
                 {
@@ -494,14 +524,15 @@ def ifc_to_orion_format(ifc_project: IFCProject) -> Dict[str, Any]:
                     "material": e.material,
                     "area": e.geometry.surface_area if e.geometry else 0.0,
                     "thickness": e.quantities.get("Width", 0.0),
-                } for e in walls
+                }
+                for e in walls
             ],
         },
         "totals": {
             "volume": ifc_project.total_volume,
             "area": ifc_project.total_area,
             "element_count": len(ifc_project.elements),
-        }
+        },
     }
 
     return orion_data

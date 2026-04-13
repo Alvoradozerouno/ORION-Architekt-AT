@@ -44,8 +44,12 @@ class TestOWASPAPITop10:
             try:
                 response = client.get(f"/api/v1/projects/{resource_id}")
                 # Should return 401/403/404, not 200 with other user's data
-                assert response.status_code in [401, 403, 404, 422], \
-                    f"BOLA vulnerability: Resource {resource_id} accessible without auth"
+                assert response.status_code in [
+                    401,
+                    403,
+                    404,
+                    422,
+                ], f"BOLA vulnerability: Resource {resource_id} accessible without auth"
             except httpx.HTTPError:
                 pass  # Connection error is acceptable for this test
 
@@ -65,12 +69,8 @@ class TestOWASPAPITop10:
         ]
 
         for token in weak_tokens:
-            response = client.get(
-                "/api/v1/projects",
-                headers={"Authorization": token}
-            )
-            assert response.status_code in [401, 403, 422], \
-                f"Weak token accepted: {token[:20]}"
+            response = client.get("/api/v1/projects", headers={"Authorization": token})
+            assert response.status_code in [401, 403, 422], f"Weak token accepted: {token[:20]}"
 
     def test_api2_rate_limiting_login(self, client):
         """
@@ -80,13 +80,15 @@ class TestOWASPAPITop10:
         # Attempt multiple failed logins
         for i in range(10):
             response = client.post(
-                "/api/v1/auth/login",
-                json={"username": "test", "password": f"wrong{i}"}
+                "/api/v1/auth/login", json={"username": "test", "password": f"wrong{i}"}
             )
             # After several attempts, should be rate limited
             if i > 5:
-                assert response.status_code in [429, 401, 404], \
-                    "No rate limiting on authentication endpoint"
+                assert response.status_code in [
+                    429,
+                    401,
+                    404,
+                ], "No rate limiting on authentication endpoint"
 
     # ========================================================================
     # API3:2023 - Broken Object Property Level Authorization
@@ -102,13 +104,18 @@ class TestOWASPAPITop10:
             data = response.json()
             # Sensitive fields that should never be exposed
             sensitive_fields = [
-                "password", "secret_key", "jwt_secret",
-                "database_url", "redis_password", "api_key_hash"
+                "password",
+                "secret_key",
+                "jwt_secret",
+                "database_url",
+                "redis_password",
+                "api_key_hash",
             ]
 
             for field in sensitive_fields:
-                assert field not in str(data).lower(), \
-                    f"Sensitive field '{field}' exposed in API response"
+                assert (
+                    field not in str(data).lower()
+                ), f"Sensitive field '{field}' exposed in API response"
 
     # ========================================================================
     # API4:2023 - Unrestricted Resource Consumption
@@ -124,11 +131,10 @@ class TestOWASPAPITop10:
         try:
             response = client.post(
                 "/api/v1/upload/ifc",
-                files={"file": ("large.ifc", large_file, "application/octet-stream")}
+                files={"file": ("large.ifc", large_file, "application/octet-stream")},
             )
             # Should be rejected due to size
-            assert response.status_code in [413, 400, 422], \
-                "Large file upload not rejected"
+            assert response.status_code in [413, 400, 422], "Large file upload not rejected"
         except httpx.HTTPError:
             pass  # Network timeout is acceptable
 
@@ -158,8 +164,11 @@ class TestOWASPAPITop10:
         for endpoint in admin_endpoints:
             response = client.get(endpoint)
             # Should return 401/403/404 without proper admin token
-            assert response.status_code in [401, 403, 404], \
-                f"Admin endpoint {endpoint} accessible without authorization"
+            assert response.status_code in [
+                401,
+                403,
+                404,
+            ], f"Admin endpoint {endpoint} accessible without authorization"
 
     # ========================================================================
     # API6:2023 - Unrestricted Access to Sensitive Business Flows
@@ -172,11 +181,7 @@ class TestOWASPAPITop10:
         for i in range(20):
             response = client.post(
                 "/api/v1/berechnungen/uwert",
-                json={
-                    "schichten": [
-                        {"material": "Beton", "dicke_mm": 200, "lambda_wert": 2.1}
-                    ]
-                }
+                json={"schichten": [{"material": "Beton", "dicke_mm": 200, "lambda_wert": 2.1}]},
             )
 
             # Should eventually hit rate limit
@@ -204,11 +209,7 @@ class TestOWASPAPITop10:
         for payload in ssrf_payloads:
             response = client.post(
                 "/api/v1/berechnungen/uwert",
-                json={
-                    "schichten": [
-                        {"material": payload, "dicke_mm": 200, "lambda_wert": 2.1}
-                    ]
-                }
+                json={"schichten": [{"material": payload, "dicke_mm": 200, "lambda_wert": 2.1}]},
             )
             # Should be rejected via input validation
             assert response.status_code in [400, 422]
@@ -231,8 +232,9 @@ class TestOWASPAPITop10:
         }
 
         for header, description in required_headers.items():
-            assert header in [h.lower() for h in headers.keys()], \
-                f"Missing security header: {header} ({description})"
+            assert header in [
+                h.lower() for h in headers.keys()
+            ], f"Missing security header: {header} ({description})"
 
     def test_api8_no_debug_info_in_errors(self, client):
         """
@@ -245,8 +247,7 @@ class TestOWASPAPITop10:
             # Should not expose internal details
             sensitive_info = ["traceback", "stack trace", "sqlalchemy", "postgres", "redis"]
             for info in sensitive_info:
-                assert info not in error_text, \
-                    f"Debug information leaked in error: {info}"
+                assert info not in error_text, f"Debug information leaked in error: {info}"
 
     # ========================================================================
     # API9:2023 - Improper Inventory Management
@@ -272,8 +273,10 @@ class TestOWASPAPITop10:
         for version in deprecated_versions:
             response = client.get(f"{version}health")
             # Should return 404, not 200
-            assert response.status_code in [404, 403], \
-                f"Deprecated API version still accessible: {version}"
+            assert response.status_code in [
+                404,
+                403,
+            ], f"Deprecated API version still accessible: {version}"
 
     # ========================================================================
     # API10:2023 - Unsafe Consumption of APIs
@@ -292,12 +295,13 @@ class TestOWASPAPITop10:
 
         for malicious_input in malicious_inputs:
             response = client.post(
-                "/api/v1/berechnungen/uwert",
-                json={"schichten": [malicious_input]}
+                "/api/v1/berechnungen/uwert", json={"schichten": [malicious_input]}
             )
             # Should be rejected
-            assert response.status_code in [400, 422], \
-                f"Malicious input accepted: {malicious_input}"
+            assert response.status_code in [
+                400,
+                422,
+            ], f"Malicious input accepted: {malicious_input}"
 
     # ========================================================================
     # Additional Security Tests
@@ -306,10 +310,7 @@ class TestOWASPAPITop10:
         """
         Test CORS headers are properly configured
         """
-        response = client.options(
-            "/api/v1/health",
-            headers={"Origin": "https://evil.com"}
-        )
+        response = client.options("/api/v1/health", headers={"Origin": "https://evil.com"})
 
         # Should either reject or have proper CORS headers
         if "access-control-allow-origin" in [h.lower() for h in response.headers.keys()]:
@@ -323,7 +324,7 @@ class TestOWASPAPITop10:
         response = client.post(
             "/api/v1/berechnungen/uwert",
             content="<xml>malicious</xml>",
-            headers={"Content-Type": "text/xml"}
+            headers={"Content-Type": "text/xml"},
         )
         # Should reject non-JSON content for JSON endpoints
         assert response.status_code in [400, 415, 422]

@@ -1,6 +1,7 @@
 """
 API Authentication Middleware for ORION Architekt AT
 """
+
 from fastapi import Depends, HTTPException, Security, status, APIRouter
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from jose import JWTError, jwt
@@ -20,6 +21,7 @@ SECRET_KEY = os.getenv("JWT_SECRET_KEY", "")
 ALGORITHM = os.getenv("JWT_ALGORITHM", "HS256")
 ACCESS_TOKEN_EXPIRE_MINUTES = int(os.getenv("JWT_ACCESS_TOKEN_EXPIRE_MINUTES", "60"))
 
+
 class User(BaseModel):
     user_id: str
     username: str
@@ -27,11 +29,13 @@ class User(BaseModel):
     roles: List[str] = []
     is_active: bool = True
 
+
 def create_access_token(data: dict) -> str:
     to_encode = data.copy()
     expire = datetime.utcnow() + timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
     to_encode.update({"exp": expire})
     return jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
+
 
 async def get_current_user(credentials: HTTPAuthorizationCredentials = Security(security)) -> User:
     try:
@@ -40,11 +44,12 @@ async def get_current_user(credentials: HTTPAuthorizationCredentials = Security(
             user_id=payload.get("user_id"),
             username=payload.get("username"),
             email=payload.get("email"),
-            roles=payload.get("roles", [])
+            roles=payload.get("roles", []),
         )
     except JWTError as e:
         logger.warning(f"JWT validation failed: {e}")
         raise HTTPException(status_code=401, detail="Invalid credentials")
+
 
 async def get_current_active_user(current_user: User = Depends(get_current_user)) -> User:
     """Get current active user"""
@@ -52,11 +57,13 @@ async def get_current_active_user(current_user: User = Depends(get_current_user)
         raise HTTPException(status_code=403, detail="Inactive user")
     return current_user
 
+
 async def require_admin(current_user: User = Depends(get_current_active_user)) -> User:
     """Require admin role"""
     if "admin" not in current_user.roles:
         raise HTTPException(status_code=403, detail="Admin access required")
     return current_user
+
 
 async def require_premium(current_user: User = Depends(get_current_active_user)) -> User:
     """Require premium subscription"""

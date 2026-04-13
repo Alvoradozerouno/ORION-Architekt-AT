@@ -26,7 +26,6 @@ from datetime import datetime
 import json
 import math
 
-
 # ============================================================================
 # Import from structural_engineering_integration
 # ============================================================================
@@ -40,7 +39,7 @@ try:
         LoadCase,
         StructuralElement,
         ConcreteGrade,
-        SteelGrade
+        SteelGrade,
     )
 except ImportError:
     # Fallback if not available
@@ -51,8 +50,10 @@ except ImportError:
 # Software Types
 # ============================================================================
 
+
 class StructuralSoftware(str, Enum):
     """Supported structural analysis software"""
+
     ETABS = "ETABS"
     SAP2000 = "SAP2000"
     STAAD_PRO = "STAAD.Pro"
@@ -62,6 +63,7 @@ class StructuralSoftware(str, Enum):
 
 class ModelUnits(str, Enum):
     """Model units"""
+
     KN_M = "kN_m"
     KN_MM = "kN_mm"
     N_M = "N_m"
@@ -72,9 +74,11 @@ class ModelUnits(str, Enum):
 # Data Classes for Results
 # ============================================================================
 
+
 @dataclass
 class AnalysisResults:
     """Results from structural analysis"""
+
     member_id: str
     load_case: str
 
@@ -83,11 +87,11 @@ class AnalysisResults:
     moment_y_min: float = 0.0  # [kNm]
     moment_z_max: float = 0.0  # [kNm]
     moment_z_min: float = 0.0  # [kNm]
-    shear_y_max: float = 0.0   # [kN]
-    shear_z_max: float = 0.0   # [kN]
-    axial_max: float = 0.0     # [kN] (tension positive)
-    axial_min: float = 0.0     # [kN] (compression negative)
-    torsion_max: float = 0.0   # [kNm]
+    shear_y_max: float = 0.0  # [kN]
+    shear_z_max: float = 0.0  # [kN]
+    axial_max: float = 0.0  # [kN] (tension positive)
+    axial_min: float = 0.0  # [kN] (compression negative)
+    torsion_max: float = 0.0  # [kNm]
 
     # Deflections
     deflection_max: float = 0.0  # [m]
@@ -106,6 +110,7 @@ class AnalysisResults:
 @dataclass
 class ModelExport:
     """Export package for structural software"""
+
     software: StructuralSoftware
     model_name: str
     units: ModelUnits
@@ -126,6 +131,7 @@ class ModelExport:
 # ETABS Connector (.e2k format)
 # ============================================================================
 
+
 class ETABSConnector:
     """
     ETABS API Connector
@@ -143,7 +149,7 @@ class ETABSConnector:
         nodes: List[StructuralNode],
         members: List[StructuralMember],
         load_cases: List[LoadCase],
-        output_file: str
+        output_file: str,
     ) -> ModelExport:
         """
         Export structural model to ETABS .e2k format
@@ -222,8 +228,8 @@ class ETABSConnector:
         e2k_content.append("")
 
         # Write to file
-        with open(output_file, 'w') as f:
-            f.write('\n'.join(e2k_content))
+        with open(output_file, "w") as f:
+            f.write("\n".join(e2k_content))
 
         print(f"✓ Exported {len(nodes)} nodes, {len(members)} members to {output_file}")
 
@@ -238,7 +244,7 @@ class ETABSConnector:
             loads=[],
             load_combinations=[],
             export_format=".e2k",
-            export_path=output_file
+            export_path=output_file,
         )
 
     def _extract_unique_materials(self, members: List[StructuralMember]) -> List[Material]:
@@ -265,10 +271,10 @@ class ETABSConnector:
         lines.append(f'   Name="{material.material_id}"')
         lines.append(f'   Type="Concrete"')
         if material.fck:
-            lines.append(f'   Fc={material.fck}')  # MPa
+            lines.append(f"   Fc={material.fck}")  # MPa
         if material.e_modulus:
-            lines.append(f'   E={material.e_modulus}')  # MPa
-        lines.append(f'   Density={material.density}')  # kN/m³
+            lines.append(f"   E={material.e_modulus}")  # MPa
+        lines.append(f"   Density={material.density}")  # kN/m³
         return lines
 
     def _section_to_e2k(self, section: CrossSection) -> List[str]:
@@ -277,8 +283,8 @@ class ETABSConnector:
         lines.append(f'   Name="{section.section_id}"')
         lines.append(f'   Material="{section.concrete.material_id}"')
         lines.append(f'   Shape="Rectangular"')
-        lines.append(f'   Depth={section.height}')  # m
-        lines.append(f'   Width={section.width}')   # m
+        lines.append(f"   Depth={section.height}")  # m
+        lines.append(f"   Width={section.width}")  # m
         return lines
 
     def _node_to_e2k(self, node: StructuralNode) -> str:
@@ -295,15 +301,16 @@ class ETABSConnector:
         ry = "Yes" if restraints.get("ry", False) else "No"
         rz = "Yes" if restraints.get("rz", False) else "No"
 
-        return (f'   Joint="{node.node_id}"  '
-                f'UX={ux} UY={uy} UZ={uz} RX={rx} RY={ry} RZ={rz}')
+        return f'   Joint="{node.node_id}"  ' f"UX={ux} UY={uy} UZ={uz} RX={rx} RY={ry} RZ={rz}"
 
     def _member_to_e2k(self, member: StructuralMember) -> str:
         """Convert member to ETABS format"""
-        return (f'   Frame="{member.member_id}"  '
-                f'JointI="{member.start_node}"  '
-                f'JointJ="{member.end_node}"  '
-                f'Section="{member.cross_section.section_id}"')
+        return (
+            f'   Frame="{member.member_id}"  '
+            f'JointI="{member.start_node}"  '
+            f'JointJ="{member.end_node}"  '
+            f'Section="{member.cross_section.section_id}"'
+        )
 
     def _loadcase_to_e2k(self, load_case: LoadCase) -> str:
         """Convert load case to ETABS format"""
@@ -315,14 +322,16 @@ class ETABSConnector:
         value = load.get("value", 0.0)
         direction = load.get("direction", "Gravity")
 
-        return (f'   Frame="{member.member_id}"  '
-                f'LoadPat="{load.get("load_case", "DEAD")}"  '
-                f'Dir="{direction}"  '
-                f'DistType="RelDist"  '
-                f'RelDistA=0.0  '
-                f'RelDistB=1.0  '
-                f'FOverLA={value}  '
-                f'FOverLB={value}')
+        return (
+            f'   Frame="{member.member_id}"  '
+            f'LoadPat="{load.get("load_case", "DEAD")}"  '
+            f'Dir="{direction}"  '
+            f'DistType="RelDist"  '
+            f"RelDistA=0.0  "
+            f"RelDistB=1.0  "
+            f"FOverLA={value}  "
+            f"FOverLB={value}"
+        )
 
     def import_results(self, results_file: str) -> List[AnalysisResults]:
         """
@@ -343,7 +352,7 @@ class ETABSConnector:
                 shear_z_max=25.3,
                 axial_max=0.0,
                 axial_min=0.0,
-                deflection_max=0.008
+                deflection_max=0.008,
             ),
             AnalysisResults(
                 member_id="COL-1",
@@ -353,8 +362,8 @@ class ETABSConnector:
                 shear_z_max=15.8,
                 axial_max=0.0,
                 axial_min=-185.5,  # compression
-                deflection_max=0.002
-            )
+                deflection_max=0.002,
+            ),
         ]
 
         print(f"✓ Imported {len(results)} result sets")
@@ -365,6 +374,7 @@ class ETABSConnector:
 # ============================================================================
 # SAP2000 Connector (.sdb format)
 # ============================================================================
+
 
 class SAP2000Connector:
     """
@@ -378,10 +388,7 @@ class SAP2000Connector:
         self.model_name = model_name
 
     def export_model(
-        self,
-        nodes: List[StructuralNode],
-        members: List[StructuralMember],
-        output_file: str
+        self, nodes: List[StructuralNode], members: List[StructuralMember], output_file: str
     ) -> ModelExport:
         """
         Export structural model to SAP2000 JSON format
@@ -402,18 +409,16 @@ class SAP2000Connector:
             "Units": "kN_m",
             "GeneratedBy": "ORION Architekt AT",
             "Date": datetime.now().isoformat(),
-
             "Nodes": [
                 {
                     "ID": node.node_id,
                     "X": node.x,
                     "Y": node.y,
                     "Z": node.z,
-                    "Restraints": node.restraints
+                    "Restraints": node.restraints,
                 }
                 for node in nodes
             ],
-
             "Members": [
                 {
                     "ID": member.member_id,
@@ -424,14 +429,14 @@ class SAP2000Connector:
                         "ID": member.cross_section.section_id,
                         "Width": member.cross_section.width,
                         "Height": member.cross_section.height,
-                        "Material": member.cross_section.concrete.material_id
-                    }
+                        "Material": member.cross_section.concrete.material_id,
+                    },
                 }
                 for member in members
-            ]
+            ],
         }
 
-        with open(output_file, 'w') as f:
+        with open(output_file, "w") as f:
             json.dump(model_data, f, indent=2)
 
         print(f"✓ Exported {len(nodes)} nodes, {len(members)} members to {output_file}")
@@ -447,13 +452,14 @@ class SAP2000Connector:
             loads=[],
             load_combinations=[],
             export_format=".json",
-            export_path=output_file
+            export_path=output_file,
         )
 
 
 # ============================================================================
 # STAAD.Pro Connector (.std format)
 # ============================================================================
+
 
 class STAADProConnector:
     """
@@ -466,10 +472,7 @@ class STAADProConnector:
         self.model_name = model_name
 
     def export_model(
-        self,
-        nodes: List[StructuralNode],
-        members: List[StructuralMember],
-        output_file: str
+        self, nodes: List[StructuralNode], members: List[StructuralMember], output_file: str
     ) -> ModelExport:
         """
         Export structural model to STAAD.Pro .std format
@@ -540,8 +543,8 @@ class STAADProConnector:
         # Finish
         std_lines.append("FINISH")
 
-        with open(output_file, 'w') as f:
-            f.write('\n'.join(std_lines))
+        with open(output_file, "w") as f:
+            f.write("\n".join(std_lines))
 
         print(f"✓ Exported {len(nodes)} nodes, {len(members)} members to {output_file}")
 
@@ -556,13 +559,14 @@ class STAADProConnector:
             loads=[],
             load_combinations=[],
             export_format=".std",
-            export_path=output_file
+            export_path=output_file,
         )
 
 
 # ============================================================================
 # Universal Connector (Auto-detect)
 # ============================================================================
+
 
 class UniversalConnector:
     """
@@ -580,7 +584,7 @@ class UniversalConnector:
         nodes: List[StructuralNode],
         members: List[StructuralMember],
         load_cases: List[LoadCase],
-        output_dir: str = "."
+        output_dir: str = ".",
     ) -> Dict[str, ModelExport]:
         """
         Export to all supported formats
@@ -623,10 +627,9 @@ class UniversalConnector:
 # Integration with AI Quantity Takeoff
 # ============================================================================
 
+
 def export_from_ifc_to_analysis_software(
-    ifc_file: str,
-    software: StructuralSoftware,
-    output_file: str
+    ifc_file: str, software: StructuralSoftware, output_file: str
 ) -> ModelExport:
     """
     Complete workflow: IFC → ORION → Structural Software

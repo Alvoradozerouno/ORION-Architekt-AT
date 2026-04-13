@@ -45,7 +45,9 @@ def test_ec2_betonbau():
     best = ok_results[0]
     assert best.h_total_mm >= 500, "EC2: Trägerhöhe zu klein"
     assert best.As_vorh_mm2 > 0, "EC2: Keine Bewehrung"
-    print(f"✅ EC2 Test OK: h={best.h_total_mm}mm, As={best.As_vorh_mm2:.0f}mm², η={best.eta_bending:.3f}")
+    print(
+        f"✅ EC2 Test OK: h={best.h_total_mm}mm, As={best.As_vorh_mm2:.0f}mm², η={best.eta_bending:.3f}"
+    )
 
 
 def test_ec3_stahlbau():
@@ -66,7 +68,9 @@ def test_ec3_stahlbau():
     best = ok_results[0]
     assert best.mass_kg_per_m > 0, "EC3: Masse = 0"
     assert best.eta_bending <= 1.0, "EC3: Biegung überschritten"
-    print(f"✅ EC3 Test OK: {best.profile_name}, m={best.mass_kg_per_m}kg/m, η={best.eta_bending:.3f}")
+    print(
+        f"✅ EC3 Test OK: {best.profile_name}, m={best.mass_kg_per_m}kg/m, η={best.eta_bending:.3f}"
+    )
 
 
 def test_ec6_mauerwerksbau():
@@ -90,7 +94,9 @@ def test_ec6_mauerwerksbau():
     best = ok_results[0]
     assert best.wanddicke_mm >= 250, "EC6: Wanddicke zu klein"
     assert best.eta_druck <= 1.0, "EC6: Druck überschritten"
-    print(f"✅ EC6 Test OK: t={best.wanddicke_mm}mm, λ={best.schlankheit_lambda:.1f}, η={best.eta_druck:.3f}")
+    print(
+        f"✅ EC6 Test OK: t={best.wanddicke_mm}mm, λ={best.schlankheit_lambda:.1f}, η={best.eta_druck:.3f}"
+    )
 
 
 def test_ec7_geotechnik():
@@ -113,7 +119,9 @@ def test_ec7_geotechnik():
     assert best.A_m2 > 0, "EC7: Fläche = 0"
     assert best.eta_sohldruck <= 1.0, "EC7: Sohldruck überschritten"
     assert best.setzung_mm >= 0, "EC7: Setzung negativ"
-    print(f"✅ EC7 Test OK: A={best.A_m2:.1f}m², σ={best.sigma_kpa:.1f}kPa, s={best.setzung_mm:.1f}mm")
+    print(
+        f"✅ EC7 Test OK: A={best.A_m2:.1f}m², σ={best.sigma_kpa:.1f}kPa, s={best.setzung_mm:.1f}mm"
+    )
 
 
 def test_ec8_erdbeben():
@@ -135,7 +143,9 @@ def test_ec8_erdbeben():
     assert result.Sd_T_ms2 > 0, "EC8: Spektrale Beschleunigung = 0"
     assert result.F_b_kn > 0, "EC8: Basisscherkraft = 0"
     assert result.status == "INFO", "EC8: Falscher Status"
-    print(f"✅ EC8 Test OK: T={result.T_s:.3f}s, Sd={result.Sd_T_ms2:.3f}m/s², Fb={result.F_b_kn:.1f}kN")
+    print(
+        f"✅ EC8 Test OK: T={result.T_s:.3f}s, Sd={result.Sd_T_ms2:.3f}m/s², Fb={result.F_b_kn:.1f}kN"
+    )
 
 
 def run_all_tests():

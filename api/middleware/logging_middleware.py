@@ -2,6 +2,7 @@
 Logging Middleware
 Structured logging for all API requests
 """
+
 from fastapi import Request
 from starlette.middleware.base import BaseHTTPMiddleware
 import time
@@ -10,6 +11,7 @@ from typing import Callable
 from orion_logging import get_logger
 
 logger = get_logger(__name__)
+
 
 class LoggingMiddleware(BaseHTTPMiddleware):
     """
@@ -50,6 +52,7 @@ class LoggingMiddleware(BaseHTTPMiddleware):
     def _generate_request_id(self) -> str:
         """Generate unique request ID"""
         import uuid
+
         return str(uuid.uuid4())
 
     async def _log_request(self, request: Request, request_id: str):
@@ -71,8 +74,8 @@ class LoggingMiddleware(BaseHTTPMiddleware):
                 "user_agent": request.headers.get("user-agent"),
                 "user_id": user_info.get("user_id") if user_info else None,
                 "username": user_info.get("username") if user_info else None,
-                "event_type": "http_request"
-            }
+                "event_type": "http_request",
+            },
         )
 
     async def _log_response(self, request: Request, response, process_time: float, request_id: str):
@@ -85,8 +88,8 @@ class LoggingMiddleware(BaseHTTPMiddleware):
                 "path": request.url.path,
                 "status_code": response.status_code,
                 "process_time_ms": round(process_time * 1000, 2),
-                "event_type": "http_response"
-            }
+                "event_type": "http_response",
+            },
         )
 
         # Log slow requests
@@ -98,11 +101,13 @@ class LoggingMiddleware(BaseHTTPMiddleware):
                     "method": request.method,
                     "path": request.url.path,
                     "process_time_ms": round(process_time * 1000, 2),
-                    "event_type": "slow_request"
-                }
+                    "event_type": "slow_request",
+                },
             )
 
-    async def _log_error(self, request: Request, error: Exception, process_time: float, request_id: str):
+    async def _log_error(
+        self, request: Request, error: Exception, process_time: float, request_id: str
+    ):
         """Log error"""
         logger.error(
             f"Error: {request.method} {request.url.path} - {str(error)}",
@@ -113,9 +118,9 @@ class LoggingMiddleware(BaseHTTPMiddleware):
                 "error_type": type(error).__name__,
                 "error_message": str(error),
                 "process_time_ms": round(process_time * 1000, 2),
-                "event_type": "http_error"
+                "event_type": "http_error",
             },
-            exc_info=True
+            exc_info=True,
         )
 
     def _get_client_ip(self, request: Request) -> str:
@@ -133,13 +138,11 @@ class LoggingMiddleware(BaseHTTPMiddleware):
             try:
                 import jwt
                 import os
+
                 token = auth_header.split(" ")[1]
                 SECRET_KEY = os.getenv("JWT_SECRET_KEY", "your-secret-key-change-in-production")
                 payload = jwt.decode(token, SECRET_KEY, algorithms=["HS256"])
-                return {
-                    "user_id": payload.get("user_id"),
-                    "username": payload.get("sub")
-                }
+                return {"user_id": payload.get("user_id"), "username": payload.get("sub")}
             except jwt.InvalidTokenError as e:
                 # Token invalid or expired - log without user context
                 logger.debug(f"JWT decode failed in structured logging: {e}")
@@ -147,6 +150,7 @@ class LoggingMiddleware(BaseHTTPMiddleware):
                 logger.debug(f"Malformed auth header: {e}")
 
         return {}
+
 
 class AccessLogMiddleware(BaseHTTPMiddleware):
     """
@@ -190,6 +194,7 @@ class AccessLogMiddleware(BaseHTTPMiddleware):
             try:
                 import jwt
                 import os
+
                 token = auth_header.split(" ")[1]
                 SECRET_KEY = os.getenv("JWT_SECRET_KEY", "your-secret-key-change-in-production")
                 payload = jwt.decode(token, SECRET_KEY, algorithms=["HS256"])

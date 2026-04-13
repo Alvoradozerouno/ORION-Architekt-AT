@@ -28,10 +28,10 @@ from ..epistemology.state_taxonomy import EpistemicState, KnowledgeType
 class DecisionMode(Enum):
     """Decision modes with different safety levels"""
 
-    DETERMINISTIC = "deterministic"      # Eurocode calculations - requires VERIFIED inputs
-    PROBABILISTIC = "probabilistic"      # Monte Carlo - allows ESTIMATED inputs
-    FALLBACK = "fallback"                # Human review required
-    PROHIBITED = "prohibited"            # Decision cannot be made under any circumstances
+    DETERMINISTIC = "deterministic"  # Eurocode calculations - requires VERIFIED inputs
+    PROBABILISTIC = "probabilistic"  # Monte Carlo - allows ESTIMATED inputs
+    FALLBACK = "fallback"  # Human review required
+    PROHIBITED = "prohibited"  # Decision cannot be made under any circumstances
 
     def __str__(self):
         return self.value
@@ -39,6 +39,7 @@ class DecisionMode(Enum):
 
 class PolicyViolationError(Exception):
     """Raised when a decision violates policy constraints"""
+
     pass
 
 
@@ -53,6 +54,7 @@ class PolicyRule:
         action: What to do when triggered (ALLOW, FALLBACK, PROHIBIT)
         reason: Human-readable explanation
     """
+
     name: str
     condition: str
     action: str  # "ALLOW", "FALLBACK", "PROHIBIT"
@@ -143,22 +145,26 @@ class DecisionPolicyEngine:
         # Rule 1: Check for UNKNOWN inputs (always triggers fallback)
         unknown_inputs = [k for k, v in inputs.items() if v.is_unknown()]
         if unknown_inputs:
-            violations.append({
-                "rule": "UNKNOWN_TRIGGERS_FALLBACK",
-                "inputs": unknown_inputs,
-                "reason": "Insufficient data for automated decision",
-            })
+            violations.append(
+                {
+                    "rule": "UNKNOWN_TRIGGERS_FALLBACK",
+                    "inputs": unknown_inputs,
+                    "reason": "Insufficient data for automated decision",
+                }
+            )
             final_mode = DecisionMode.FALLBACK
 
         # Rule 2: DETERMINISTIC mode requires ALL VERIFIED inputs
         if decision_mode == DecisionMode.DETERMINISTIC:
             non_verified = [k for k, v in inputs.items() if not v.is_verified()]
             if non_verified:
-                violations.append({
-                    "rule": "DETERMINISTIC_VERIFIED_ONLY",
-                    "inputs": non_verified,
-                    "reason": "Deterministic mode requires all inputs to be VERIFIED",
-                })
+                violations.append(
+                    {
+                        "rule": "DETERMINISTIC_VERIFIED_ONLY",
+                        "inputs": non_verified,
+                        "reason": "Deterministic mode requires all inputs to be VERIFIED",
+                    }
+                )
                 # This is a hard violation - cannot proceed
                 raise PolicyViolationError(
                     f"DETERMINISTIC decision '{decision_type}' cannot proceed with non-verified inputs: {non_verified}"
@@ -167,29 +173,34 @@ class DecisionPolicyEngine:
         # Rule 3: PROBABILISTIC mode - check confidence threshold
         if decision_mode == DecisionMode.PROBABILISTIC:
             low_confidence = [
-                k for k, v in inputs.items()
+                k
+                for k, v in inputs.items()
                 if v.is_estimated() and v.confidence < self.confidence_threshold
             ]
             if low_confidence:
-                violations.append({
-                    "rule": "LOW_CONFIDENCE_FALLBACK",
-                    "inputs": low_confidence,
-                    "reason": f"Confidence below threshold ({self.confidence_threshold})",
-                })
+                violations.append(
+                    {
+                        "rule": "LOW_CONFIDENCE_FALLBACK",
+                        "inputs": low_confidence,
+                        "reason": f"Confidence below threshold ({self.confidence_threshold})",
+                    }
+                )
                 final_mode = DecisionMode.FALLBACK
 
         # Rule 4: Legal documents require human signature
         legal_document_types = ["Statik-Papier", "Gutachten", "Bauantrag", "Compliance-Papier"]
         if decision_type in legal_document_types:
-            violations.append({
-                "rule": "LEGAL_DOCUMENT_SIGNATURE",
-                "reason": "Austrian ZiviltechnikerG requires human professional signature",
-            })
+            violations.append(
+                {
+                    "rule": "LEGAL_DOCUMENT_SIGNATURE",
+                    "reason": "Austrian ZiviltechnikerG requires human professional signature",
+                }
+            )
             final_mode = DecisionMode.FALLBACK
 
         # Log decision
         log_entry = {
-            "timestamp": datetime.now(timezone.utc).isoformat().replace('+00:00', 'Z'),
+            "timestamp": datetime.now(timezone.utc).isoformat().replace("+00:00", "Z"),
             "decision_type": decision_type,
             "requested_mode": decision_mode.value,
             "final_mode": final_mode.value,
@@ -262,7 +273,9 @@ class DecisionPolicyEngine:
                 recommendations.append(f"Obtain verified data for: {', '.join(inputs)}")
             elif rule == "LOW_CONFIDENCE_FALLBACK":
                 inputs = v.get("inputs", [])
-                recommendations.append(f"Increase confidence for: {', '.join(inputs)} (run more simulations)")
+                recommendations.append(
+                    f"Increase confidence for: {', '.join(inputs)} (run more simulations)"
+                )
             elif rule == "LEGAL_DOCUMENT_SIGNATURE":
                 recommendations.append("Forward to Zivilingenieur for signature")
 
@@ -297,6 +310,7 @@ class DecisionPolicyEngine:
 # =============================================================================
 # CONVENIENCE FUNCTIONS FOR THE ARCHITEKT
 # =============================================================================
+
 
 def create_policy_engine(confidence_threshold: float = 0.5) -> DecisionPolicyEngine:
     """Create decision policy engine with default rules"""

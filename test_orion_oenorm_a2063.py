@@ -111,7 +111,7 @@ class TestOENORMExport:
             positionen=positionen,
             projekt_info=projekt_info,
             auftraggeber=auftraggeber,
-            bundesland="tirol"
+            bundesland="tirol",
         )
 
         # Check required ÖNORM fields
@@ -146,7 +146,9 @@ class TestOENORMExport:
         projekt_info = {"name": "Test", "typ": "Neubau", "bgf_m2": 150}
         auftraggeber = {"name": "Test", "adresse": "Test"}
 
-        lv_json_wien = exportiere_lv_oenorm_json(positionen, projekt_info, auftraggeber, bundesland="wien")
+        lv_json_wien = exportiere_lv_oenorm_json(
+            positionen, projekt_info, auftraggeber, bundesland="wien"
+        )
 
         # Wien sollte Vergabegesetz-Hinweis haben
         assert any("Vergabegesetz" in h for h in lv_json_wien["rechtliche_hinweise"])
@@ -158,8 +160,17 @@ class TestAngebotsvergleich:
     def test_vergleiche_angebote_basic(self):
         """Test basic offer comparison"""
         lv_positionen = [
-            LVPosition(oz="01.001", kurztext="Test 1", langtext="Test", einheit="m²", menge=100, gewerk="01"),
-            LVPosition(oz="01.002", kurztext="Test 2", langtext="Test", einheit="m³", menge=50, gewerk="01"),
+            LVPosition(
+                oz="01.001",
+                kurztext="Test 1",
+                langtext="Test",
+                einheit="m²",
+                menge=100,
+                gewerk="01",
+            ),
+            LVPosition(
+                oz="01.002", kurztext="Test 2", langtext="Test", einheit="m³", menge=50, gewerk="01"
+            ),
         ]
 
         angebote = [
@@ -168,14 +179,14 @@ class TestAngebotsvergleich:
                 "positionen": [
                     {"oz": "01.001", "menge": 100, "ep": 50},
                     {"oz": "01.002", "menge": 50, "ep": 80},
-                ]
+                ],
             },
             {
                 "firma": "Firma B",
                 "positionen": [
                     {"oz": "01.001", "menge": 100, "ep": 55},
                     {"oz": "01.002", "menge": 50, "ep": 75},
-                ]
+                ],
             },
         ]
 
@@ -190,7 +201,9 @@ class TestAngebotsvergleich:
     def test_vergleiche_angebote_preisspanne(self):
         """Test that price spread is calculated correctly"""
         lv_positionen = [
-            LVPosition(oz="01.001", kurztext="Test", langtext="Test", einheit="Stk", menge=1, gewerk="01"),
+            LVPosition(
+                oz="01.001", kurztext="Test", langtext="Test", einheit="Stk", menge=1, gewerk="01"
+            ),
         ]
 
         angebote = [
@@ -206,7 +219,9 @@ class TestAngebotsvergleich:
     def test_vergleiche_angebote_empfehlung_warnung(self):
         """Test that recommendations and warnings are generated"""
         lv_positionen = [
-            LVPosition(oz="01.001", kurztext="Test", langtext="Test", einheit="Stk", menge=1, gewerk="01"),
+            LVPosition(
+                oz="01.001", kurztext="Test", langtext="Test", einheit="Stk", menge=1, gewerk="01"
+            ),
         ]
 
         # Nur 2 Angebote (weniger als 3) → Warnung
@@ -223,7 +238,9 @@ class TestAngebotsvergleich:
     def test_vergleiche_angebote_sortierung(self):
         """Test that offers are sorted by price"""
         lv_positionen = [
-            LVPosition(oz="01.001", kurztext="Test", langtext="Test", einheit="Stk", menge=1, gewerk="01"),
+            LVPosition(
+                oz="01.001", kurztext="Test", langtext="Test", einheit="Stk", menge=1, gewerk="01"
+            ),
         ]
 
         angebote = [
@@ -253,11 +270,11 @@ class TestGAEBExport:
 
         # Check basic XML structure
         assert '<?xml version="1.0"' in gaeb_xml
-        assert '<GAEB' in gaeb_xml
-        assert '</GAEB>' in gaeb_xml
-        assert '<GAEBInfo>' in gaeb_xml
-        assert '<PrjInfo>' in gaeb_xml
-        assert '<BoQ>' in gaeb_xml
+        assert "<GAEB" in gaeb_xml
+        assert "</GAEB>" in gaeb_xml
+        assert "<GAEBInfo>" in gaeb_xml
+        assert "<PrjInfo>" in gaeb_xml
+        assert "<BoQ>" in gaeb_xml
 
         # Check that positions are included
         for pos in positionen:
@@ -271,9 +288,7 @@ class TestVollstaendigeAusschreibung:
     def test_erstelle_vollstaendige_ausschreibung_einfamilienhaus(self):
         """Test complete tender creation for single family house"""
         ausschreibung = erstelle_vollstaendige_ausschreibung(
-            projekt_typ="einfamilienhaus",
-            bgf_m2=150,
-            bundesland="tirol"
+            projekt_typ="einfamilienhaus", bgf_m2=150, bundesland="tirol"
         )
 
         assert "lv_positionen" in ausschreibung
@@ -289,9 +304,7 @@ class TestVollstaendigeAusschreibung:
 
         for bl in bundeslaender:
             ausschreibung = erstelle_vollstaendige_ausschreibung(
-                projekt_typ="einfamilienhaus",
-                bgf_m2=150,
-                bundesland=bl
+                projekt_typ="einfamilienhaus", bgf_m2=150, bundesland=bl
             )
 
             assert ausschreibung["projekt"]["bundesland"] == bl
@@ -302,14 +315,11 @@ class TestVollstaendigeAusschreibung:
         auftraggeber = {
             "name": "Custom Client GmbH",
             "adresse": "Hauptstraße 123",
-            "kontakt": "office@client.at"
+            "kontakt": "office@client.at",
         }
 
         ausschreibung = erstelle_vollstaendige_ausschreibung(
-            projekt_typ="einfamilienhaus",
-            bgf_m2=200,
-            bundesland="wien",
-            auftraggeber=auftraggeber
+            projekt_typ="einfamilienhaus", bgf_m2=200, bundesland="wien", auftraggeber=auftraggeber
         )
 
         assert ausschreibung["lv_oenorm_json"]["auftraggeber"]["name"] == "Custom Client GmbH"

@@ -119,15 +119,9 @@ class TestAuditTrail:
         """Test that entries are correctly linked"""
         trail = AuditTrail("test_trail", storage_path=tmp_path / "test.jsonl")
 
-        entry1 = trail.add_entry(
-            "event1", "user1", "action1", "res1", "success", {}
-        )
-        entry2 = trail.add_entry(
-            "event2", "user2", "action2", "res2", "success", {}
-        )
-        entry3 = trail.add_entry(
-            "event3", "user3", "action3", "res3", "success", {}
-        )
+        entry1 = trail.add_entry("event1", "user1", "action1", "res1", "success", {})
+        entry2 = trail.add_entry("event2", "user2", "action2", "res2", "success", {})
+        entry3 = trail.add_entry("event3", "user3", "action3", "res3", "success", {})
 
         # Check linkage
         assert entry2.previous_hash == entry1.entry_hash

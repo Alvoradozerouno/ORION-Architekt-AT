@@ -27,13 +27,14 @@ from typing import List, Dict, Tuple, Optional
 from enum import Enum
 import math
 
-
 # ==============================================================================
 # ENUMS
 # ==============================================================================
 
+
 class RebarGrade(str, Enum):
     """Austrian reinforcement steel grades per ÖNORM B 4700"""
+
     BST_500S = "BSt 500S"  # High ductility (seismic)
     BST_500M = "BSt 500M"  # Medium ductility
     BST_500A = "BSt 500A"  # Normal ductility
@@ -41,6 +42,7 @@ class RebarGrade(str, Enum):
 
 class RebarDiameter(int, Enum):
     """Standard rebar diameters (mm) in Austria"""
+
     D6 = 6
     D8 = 8
     D10 = 10
@@ -55,12 +57,14 @@ class RebarDiameter(int, Enum):
 
 class BondCondition(str, Enum):
     """Bond conditions per EC2 8.4.2"""
-    GOOD = "good"     # Bars < 250mm from bottom, or h ≤ 250mm
-    POOR = "poor"     # All other cases
+
+    GOOD = "good"  # Bars < 250mm from bottom, or h ≤ 250mm
+    POOR = "poor"  # All other cases
 
 
 class ShapeCode(str, Enum):
     """Bar shape codes per ÖNORM B 4710-1"""
+
     SHAPE_00 = "00"  # Straight bar
     SHAPE_11 = "11"  # One 90° hook
     SHAPE_21 = "21"  # Two 90° hooks
@@ -70,6 +74,7 @@ class ShapeCode(str, Enum):
 
 class ConcreteGrade(str, Enum):
     """Concrete grades per ÖNORM B 4700"""
+
     C12_15 = "C12/15"
     C16_20 = "C16/20"
     C20_25 = "C20/25"
@@ -85,9 +90,11 @@ class ConcreteGrade(str, Enum):
 # DATACLASSES
 # ==============================================================================
 
+
 @dataclass
 class Rebar:
     """Individual reinforcement bar"""
+
     bar_id: str
     diameter: RebarDiameter
     steel_grade: RebarGrade
@@ -136,37 +143,40 @@ class Rebar:
 @dataclass
 class AnchorageResult:
     """Anchorage length calculation result"""
+
     lb_rqd: float  # Basic required anchorage length (mm)
-    lbd: float     # Design anchorage length (mm)
+    lbd: float  # Design anchorage length (mm)
     alpha1: float  # Shape coefficient
     alpha2: float  # Concrete cover coefficient
     alpha3: float  # Confinement coefficient
     alpha4: float  # Welded mesh coefficient
     alpha5: float  # Pressure coefficient
     bond_condition: BondCondition
-    fbd: float     # Design bond stress (N/mm²)
+    fbd: float  # Design bond stress (N/mm²)
 
 
 @dataclass
 class ShearDesignResult:
     """Shear design calculation result"""
-    v_ed: float           # Design shear force (kN)
-    v_rd_c: float         # Concrete shear resistance (kN)
-    v_rd_s: float         # Stirrup shear resistance (kN)
-    v_rd_max: float       # Maximum shear capacity (kN)
+
+    v_ed: float  # Design shear force (kN)
+    v_rd_c: float  # Concrete shear resistance (kN)
+    v_rd_s: float  # Stirrup shear resistance (kN)
+    v_rd_max: float  # Maximum shear capacity (kN)
 
     asw_s_required: float  # Required Asw/s (mm²/mm)
     stirrup_diameter: RebarDiameter
     stirrup_legs: int
     spacing_mm: float
 
-    utilization: float    # v_ed / min(v_rd_s, v_rd_max)
+    utilization: float  # v_ed / min(v_rd_s, v_rd_max)
     shear_reinforcement_required: bool
 
 
 @dataclass
 class BarSchedule:
     """Bar schedule (Stabliste) for one member"""
+
     member_id: str
     member_type: str  # "beam", "column", "slab", "wall"
     bars: List[Rebar]
@@ -183,6 +193,7 @@ class BarSchedule:
 # ==============================================================================
 # MATERIAL PROPERTIES
 # ==============================================================================
+
 
 def get_concrete_bond_properties(concrete_grade: ConcreteGrade) -> Dict[str, float]:
     """
@@ -213,8 +224,9 @@ def get_concrete_bond_properties(concrete_grade: ConcreteGrade) -> Dict[str, flo
     return props
 
 
-def calculate_design_bond_stress(concrete_grade: ConcreteGrade,
-                                  bond_condition: BondCondition) -> float:
+def calculate_design_bond_stress(
+    concrete_grade: ConcreteGrade, bond_condition: BondCondition
+) -> float:
     """
     Calculate design bond stress fbd per EC2 8.4.2
 
@@ -240,9 +252,8 @@ def calculate_design_bond_stress(concrete_grade: ConcreteGrade,
 # ANCHORAGE LENGTH CALCULATIONS
 # ==============================================================================
 
-def calculate_basic_anchorage_length(diameter_mm: float,
-                                     fyd: float,
-                                     fbd: float) -> float:
+
+def calculate_basic_anchorage_length(diameter_mm: float, fyd: float, fbd: float) -> float:
     """
     Calculate basic required anchorage length per EC2 8.4.3
 
@@ -270,7 +281,7 @@ def calculate_design_anchorage_length(
     cover_mm: float = 30.0,
     confined: bool = False,
     as_req_as_prov: float = 1.0,
-    straight: bool = True
+    straight: bool = True,
 ) -> AnchorageResult:
     """
     Calculate design anchorage length per EC2 8.4.4
@@ -335,14 +346,12 @@ def calculate_design_anchorage_length(
         alpha4=alpha4,
         alpha5=alpha5,
         bond_condition=bond_condition,
-        fbd=fbd
+        fbd=fbd,
     )
 
 
 def calculate_lap_splice_length(
-    anchorage_result: AnchorageResult,
-    diameter_mm: float,
-    percentage_lapped: float = 50.0
+    anchorage_result: AnchorageResult, diameter_mm: float, percentage_lapped: float = 50.0
 ) -> float:
     """
     Calculate lap splice length per EC2 8.7.3
@@ -377,14 +386,17 @@ def calculate_lap_splice_length(
         alpha6 = 1.5
 
     # Lap length
-    l0 = (anchorage_result.alpha1 * anchorage_result.alpha2 *
-          anchorage_result.alpha3 * anchorage_result.alpha5 *
-          alpha6 * anchorage_result.lb_rqd)
+    l0 = (
+        anchorage_result.alpha1
+        * anchorage_result.alpha2
+        * anchorage_result.alpha3
+        * anchorage_result.alpha5
+        * alpha6
+        * anchorage_result.lb_rqd
+    )
 
     # Minimum lap length
-    l0_min = max(0.3 * alpha6 * anchorage_result.lb_rqd,
-                 15 * diameter_mm,
-                 200.0)
+    l0_min = max(0.3 * alpha6 * anchorage_result.lb_rqd, 15 * diameter_mm, 200.0)
 
     return max(l0, l0_min)
 
@@ -393,12 +405,13 @@ def calculate_lap_splice_length(
 # SHEAR DESIGN
 # ==============================================================================
 
+
 def calculate_shear_resistance_concrete(
     width_mm: float,
     effective_depth_mm: float,
     concrete_grade: ConcreteGrade,
     as_longitudinal_mm2: float,
-    axial_force_kn: float = 0.0
+    axial_force_kn: float = 0.0,
 ) -> float:
     """
     Calculate concrete shear resistance VRd,c per EC2 6.2.2
@@ -437,20 +450,17 @@ def calculate_shear_resistance_concrete(
     c_rd_c = 0.12
     k1 = 0.15
 
-    v_rd_c = (c_rd_c * k * (100 * rho_l * fck) ** (1/3) + k1 * sigma_cp) * width_mm * d / 1000
+    v_rd_c = (c_rd_c * k * (100 * rho_l * fck) ** (1 / 3) + k1 * sigma_cp) * width_mm * d / 1000
 
     # Minimum VRd,c
-    v_min = 0.035 * k ** 1.5 * fck ** 0.5
+    v_min = 0.035 * k**1.5 * fck**0.5
     v_rd_c_min = (v_min + k1 * sigma_cp) * width_mm * d / 1000
 
     return max(v_rd_c, v_rd_c_min)
 
 
 def calculate_shear_resistance_stirrups(
-    asw_s: float,
-    effective_depth_mm: float,
-    fyd_stirrup: float = 434.8,
-    cot_theta: float = 2.5
+    asw_s: float, effective_depth_mm: float, fyd_stirrup: float = 434.8, cot_theta: float = 2.5
 ) -> float:
     """
     Calculate stirrup shear resistance VRd,s per EC2 6.2.3
@@ -475,7 +485,7 @@ def calculate_max_shear_capacity(
     width_mm: float,
     effective_depth_mm: float,
     concrete_grade: ConcreteGrade,
-    cot_theta: float = 2.5
+    cot_theta: float = 2.5,
 ) -> float:
     """
     Calculate maximum shear capacity VRd,max per EC2 6.2.3
@@ -500,8 +510,7 @@ def calculate_max_shear_capacity(
 
     tan_theta = 1 / cot_theta
 
-    v_rd_max = (alpha_cw * width_mm * z * nu1 * fcd /
-                (cot_theta + tan_theta)) / 1000
+    v_rd_max = (alpha_cw * width_mm * z * nu1 * fcd / (cot_theta + tan_theta)) / 1000
 
     return v_rd_max
 
@@ -513,7 +522,7 @@ def design_shear_reinforcement(
     concrete_grade: ConcreteGrade,
     as_longitudinal_mm2: float,
     steel_grade: RebarGrade = RebarGrade.BST_500S,
-    max_spacing_mm: float = 300.0
+    max_spacing_mm: float = 300.0,
 ) -> ShearDesignResult:
     """
     Complete shear design per EC2 6.2
@@ -567,7 +576,7 @@ def design_shear_reinforcement(
             stirrup_legs=stirrup_legs,
             spacing_mm=spacing,
             utilization=v_ed_kn / v_rd_c,
-            shear_reinforcement_required=False
+            shear_reinforcement_required=False,
         )
 
     # Design required Asw/s
@@ -579,7 +588,7 @@ def design_shear_reinforcement(
 
     # Select stirrup configuration (optimize)
     best_config = None
-    min_utilization = float('inf')
+    min_utilization = float("inf")
 
     for diameter in [RebarDiameter.D8, RebarDiameter.D10, RebarDiameter.D12]:
         for legs in [2, 4]:
@@ -634,13 +643,14 @@ def design_shear_reinforcement(
         stirrup_legs=legs,
         spacing_mm=spacing,
         utilization=v_ed_kn / min(v_rd_s, v_rd_max),
-        shear_reinforcement_required=True
+        shear_reinforcement_required=True,
     )
 
 
 # ==============================================================================
 # BAR SCHEDULE GENERATION
 # ==============================================================================
+
 
 def create_bar_schedule_beam(
     member_id: str,
@@ -651,7 +661,7 @@ def create_bar_schedule_beam(
     as_bottom_required_mm2: float,
     shear_design: ShearDesignResult,
     steel_grade: RebarGrade = RebarGrade.BST_500S,
-    cover_mm: float = 30.0
+    cover_mm: float = 30.0,
 ) -> BarSchedule:
     """
     Generate complete bar schedule for beam
@@ -686,7 +696,7 @@ def create_bar_schedule_beam(
             shape_code=ShapeCode.SHAPE_00,  # Straight
             length_mm=length_mm - 2 * cover_mm,
             quantity=top_quantity,
-            position="top"
+            position="top",
         )
         bars.append(top_bar)
 
@@ -709,7 +719,7 @@ def create_bar_schedule_beam(
             shape_code=ShapeCode.SHAPE_00,
             length_mm=length_mm - 2 * cover_mm,
             quantity=bottom_quantity,
-            position="bottom"
+            position="bottom",
         )
         bars.append(bottom_bar)
 
@@ -727,18 +737,11 @@ def create_bar_schedule_beam(
         quantity=stirrup_quantity,
         position="stirrup",
         spacing_mm=shear_design.spacing_mm,
-        dimensions={
-            "A": width_mm - 2 * cover_mm,
-            "B": height_mm - 2 * cover_mm
-        }
+        dimensions={"A": width_mm - 2 * cover_mm, "B": height_mm - 2 * cover_mm},
     )
     bars.append(stirrup)
 
-    return BarSchedule(
-        member_id=member_id,
-        member_type="beam",
-        bars=bars
-    )
+    return BarSchedule(member_id=member_id, member_type="beam", bars=bars)
 
 
 def export_bar_schedule_to_text(schedule: BarSchedule) -> str:
@@ -753,8 +756,10 @@ def export_bar_schedule_to_text(schedule: BarSchedule) -> str:
     output.append(f"Bauteil: {schedule.member_id} ({schedule.member_type})")
     output.append("=" * 100)
     output.append("")
-    output.append(f"{'Pos':<8} {'Ø':<6} {'Form':<6} {'Anzahl':>8} {'Länge [mm]':>12} "
-                  f"{'Gewicht [kg]':>15} {'Position':<12}")
+    output.append(
+        f"{'Pos':<8} {'Ø':<6} {'Form':<6} {'Anzahl':>8} {'Länge [mm]':>12} "
+        f"{'Gewicht [kg]':>15} {'Position':<12}"
+    )
     output.append("-" * 100)
 
     for bar in schedule.bars:
@@ -769,8 +774,10 @@ def export_bar_schedule_to_text(schedule: BarSchedule) -> str:
         )
 
     output.append("-" * 100)
-    output.append(f"{'GESAMT':<40} {schedule.total_length_m:>12.1f} m "
-                  f"{schedule.total_weight_kg:>15.2f} kg")
+    output.append(
+        f"{'GESAMT':<40} {schedule.total_length_m:>12.1f} m "
+        f"{schedule.total_weight_kg:>15.2f} kg"
+    )
     output.append("=" * 100)
 
     return "\n".join(output)
@@ -779,6 +786,7 @@ def export_bar_schedule_to_text(schedule: BarSchedule) -> str:
 # ==============================================================================
 # TESTING
 # ==============================================================================
+
 
 def test_reinforcement_detailing():
     """Comprehensive test of reinforcement detailing"""
@@ -812,7 +820,7 @@ def test_reinforcement_detailing():
         bond_condition=bond_condition,
         cover_mm=30.0,
         confined=True,
-        straight=True
+        straight=True,
     )
 
     print(f"\nBeton: {concrete_grade.value}")
@@ -822,8 +830,10 @@ def test_reinforcement_detailing():
     print(f"Verbundfestigkeit fbd: {fbd:.2f} N/mm²")
     print(f"\n✓ Grundverankerungslänge lb,rqd: {anchorage.lb_rqd:.0f} mm")
     print(f"✓ Bemessungsverankerungslänge lbd: {anchorage.lbd:.0f} mm")
-    print(f"  Faktoren: α1={anchorage.alpha1:.2f}, α2={anchorage.alpha2:.2f}, "
-          f"α3={anchorage.alpha3:.2f}")
+    print(
+        f"  Faktoren: α1={anchorage.alpha1:.2f}, α2={anchorage.alpha2:.2f}, "
+        f"α3={anchorage.alpha3:.2f}"
+    )
 
     # Lap splice
     lap_length = calculate_lap_splice_length(anchorage, diameter.value, percentage_lapped=50.0)
@@ -843,16 +853,20 @@ def test_reinforcement_detailing():
         effective_depth_mm=effective_depth_mm,
         concrete_grade=concrete_grade,
         as_longitudinal_mm2=as_longitudinal,
-        steel_grade=steel_grade
+        steel_grade=steel_grade,
     )
 
     print(f"\nQuerkraft VEd: {shear_result.v_ed:.1f} kN")
     print(f"Betontragfähigkeit VRd,c: {shear_result.v_rd_c:.1f} kN")
     print(f"Maximale Querkrafttragfähigkeit VRd,max: {shear_result.v_rd_max:.1f} kN")
-    print(f"\nSchubbewehrung erforderlich: {'JA' if shear_result.shear_reinforcement_required else 'NEIN (Mindestbewehrung)'}")
+    print(
+        f"\nSchubbewehrung erforderlich: {'JA' if shear_result.shear_reinforcement_required else 'NEIN (Mindestbewehrung)'}"
+    )
     print(f"\n✓ Asw/s erforderlich: {shear_result.asw_s_required:.3f} mm²/mm")
-    print(f"✓ Bügel: Ø{shear_result.stirrup_diameter.value}mm, "
-          f"{shear_result.stirrup_legs}-schnittig, e = {shear_result.spacing_mm:.0f} mm")
+    print(
+        f"✓ Bügel: Ø{shear_result.stirrup_diameter.value}mm, "
+        f"{shear_result.stirrup_legs}-schnittig, e = {shear_result.spacing_mm:.0f} mm"
+    )
     print(f"✓ Bügelwiderstand VRd,s: {shear_result.v_rd_s:.1f} kN")
     print(f"✓ Ausnutzung: {shear_result.utilization*100:.1f}%")
 
@@ -872,7 +886,7 @@ def test_reinforcement_detailing():
         as_top_required_mm2=as_top_req,
         as_bottom_required_mm2=as_bottom_req,
         shear_design=shear_result,
-        steel_grade=steel_grade
+        steel_grade=steel_grade,
     )
 
     # Export schedule

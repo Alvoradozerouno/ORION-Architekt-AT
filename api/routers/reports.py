@@ -3,7 +3,7 @@ Reports Router
 Generate comprehensive building reports
 """
 
-from fastapi import APIRouter
+from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel
 from typing import Optional, List, Dict
 from datetime import datetime

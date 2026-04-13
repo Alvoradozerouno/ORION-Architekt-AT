@@ -29,6 +29,7 @@ from api.routers import (
     tendering,
 )
 from api.middleware import RateLimitMiddleware, LoggingMiddleware
+from api.middleware.auth import router as auth_router
 from api.database import engine, Base
 from api.models import User
 from orion_logging import setup_default_logging, get_logger

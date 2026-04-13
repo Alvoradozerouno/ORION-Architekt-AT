@@ -31,7 +31,17 @@ setup(
         "Source": "https://github.com/Alvoradozerouno/ORION-Architekt-AT",
         "Documentation": "https://github.com/Alvoradozerouno/ORION-Architekt-AT/blob/main/README.md",
     },
-    packages=find_packages(exclude=["tests", "tests.*"]),
+    py_modules=[
+        "orion_architekt_at",
+        "orion_architekt",
+        "orion_kernel",
+        "orion_logging",
+        "orion_kb_validation",
+        "orion_oenorm_a2063",
+        "app",
+        "models",
+    ],
+    packages=find_packages(include=["api", "api.*", "tests", "tests.*"]),
     python_requires=">=3.11",
     install_requires=read_requirements("requirements.txt")[:10],  # Core dependencies only
     extras_require={

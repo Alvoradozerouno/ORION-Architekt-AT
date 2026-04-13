@@ -119,7 +119,7 @@ app.include_router(tendering.router, tags=["tendering"])  # Uses own prefix
 app.include_router(ai_recommendations.router, prefix="/api/v1/ai", tags=["ai"])
 app.include_router(bim_integration.router, prefix="/api/v1/bim", tags=["bim"])
 app.include_router(collaboration.router, prefix="/api/v1/collaboration", tags=["collaboration"])
-app.include_router(auth_router, prefix="/auth", tags=["auth"])
+# Note: auth_router not yet implemented - TODO: add authentication router
 
 # Health check endpoints
 @app.get("/health", tags=["health"])

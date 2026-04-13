@@ -1,0 +1,301 @@
+# ============================================================================
+# ORION Architekt-AT - Prometheus Alert Rules
+# ============================================================================
+# P1 (Critical), P2 (High), P3 (Warning) alert definitions
+# Author: ORION Engineering Team
+# Date: 2026-04-12
+# Status: PRODUCTION MONITORING
+# ============================================================================
+
+groups:
+  # ==========================================================================
+  # P1 - CRITICAL ALERTS (Immediate Response Required)
+  # ==========================================================================
+  - name: critical_alerts
+    interval: 30s
+    rules:
+      # API Service Down
+      - alert: APIServiceDown
+        expr: up{job="orion-api"} == 0
+        for: 1m
+        labels:
+          severity: critical
+          service: orion-api
+          priority: P1
+        annotations:
+          summary: "ORION API is DOWN"
+          description: "API service {{ $labels.instance }} has been down for more than 1 minute"
+          runbook: "https://github.com/Alvoradozerouno/ORION-Architekt-AT/wiki/Runbooks-API-Down"
+
+      # Database Down
+      - alert: DatabaseDown
+        expr: up{job="postgres"} == 0
+        for: 1m
+        labels:
+          severity: critical
+          service: postgres
+          priority: P1
+        annotations:
+          summary: "PostgreSQL Database is DOWN"
+          description: "Database has been unreachable for {{ $value }} seconds"
+          runbook: "https://github.com/Alvoradozerouno/ORION-Architekt-AT/wiki/Runbooks-Database-Down"
+
+      # Redis Cache Down
+      - alert: RedisCacheDown
+        expr: up{job="redis"} == 0
+        for: 2m
+        labels:
+          severity: critical
+          service: redis
+          priority: P1
+        annotations:
+          summary: "Redis Cache is DOWN"
+          description: "Redis has been unreachable for {{ $value }} seconds"
+          runbook: "https://github.com/Alvoradozerouno/ORION-Architekt-AT/wiki/Runbooks-Redis-Down"
+
+      # High Error Rate (>10%)
+      - alert: HighErrorRate
+        expr: |
+          (sum(rate(http_requests_total{status=~"5.."}[5m])) /
+           sum(rate(http_requests_total[5m]))) * 100 > 10
+        for: 2m
+        labels:
+          severity: critical
+          service: orion-api
+          priority: P1
+        annotations:
+          summary: "HIGH Error Rate Detected"
+          description: "Error rate is {{ $value }}% (threshold: 10%)"
+          runbook: "https://github.com/Alvoradozerouno/ORION-Architekt-AT/wiki/Runbooks-High-Error-Rate"
+
+      # Database Connection Pool Exhausted
+      - alert: DatabaseConnectionPoolExhausted
+        expr: |
+          (database_connections_active / database_connections_max) * 100 > 95
+        for: 1m
+        labels:
+          severity: critical
+          service: postgres
+          priority: P1
+        annotations:
+          summary: "Database connection pool exhausted"
+          description: "Connection pool usage: {{ $value }}% (threshold: 95%)"
+          action: "Scale up database pool or investigate connection leaks"
+
+  # ==========================================================================
+  # P2 - HIGH SEVERITY ALERTS (Urgent Response)
+  # ==========================================================================
+  - name: high_severity_alerts
+    interval: 1m
+    rules:
+      # High Response Time (P95 > 1s)
+      - alert: HighResponseTime
+        expr: |
+          histogram_quantile(0.95,
+            sum(rate(http_request_duration_seconds_bucket[5m])) by (le)
+          ) > 1
+        for: 5m
+        labels:
+          severity: high
+          service: orion-api
+          priority: P2
+        annotations:
+          summary: "High API Response Time"
+          description: "P95 latency is {{ $value }}s (threshold: 1s)"
+          action: "Check for slow queries, high CPU, or external API delays"
+
+      # High CPU Usage (>85%)
+      - alert: HighCPUUsage
+        expr: |
+          100 - (avg by (instance) (irate(node_cpu_seconds_total{mode="idle"}[5m])) * 100) > 85
+        for: 5m
+        labels:
+          severity: high
+          service: system
+          priority: P2
+        annotations:
+          summary: "High CPU usage detected"
+          description: "CPU usage is {{ $value }}% on {{ $labels.instance }}"
+          action: "Check for runaway processes or scale horizontally"
+
+      # High Memory Usage (>85%)
+      - alert: HighMemoryUsage
+        expr: |
+          (1 - (node_memory_MemAvailable_bytes / node_memory_MemTotal_bytes)) * 100 > 85
+        for: 5m
+        labels:
+          severity: high
+          service: system
+          priority: P2
+        annotations:
+          summary: "High memory usage detected"
+          description: "Memory usage is {{ $value }}% on {{ $labels.instance }}"
+          action: "Check for memory leaks or increase pod memory limits"
+
+      # Error Rate Elevated (>5%)
+      - alert: ElevatedErrorRate
+        expr: |
+          (sum(rate(http_requests_total{status=~"5.."}[5m])) /
+           sum(rate(http_requests_total[5m]))) * 100 > 5
+        for: 5m
+        labels:
+          severity: high
+          service: orion-api
+          priority: P2
+        annotations:
+          summary: "Elevated error rate detected"
+          description: "Error rate is {{ $value }}% (threshold: 5%)"
+
+      # Database Slow Queries
+      - alert: DatabaseSlowQueries
+        expr: pg_slow_queries_total > 10
+        for: 3m
+        labels:
+          severity: high
+          service: postgres
+          priority: P2
+        annotations:
+          summary: "Slow database queries detected"
+          description: "{{ $value }} slow queries (>100ms) detected in last 3 minutes"
+          action: "Review slow query log and optimize"
+
+      # Redis High Memory Usage
+      - alert: RedisHighMemoryUsage
+        expr: |
+          (redis_memory_used_bytes / redis_memory_max_bytes) * 100 > 85
+        for: 5m
+        labels:
+          severity: high
+          service: redis
+          priority: P2
+        annotations:
+          summary: "Redis memory usage high"
+          description: "Redis memory usage: {{ $value }}%"
+          action: "Review cache eviction policy or increase maxmemory"
+
+  # ==========================================================================
+  # P3 - WARNING ALERTS (Monitor and Plan)
+  # ==========================================================================
+  - name: warning_alerts
+    interval: 2m
+    rules:
+      # Disk Usage High (>80%)
+      - alert: HighDiskUsage
+        expr: |
+          (1 - (node_filesystem_avail_bytes{mountpoint="/"} /
+                node_filesystem_size_bytes{mountpoint="/"})) * 100 > 80
+        for: 10m
+        labels:
+          severity: warning
+          service: system
+          priority: P3
+        annotations:
+          summary: "Disk usage approaching limit"
+          description: "Disk usage is {{ $value }}% on {{ $labels.instance }}"
+          action: "Clean up old logs or expand storage"
+
+      # Certificate Expiring Soon (<30 days)
+      - alert: CertificateExpiringSoon
+        expr: |
+          (probe_ssl_earliest_cert_expiry - time()) / 86400 < 30
+        for: 1h
+        labels:
+          severity: warning
+          service: tls
+          priority: P3
+        annotations:
+          summary: "TLS certificate expiring soon"
+          description: "Certificate for {{ $labels.instance }} expires in {{ $value }} days"
+          action: "Renew certificate before expiration"
+
+      # Pod Restart Frequency
+      - alert: PodRestartingFrequently
+        expr: |
+          rate(kube_pod_container_status_restarts_total[1h]) > 0.1
+        for: 10m
+        labels:
+          severity: warning
+          service: kubernetes
+          priority: P3
+        annotations:
+          summary: "Pod restarting frequently"
+          description: "Pod {{ $labels.pod }} restarting {{ $value }} times/hour"
+          action: "Check pod logs for crash loops"
+
+      # Low Cache Hit Ratio (<80%)
+      - alert: LowCacheHitRatio
+        expr: |
+          (redis_keyspace_hits_total /
+          (redis_keyspace_hits_total + redis_keyspace_misses_total)) * 100 < 80
+        for: 15m
+        labels:
+          severity: warning
+          service: redis
+          priority: P3
+        annotations:
+          summary: "Low Redis cache hit ratio"
+          description: "Cache hit ratio: {{ $value }}% (threshold: 80%)"
+          action: "Review cache strategy or increase cache size"
+
+      # API Rate Limit Approaching
+      - alert: RateLimitApproaching
+        expr: |
+          (rate_limit_requests_blocked_total /
+           rate_limit_requests_total) * 100 > 20
+        for: 10m
+        labels:
+          severity: warning
+          service: orion-api
+          priority: P3
+        annotations:
+          summary: "Rate limiting many requests"
+          description: "{{ $value }}% of requests are being rate limited"
+          action: "Review rate limit tiers or notify customers"
+
+  # ==========================================================================
+  # Business Metrics Alerts
+  # ==========================================================================
+  - name: business_metrics
+    interval: 5m
+    rules:
+      # Low Request Volume (possible outage indicator)
+      - alert: UnusuallyLowTraffic
+        expr: |
+          sum(rate(http_requests_total[5m])) < 1
+        for: 10m
+        labels:
+          severity: warning
+          service: orion-api
+          priority: P3
+        annotations:
+          summary: "Unusually low API traffic"
+          description: "Request rate: {{ $value }} req/s (expected: >1 req/s)"
+          action: "Check if clients are experiencing connectivity issues"
+
+      # Authentication Failures Spike
+      - alert: AuthenticationFailuresSpike
+        expr: |
+          rate(auth_failures_total[5m]) > 10
+        for: 5m
+        labels:
+          severity: high
+          service: security
+          priority: P2
+        annotations:
+          summary: "High number of authentication failures"
+          description: "{{ $value }} auth failures/sec detected"
+          action: "Possible brute force attack - review logs"
+
+      # File Upload Failures
+      - alert: FileUploadFailures
+        expr: |
+          rate(file_upload_failures_total[5m]) > 1
+        for: 10m
+        labels:
+          severity: warning
+          service: orion-api
+          priority: P3
+        annotations:
+          summary: "High file upload failure rate"
+          description: "{{ $value }} upload failures/sec"
+          action: "Check storage limits or validation rules"

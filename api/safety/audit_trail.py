@@ -24,7 +24,7 @@ License: Apache 2.0
 import hashlib
 import json
 import time
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import Dict, List, Optional, Any
 from pathlib import Path
 from dataclasses import dataclass, asdict
@@ -57,10 +57,11 @@ class AuditEntry:
         result: str,
         details: Dict[str, Any],
         previous_hash: str = "0" * 64,
+        timestamp: Optional[str] = None,
     ) -> "AuditEntry":
         """Create new audit entry with calculated hash"""
 
-        timestamp = datetime.utcnow().isoformat() + "Z"
+        timestamp = timestamp or datetime.now(timezone.utc).isoformat().replace('+00:00', 'Z')
 
         # Create data for hashing (excluding entry_hash itself)
         data_to_hash = {

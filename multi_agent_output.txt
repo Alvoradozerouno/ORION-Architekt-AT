@@ -1,0 +1,152 @@
+======================================================================
+ORION MULTI-AGENT INTEGRATION TESTS
+======================================================================
+Eurocode verfügbar: True
+
+======================================================================
+TEST 1: Zivilingenieur - Deterministisch
+======================================================================
+
+📐 BETON:
+   Status: GENEHMIGUNGSFÄHIG
+   Monte Carlo: False
+   Methode: deterministisch
+   ✅ DETERMINISTISCH bestätigt
+
+📐 STAHL:
+   Status: GENEHMIGUNGSFÄHIG
+   Monte Carlo: False
+   Methode: deterministisch
+   ✅ DETERMINISTISCH bestätigt
+
+✅ Zivilingenieur Deterministisch PASSED
+
+======================================================================
+TEST 2: Kostenplaner - Probabilistisch (Monte Carlo)
+======================================================================
+
+💰 KOSTEN (Monte Carlo):
+   Median (P50): 495,596 €
+   P10: 422,076 €
+   P90: 591,446 €
+   Monte Carlo: True
+   Simulationen: 1000
+   ✅ PROBABILISTISCH bestätigt
+
+✅ Kostenplaner Probabilistisch PASSED
+
+======================================================================
+TEST 3: Hybrid-Architektur
+======================================================================
+
+================================================================================
+ORION MULTI-AGENT SYSTEM - VOLLSTÄNDIGE PROJEKTPLANUNG
+================================================================================
+
+1️⃣  ZIVILINGENIEUR arbeitet (deterministisch, normgerecht)...
+   ✓ Statik: GENEHMIGUNGSFÄHIG
+   ✓ Monte Carlo verwendet: False
+
+2️⃣  BAUPHYSIKER arbeitet (deterministisch, physikalisch korrekt)...
+   ✓ Energie: NICHT KONFORM
+   ✓ HWB: 502.4 kWh/(m²a)
+
+3️⃣  KOSTENPLANER arbeitet (PROBABILISTISCH - Monte Carlo!)...
+   ✓ Kosten (Monte Carlo): 503,326 €
+   ✓ Budget P90 (konservativ): 589,518 €
+   ✓ Simulationen: 10,000
+
+4️⃣  RISIKOMANAGER arbeitet (PROBABILISTISCH - Monte Carlo!)...
+   ✓ Risiken: 5 identifiziert
+   ✓ Zeitpuffer-Empfehlung: 33 Tage
+   ✓ Kostenreserve-Empfehlung: 36,310 €
+
+================================================================================
+GESAMTBEWERTUNG
+================================================================================
+Status: PROJEKT ÜBERARBEITEN
+Statik: ✓
+Energie: ✗
+================================================================================
+
+
+🏗️  GESAMTPROJEKT:
+   Status: PROJEKT ÜBERARBEITEN
+   Statik OK: True
+   Energie OK: False
+
+📊 HYBRID-VALIDIERUNG:
+   ✅ Statik: Deterministisch (MC=False)
+   ✅ Kosten: Probabilistisch (MC=True, n=10000)
+   ✅ Risiken: Probabilistisch (MC=True, n=5000)
+
+✅ HYBRID-ARCHITEKTUR BESTÄTIGT!
+
+✅ Hybrid-Architektur PASSED
+
+======================================================================
+TEST 4: Normgerechtes Statik-Papier
+======================================================================
+
+📄 STATIK-PAPIER:
+
+================================================================================
+STATISCHES GUTACHTEN
+================================================================================
+Projekt:          Test-Wohnhaus
+Bauherr:          Max Mustermann
+Standort:         N/A
+Datum:            2026-04-10
+Norm:             ÖNORM EN 1992-1-1
+
+================================================================================
+VERANTWORTLICHER ZIVILINGENIEUR
+==================================================...
+
+✅ Normgerechtes Papier generiert
+💾 Gespeichert: /tmp/statik_papier_test.txt
+
+✅ Normgerechtes Papier PASSED
+
+======================================================================
+TEST 5: Agent Mindsets - Unterschiedliche Denkweisen
+======================================================================
+
+🧠 Zivilingenieur:
+   Mindset: SICHERHEIT IST NICHT VERHANDELBAR
+   Methode: Eurocode-konform, deterministisch
+   Unsicherheit: 0.0
+
+🧠 Bauphysiker:
+   Mindset: PHYSIK LÜGT NICHT
+   Methode: Physikalisch korrekt, OIB-RL konform
+   Unsicherheit: 0.0
+
+🧠 Kostenplaner:
+   Mindset: KOSTEN HABEN IMMER UNSICHERHEITEN
+   Methode: Monte Carlo Simulation (10.000 Läufe)
+   Unsicherheit: 0.15
+
+🧠 Risikomanager:
+   Mindset: RISIKEN KANN MAN NICHT ELIMINIEREN - NUR MANAGEN
+   Methode: Probabilistische Risikoanalyse (Monte Carlo)
+   Unsicherheit: explizit modelliert
+
+✅ Alle Agenten haben unterschiedliche Denkweisen
+
+✅ Agent Mindsets PASSED
+
+======================================================================
+TEST 6: Audit Trail & Reproduzierbarkeit
+======================================================================
+
+🔍 AUDIT TRAIL:
+   Entscheidungen Agent 1: 2
+   Entscheidungen Agent 2: 2
+   ✅ Reproduzierbarkeit bestätigt
+
+✅ Audit Trail PASSED
+
+======================================================================
+ERGEBNIS: 6 PASSED, 0 FAILED
+======================================================================

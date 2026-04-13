@@ -1,0 +1,175 @@
+
+================================================================================
+  ORION Architekt AT - AI Integration Test
+================================================================================
+
+Testdatum: 2026-04-10 20:39:55
+Projekt: Einfamilienhaus Wien - Neubau
+Workflow: IFC → AI Takeoff → Live Costs → LV → AI Evaluation
+
+================================================================================
+  PHASE 1: AI Quantity Takeoff from BIM/IFC
+================================================================================
+
+🤖 Analysiere IFC-Modell mit AI...
+✓ Projekt: Einfamilienhaus Wien
+✓ Elemente extrahiert: 4
+✓ Gesamtvolumen: 83.30 m³
+✓ Gesamtfläche: 475.50 m²
+✓ AI Confidence: 0.95%
+✓ Geschätzte Kosten: EUR 60,385.00
+
+Extrahierte Bauteile:
+  • Gewerk 02_Maurerarbeiten: 4 Positionen
+  • Gewerk 03_Stahlbetonarbeiten: 4 Positionen
+  • Gewerk 05_Dachdeckerarbeiten: 4 Positionen
+  • Gewerk 07_Fenster_Türen: 4 Positionen
+
+================================================================================
+  PHASE 2: Live Cost Database - Aktuelle Preise
+================================================================================
+
+📊 Lade aktuelle Baupreisindizes (Statistik Austria)...
+
+Aktuelle Indices (Q1 2026, Basis 2015=100):
+  Beton und Betonwaren           Index:  143.2  ΔM: +0.28%  ΔJ: +3.39%
+  Baustahl                       Index:  168.5  ΔM: +0.78%  ΔJ: +8.15%
+  Bauholz                        Index:  152.3  ΔM: +0.26%  ΔJ: +2.77%
+  Ziegel                         Index:  135.8  ΔM: +0.22%  ΔJ: +2.80%
+
+Live-Preise für Wien (Regionalfaktor: 1.15):
+  Stahlbeton C30/37              EUR   518.74  (Basis: EUR 315.00, +64.7%)
+  Baustahl S235                  EUR     3.58  (Basis: EUR   1.85, +93.5%)
+  Brettschichtholz GL24          EUR  1366.13  (Basis: EUR 780.00, +75.1%)
+  Hochlochziegel 38cm            EUR    66.37  (Basis: EUR  42.50, +56.2%)
+
+================================================================================
+  PHASE 3: LV-Generierung (ÖNORM A 2063)
+================================================================================
+
+📝 Leistungsverzeichnis aus AI Takeoff...
+✓ LV-Positionen generiert: 4
+✓ Gewerke abgedeckt: 4
+
+Leistungsverzeichnis (Auszug):
+OZ       LG           Bezeichnung                                   Menge           EP             GP
+----------------------------------------------------------------------------------------------------
+02.001   Maurerarbeiten Außenwand, wärmegedämmt                    120.50 m2 EUR   120.00 EUR   14460.00
+03.002   Stahlbetonarbeiten Stahlbeton C30/37                           37.50 m3 EUR   450.00 EUR   16875.00
+05.003   Dachdeckerarbeiten Dacheindeckung Tondachziegel               180.00 m2 EUR    85.00 EUR   15300.00
+07.004   Fenster und Türen Kunststofffenster 3-fach verglast           25.00 m2 EUR   550.00 EUR   13750.00
+
+GESAMT LV-SUMME:                                               EUR  60,385.00
+
+================================================================================
+  PHASE 4: Angebote empfangen
+================================================================================
+
+📬 3 Angebote eingegangen...
+
+Firma                            Angebotssumme    Bauzeit   Garantie
+----------------------------------------------------------------------
+Baufirma Alpha GmbH            EUR  67,631.20 (+12.0%)  180 Tage   5 Jahre
+Baumeister Beta                EUR  50,723.40 (-16.0%)  120 Tage   2 Jahre
+Bau Gamma AG                   EUR  70,650.45 (+17.0%)  200 Tage   4 Jahre
+
+================================================================================
+  PHASE 5: AI-gestützte Angebotsbewertung
+================================================================================
+
+🤖 AI analysiert und bewertet Angebote...
+
+Bewertungskriterien:
+  • price: 40%
+  • quality: 25%
+  • technical: 20%
+  • timeline: 15%
+
+====================================================================================================
+AI BEWERTUNGSERGEBNIS
+====================================================================================================
+
+1.   Baufirma Alpha GmbH            Gesamtscore: 63.0/100
+   ───────────────────────────────────────────────────────────────────────────────────────────────
+   Angebotssumme:  EUR  67,631.20
+   Bauzeit:        180 Tage
+   Garantie:         5 Jahre
+
+   Score-Details:
+     • Preis:       75.0/100  (Gewicht: 40%)
+     • Qualität:    20.0/100  (Gewicht: 25%)
+     • Technik:     65.0/100  (Gewicht: 20%)
+     • Zeitplan:    75.0/100  (Gewicht: 15%)
+
+   Risiko-Assessment: 3.8/10
+   ⚠️  Risiken gefunden:
+      • Technische Konformität: 4 wichtige Anforderungen fehlen (hoch)
+   Compliance:    50% (1/2 erfüllt)
+
+   EMPFEHLUNG:    ✗ NEIN
+   Begründung:    Nicht empfohlen: Score nur 63.0, Compliance nur 50%
+
+2.   Baumeister Beta                Gesamtscore: 62.5/100
+   ───────────────────────────────────────────────────────────────────────────────────────────────
+   Angebotssumme:  EUR  50,723.40
+   Bauzeit:        120 Tage
+   Garantie:         2 Jahre
+
+   Score-Details:
+     • Preis:      100.0/100  (Gewicht: 40%)
+     • Qualität:     8.0/100  (Gewicht: 25%)
+     • Technik:     50.0/100  (Gewicht: 20%)
+     • Zeitplan:   100.0/100  (Gewicht: 15%)
+
+   Risiko-Assessment: 4.8/10
+   ⚠️  Risiken gefunden:
+      • Technische Konformität: 4 wichtige Anforderungen fehlen (hoch)
+   Compliance:    0% (0/2 erfüllt)
+
+   EMPFEHLUNG:    ✗ NEIN
+   Begründung:    Nicht empfohlen: Score nur 62.5, Compliance nur 0%
+
+3.   Bau Gamma AG                   Gesamtscore: 56.2/100
+   ───────────────────────────────────────────────────────────────────────────────────────────────
+   Angebotssumme:  EUR  70,650.45
+   Bauzeit:        200 Tage
+   Garantie:         4 Jahre
+
+   Score-Details:
+     • Preis:       71.8/100  (Gewicht: 40%)
+     • Qualität:    16.0/100  (Gewicht: 25%)
+     • Technik:     50.0/100  (Gewicht: 20%)
+     • Zeitplan:    71.8/100  (Gewicht: 15%)
+
+   Risiko-Assessment: 3.8/10
+   ⚠️  Risiken gefunden:
+      • Technische Konformität: 4 wichtige Anforderungen fehlen (hoch)
+   Compliance:    50% (1/2 erfüllt)
+
+   EMPFEHLUNG:    ✗ NEIN
+   Begründung:    Nicht empfohlen: Score nur 56.2, Compliance nur 50%
+
+================================================================================
+  ZUSAMMENFASSUNG - End-to-End Integration
+================================================================================
+
+✓ AI Quantity Takeoff:     4 Bauteile extrahiert
+✓ Live Cost Database:       8 Material-Kategorien aktualisiert
+✓ LV-Generierung:           4 Positionen, EUR 60,385.00
+✓ AI Tender Evaluation:     3 Angebote bewertet
+
+🏆 BESTE WAHL: Baufirma Alpha GmbH
+   Score: 63.0/100
+   Preis: EUR 67,631.20
+   Risiko: 3.8/10
+   Nicht empfohlen: Score nur 63.0, Compliance nur 50%
+
+--------------------------------------------------------------------------------
+
+✓ Integration Test erfolgreich abgeschlossen!
+  Workflow-Dauer: Echtzeit (automatisiert)
+  Manueller Aufwand ohne AI: ~2-3 Wochen
+  Zeitersparnis: >95%
+
+--------------------------------------------------------------------------------
+

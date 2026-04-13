@@ -1,0 +1,405 @@
+# ============================================================================
+# ORION Architekt-AT - Kubernetes Deployment
+# ============================================================================
+# Production-ready Kubernetes deployment with auto-scaling
+# Author: ORION Engineering Team
+# Date: 2026-04-11
+# Status: PRODUCTION READY
+# ============================================================================
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: orion-api
+  namespace: orion-production
+  labels:
+    app: orion-api
+    version: "3.0.0"
+    tier: backend
+spec:
+  replicas: 3
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 0
+  selector:
+    matchLabels:
+      app: orion-api
+  template:
+    metadata:
+      labels:
+        app: orion-api
+        version: "3.0.0"
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "8000"
+        prometheus.io/path: "/metrics"
+    spec:
+      # Security Context
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 1000
+        fsGroup: 1000
+
+      # Init Containers (Database Migration)
+      initContainers:
+        - name: migration
+          image: orion-architekt-at:3.0.0
+          command: ["alembic", "upgrade", "head"]
+          envFrom:
+            - secretRef:
+                name: orion-secrets
+            - configMapRef:
+                name: orion-config
+
+      # Main Container
+      containers:
+        - name: api
+          image: orion-architekt-at:3.0.0
+          imagePullPolicy: IfNotPresent
+          ports:
+            - name: http
+              containerPort: 8000
+              protocol: TCP
+
+          # Environment Variables
+          envFrom:
+            - secretRef:
+                name: orion-secrets
+            - configMapRef:
+                name: orion-config
+
+          # Resource Limits
+          resources:
+            requests:
+              cpu: 500m
+              memory: 512Mi
+            limits:
+              cpu: 2000m
+              memory: 2Gi
+
+          # Health Checks
+          livenessProbe:
+            httpGet:
+              path: /health/live
+              port: 8000
+            initialDelaySeconds: 30
+            periodSeconds: 10
+            timeoutSeconds: 5
+            failureThreshold: 3
+
+          readinessProbe:
+            httpGet:
+              path: /health/ready
+              port: 8000
+            initialDelaySeconds: 20
+            periodSeconds: 5
+            timeoutSeconds: 3
+            failureThreshold: 3
+
+          # Startup Probe (for slow starts)
+          startupProbe:
+            httpGet:
+              path: /health/live
+              port: 8000
+            initialDelaySeconds: 0
+            periodSeconds: 10
+            timeoutSeconds: 3
+            failureThreshold: 30
+
+          # Volume Mounts
+          volumeMounts:
+            - name: uploads
+              mountPath: /app/uploads
+            - name: logs
+              mountPath: /app/logs
+            - name: tmp
+              mountPath: /tmp
+
+      # Volumes
+      volumes:
+        - name: uploads
+          persistentVolumeClaim:
+            claimName: orion-uploads-pvc
+        - name: logs
+          emptyDir: {}
+        - name: tmp
+          emptyDir: {}
+
+      # Pod Affinity (spread across nodes)
+      affinity:
+        podAntiAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+            - weight: 100
+              podAffinityTerm:
+                labelSelector:
+                  matchExpressions:
+                    - key: app
+                      operator: In
+                      values:
+                        - orion-api
+                topologyKey: kubernetes.io/hostname
+
+---
+# ============================================================================
+# Service
+# ============================================================================
+apiVersion: v1
+kind: Service
+metadata:
+  name: orion-api-service
+  namespace: orion-production
+  labels:
+    app: orion-api
+spec:
+  type: ClusterIP
+  selector:
+    app: orion-api
+  ports:
+    - name: http
+      protocol: TCP
+      port: 80
+      targetPort: 8000
+  sessionAffinity: ClientIP
+  sessionAffinityConfig:
+    clientIP:
+      timeoutSeconds: 10800
+
+---
+# ============================================================================
+# Horizontal Pod Autoscaler
+# ============================================================================
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: orion-api-hpa
+  namespace: orion-production
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: orion-api
+  minReplicas: 3
+  maxReplicas: 10
+  metrics:
+    - type: Resource
+      resource:
+        name: cpu
+        target:
+          type: Utilization
+          averageUtilization: 70
+    - type: Resource
+      resource:
+        name: memory
+        target:
+          type: Utilization
+          averageUtilization: 80
+  behavior:
+    scaleDown:
+      stabilizationWindowSeconds: 300
+      policies:
+        - type: Percent
+          value: 50
+          periodSeconds: 60
+    scaleUp:
+      stabilizationWindowSeconds: 0
+      policies:
+        - type: Percent
+          value: 100
+          periodSeconds: 30
+        - type: Pods
+          value: 2
+          periodSeconds: 30
+      selectPolicy: Max
+
+---
+# ============================================================================
+# Persistent Volume Claim (Uploads)
+# ============================================================================
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: orion-uploads-pvc
+  namespace: orion-production
+spec:
+  accessModes:
+    - ReadWriteMany
+  storageClassName: standard
+  resources:
+    requests:
+      storage: 50Gi
+
+---
+# ============================================================================
+# ConfigMap
+# ============================================================================
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: orion-config
+  namespace: orion-production
+data:
+  ENVIRONMENT: "production"
+  DEBUG: "false"
+  APP_NAME: "ORION Architekt-AT"
+  VERSION: "3.0.0"
+
+  # Database
+  DATABASE_POOL_SIZE: "20"
+  DATABASE_MAX_OVERFLOW: "40"
+
+  # Redis
+  REDIS_MAX_CONNECTIONS: "50"
+
+  # Rate Limiting
+  RATE_LIMIT_ENABLED: "true"
+  RATE_LIMIT_ANONYMOUS: "100"
+  RATE_LIMIT_AUTHENTICATED: "1000"
+  RATE_LIMIT_PREMIUM: "10000"
+
+  # Monitoring
+  ENABLE_METRICS: "true"
+  PROMETHEUS_ENABLED: "true"
+
+  # File Upload
+  MAX_UPLOAD_SIZE_MB: "100"
+  ALLOWED_EXTENSIONS: "ifc,ifcxml,pdf,dwg,dxf,rvt"
+  UPLOAD_FOLDER: "/app/uploads"
+
+  # Logging
+  LOG_LEVEL: "INFO"
+  LOG_FORMAT: "json"
+
+  # CORS
+  CORS_ORIGINS: '["https://orion-architekt.at","https://www.orion-architekt.at","https://app.orion-architekt.at"]'
+
+---
+# ============================================================================
+# Secret (Example - Replace with actual secrets)
+# ============================================================================
+apiVersion: v1
+kind: Secret
+metadata:
+  name: orion-secrets
+  namespace: orion-production
+type: Opaque
+stringData:
+  # Database
+  DATABASE_URL: "postgresql://orion:CHANGE_ME@postgres-service:5432/orion_db"
+
+  # Redis
+  REDIS_URL: "redis://:CHANGE_ME@redis-service:6379/0"
+
+  # Security
+  SECRET_KEY: "CHANGE_ME_TO_RANDOM_64_CHAR_STRING"
+  JWT_SECRET_KEY: "CHANGE_ME_TO_RANDOM_64_CHAR_STRING"
+  JWT_ALGORITHM: "HS256"
+  JWT_ACCESS_TOKEN_EXPIRE_MINUTES: "60"
+
+  # External APIs (optional)
+  OPENAI_API_KEY: ""
+  RIS_API_KEY: ""
+  HORA_API_KEY: ""
+
+  # Monitoring
+  SENTRY_DSN: ""
+
+---
+# ============================================================================
+# Ingress (NGINX Ingress Controller)
+# ============================================================================
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: orion-api-ingress
+  namespace: orion-production
+  annotations:
+    kubernetes.io/ingress.class: "nginx"
+    cert-manager.io/cluster-issuer: "letsencrypt-prod"
+    nginx.ingress.kubernetes.io/ssl-redirect: "true"
+    nginx.ingress.kubernetes.io/force-ssl-redirect: "true"
+    nginx.ingress.kubernetes.io/proxy-body-size: "100m"
+    nginx.ingress.kubernetes.io/rate-limit: "100"
+    nginx.ingress.kubernetes.io/limit-rps: "20"
+    nginx.ingress.kubernetes.io/enable-cors: "true"
+    nginx.ingress.kubernetes.io/cors-allow-origin: "https://orion-architekt.at,https://www.orion-architekt.at"
+spec:
+  tls:
+    - hosts:
+        - api.orion-architekt.at
+      secretName: orion-tls-secret
+  rules:
+    - host: api.orion-architekt.at
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: orion-api-service
+                port:
+                  number: 80
+
+---
+# ============================================================================
+# Network Policy (Security)
+# ============================================================================
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: orion-api-network-policy
+  namespace: orion-production
+spec:
+  podSelector:
+    matchLabels:
+      app: orion-api
+  policyTypes:
+    - Ingress
+    - Egress
+  ingress:
+    # Allow from ingress controller
+    - from:
+        - namespaceSelector:
+            matchLabels:
+              name: ingress-nginx
+      ports:
+        - protocol: TCP
+          port: 8000
+    # Allow from prometheus
+    - from:
+        - namespaceSelector:
+            matchLabels:
+              name: monitoring
+      ports:
+        - protocol: TCP
+          port: 8000
+  egress:
+    # Allow to PostgreSQL
+    - to:
+        - podSelector:
+            matchLabels:
+              app: postgres
+      ports:
+        - protocol: TCP
+          port: 5432
+    # Allow to Redis
+    - to:
+        - podSelector:
+            matchLabels:
+              app: redis
+      ports:
+        - protocol: TCP
+          port: 6379
+    # Allow DNS
+    - to:
+        - namespaceSelector: {}
+      ports:
+        - protocol: UDP
+          port: 53
+    # Allow external HTTPS
+    - to:
+        - namespaceSelector: {}
+      ports:
+        - protocol: TCP
+          port: 443

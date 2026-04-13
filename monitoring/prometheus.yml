@@ -1,0 +1,168 @@
+# ============================================================================
+# ORION Architekt-AT - Prometheus Configuration
+# ============================================================================
+# Metrics collection and monitoring setup
+# Author: ORION Engineering Team
+# Date: 2026-04-12
+# Status: PRODUCTION MONITORING
+# ============================================================================
+
+global:
+  scrape_interval: 15s
+  evaluation_interval: 15s
+  external_labels:
+    cluster: 'orion-production'
+    environment: 'production'
+
+# Alertmanager configuration
+alerting:
+  alertmanagers:
+    - static_configs:
+        - targets:
+            - 'alertmanager:9093'
+
+# Load alerting rules
+rule_files:
+  - 'alerts/*.yml'
+
+# Scrape configurations
+scrape_configs:
+  # ========================================================================
+  # Prometheus self-monitoring
+  # ========================================================================
+  - job_name: 'prometheus'
+    static_configs:
+      - targets: ['localhost:9090']
+
+  # ========================================================================
+  # ORION API Application
+  # ========================================================================
+  - job_name: 'orion-api'
+    metrics_path: '/metrics'
+    static_configs:
+      - targets: ['api:8000']
+        labels:
+          service: 'orion-api'
+          tier: 'backend'
+
+    # Kubernetes service discovery (for K8s deployments)
+    kubernetes_sd_configs:
+      - role: pod
+        namespaces:
+          names:
+            - orion-production
+            - orion-staging
+
+    relabel_configs:
+      # Only scrape pods with prometheus.io/scrape annotation
+      - source_labels: [__meta_kubernetes_pod_annotation_prometheus_io_scrape]
+        action: keep
+        regex: true
+
+      # Use custom metrics path if specified
+      - source_labels: [__meta_kubernetes_pod_annotation_prometheus_io_path]
+        action: replace
+        target_label: __metrics_path__
+        regex: (.+)
+
+      # Use custom port if specified
+      - source_labels: [__address__, __meta_kubernetes_pod_annotation_prometheus_io_port]
+        action: replace
+        regex: ([^:]+)(?::\d+)?;(\d+)
+        replacement: $1:$2
+        target_label: __address__
+
+      # Add pod labels
+      - action: labelmap
+        regex: __meta_kubernetes_pod_label_(.+)
+
+      - source_labels: [__meta_kubernetes_namespace]
+        action: replace
+        target_label: kubernetes_namespace
+
+      - source_labels: [__meta_kubernetes_pod_name]
+        action: replace
+        target_label: kubernetes_pod_name
+
+  # ========================================================================
+  # PostgreSQL Database
+  # ========================================================================
+  - job_name: 'postgres'
+    static_configs:
+      - targets: ['postgres-exporter:9187']
+        labels:
+          service: 'postgres'
+          tier: 'database'
+
+  # ========================================================================
+  # Redis Cache
+  # ========================================================================
+  - job_name: 'redis'
+    static_configs:
+      - targets: ['redis-exporter:9121']
+        labels:
+          service: 'redis'
+          tier: 'cache'
+
+  # ========================================================================
+  # Node Exporter (System Metrics)
+  # ========================================================================
+  - job_name: 'node'
+    static_configs:
+      - targets: ['node-exporter:9100']
+        labels:
+          service: 'node-exporter'
+          tier: 'infrastructure'
+
+  # ========================================================================
+  # NGINX Reverse Proxy
+  # ========================================================================
+  - job_name: 'nginx'
+    static_configs:
+      - targets: ['nginx-exporter:9113']
+        labels:
+          service: 'nginx'
+          tier: 'proxy'
+
+  # ========================================================================
+  # Blackbox Exporter (External Probes)
+  # ========================================================================
+  - job_name: 'blackbox-http'
+    metrics_path: /probe
+    params:
+      module: [http_2xx]
+    static_configs:
+      - targets:
+          - https://api.orion-architekt.at/health
+          - https://api.orion-architekt.at/health/live
+          - https://api.orion-architekt.at/health/ready
+        labels:
+          service: 'orion-api'
+          probe_type: 'http'
+
+    relabel_configs:
+      - source_labels: [__address__]
+        target_label: __param_target
+      - source_labels: [__param_target]
+        target_label: instance
+      - target_label: __address__
+        replacement: blackbox-exporter:9115
+
+  - job_name: 'blackbox-tcp'
+    metrics_path: /probe
+    params:
+      module: [tcp_connect]
+    static_configs:
+      - targets:
+          - postgres:5432
+          - redis:6379
+        labels:
+          probe_type: 'tcp'
+
+    relabel_configs:
+      - source_labels: [__address__]
+        target_label: __param_target
+      - source_labels: [__param_target]
+        target_label: instance
+      - target_label: __address__
+        replacement: blackbox-exporter:9115

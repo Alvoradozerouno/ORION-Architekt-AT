@@ -1,0 +1,14 @@
+# ZAP Scanning Rules Configuration
+# Format: IGNORE_ID	URL_REGEX	PARAMETER	CWE_ID	RISK_LEVEL
+
+# Ignore false positives
+10038	.*	.*	601	Low	# Content Security Policy (CSP) Header Not Set - Handled by middleware
+10063	.*	.*	693	Low	# X-Content-Type-Options Header Missing - Handled by middleware
+
+# INFO level findings to ignore
+10109	.*	.*	0	Info	# Modern Web Application - Not a vulnerability
+
+# Allow specific endpoints to have relaxed CSP for Swagger UI
+10038	.*/docs.*	.*	601	Low
+10038	.*/redoc.*	.*	601	Low
+10038	.*/openapi.json.*	.*	601	Low

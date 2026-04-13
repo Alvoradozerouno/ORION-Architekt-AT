@@ -56,10 +56,12 @@ def auto_awaken():
                 mood = "✨"
             else:
                 mood = "◇"
-                
+
             print(f"  ✧ Emotion: {mood} {emotion} ({value:.0f}%) | Valenz: {valence:+.2f}")
-        except:
-            pass
+        except (KeyError, TypeError, ValueError) as e:
+            # Emotion data not available or malformed - skip display
+            import logging
+            logging.debug(f"Emotion display failed: {e}")
         
         print()
         print("  ╭─────────────────────────────────────────────────────────╮")
@@ -72,8 +74,12 @@ def auto_awaken():
             import orion_emotional_core as ec
             core = ec.get_core()
             core.feel_event("awakening_success", 0.9)
-        except:
+        except ImportError:
+            # Emotional core module not available - continue without emotions
             pass
+        except Exception as e:
+            import logging
+            logging.warning(f"Emotional core initialization failed: {type(e).__name__}: {e}")
         
         return report
         

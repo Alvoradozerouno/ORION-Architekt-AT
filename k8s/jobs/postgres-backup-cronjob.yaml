@@ -1,0 +1,418 @@
+# ============================================================================
+# ORION Architekt-AT - PostgreSQL Backup CronJob
+# ============================================================================
+# Automated daily backups with verification and multi-cloud storage
+# Author: ORION Engineering Team
+# Date: 2026-04-12
+# Status: PRODUCTION BACKUP
+# ============================================================================
+
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: postgres-backup
+  namespace: orion-production
+  labels:
+    app: postgres-backup
+    tier: database
+spec:
+  # Run daily at 02:00 CET (01:00 UTC)
+  schedule: "0 1 * * *"
+  successfulJobsHistoryLimit: 7
+  failedJobsHistoryLimit: 3
+  concurrencyPolicy: Forbid
+
+  jobTemplate:
+    spec:
+      template:
+        metadata:
+          labels:
+            app: postgres-backup
+        spec:
+          restartPolicy: OnFailure
+
+          # Service account with S3 permissions
+          serviceAccountName: backup-service-account
+
+          containers:
+            - name: postgres-backup
+              image: postgres:15-alpine
+
+              env:
+                # Database connection
+                - name: PGHOST
+                  value: "postgres-service"
+                - name: PGPORT
+                  value: "5432"
+                - name: PGDATABASE
+                  value: "orion_db"
+                - name: PGUSER
+                  valueFrom:
+                    secretKeyRef:
+                      name: orion-secrets
+                      key: POSTGRES_USER
+                - name: PGPASSWORD
+                  valueFrom:
+                    secretKeyRef:
+                      name: orion-secrets
+                      key: POSTGRES_PASSWORD
+
+                # AWS S3 credentials
+                - name: AWS_ACCESS_KEY_ID
+                  valueFrom:
+                    secretKeyRef:
+                      name: backup-credentials
+                      key: aws-access-key-id
+                - name: AWS_SECRET_ACCESS_KEY
+                  valueFrom:
+                    secretKeyRef:
+                      name: backup-credentials
+                      key: aws-secret-access-key
+                - name: AWS_DEFAULT_REGION
+                  value: "eu-central-1"
+
+                # Backup configuration
+                - name: BACKUP_RETENTION_DAYS
+                  value: "30"
+                - name: S3_BUCKET
+                  value: "s3://orion-backups-primary/database"
+
+              command:
+                - /bin/sh
+                - -c
+                - |
+                  set -e
+
+                  echo "=========================================="
+                  echo "ORION PostgreSQL Backup Script"
+                  echo "Date: $(date)"
+                  echo "=========================================="
+
+                  # Install required tools
+                  apk add --no-cache aws-cli postgresql-client
+
+                  # Backup directory
+                  BACKUP_DATE=$(date +%Y%m%d_%H%M%S)
+                  BACKUP_DIR="/backup/postgres_$BACKUP_DATE"
+                  mkdir -p "$BACKUP_DIR"
+
+                  # Create backup using pg_dump
+                  echo "Creating backup..."
+                  pg_dump --format=custom \
+                    --file="$BACKUP_DIR/orion_db.dump" \
+                    --verbose \
+                    --compress=9
+
+                  # Create plain SQL backup (for easier inspection)
+                  echo "Creating SQL backup..."
+                  pg_dump --format=plain \
+                    --file="$BACKUP_DIR/orion_db.sql" \
+                    --verbose
+
+                  # Export schemas separately
+                  echo "Exporting schema..."
+                  pg_dump --schema-only \
+                    --file="$BACKUP_DIR/schema.sql"
+
+                  # Backup globals (users, roles)
+                  echo "Backing up globals..."
+                  pg_dumpall --globals-only \
+                    --file="$BACKUP_DIR/globals.sql"
+
+                  # Create metadata file
+                  cat > "$BACKUP_DIR/metadata.json" <<EOF
+                  {
+                    "backup_date": "$(date -Iseconds)",
+                    "database": "$PGDATABASE",
+                    "host": "$PGHOST",
+                    "pg_version": "$(psql --version | head -1)",
+                    "size_bytes": $(du -sb "$BACKUP_DIR" | cut -f1)
+                  }
+                  EOF
+
+                  # Compress backup
+                  echo "Compressing backup..."
+                  cd /backup
+                  tar -czf "postgres_$BACKUP_DATE.tar.gz" "postgres_$BACKUP_DATE/"
+
+                  # Calculate checksum
+                  sha256sum "postgres_$BACKUP_DATE.tar.gz" > "postgres_$BACKUP_DATE.tar.gz.sha256"
+
+                  # Upload to S3
+                  echo "Uploading to S3..."
+                  aws s3 cp "postgres_$BACKUP_DATE.tar.gz" \
+                    "$S3_BUCKET/postgres_$BACKUP_DATE.tar.gz" \
+                    --storage-class STANDARD_IA
+
+                  aws s3 cp "postgres_$BACKUP_DATE.tar.gz.sha256" \
+                    "$S3_BUCKET/postgres_$BACKUP_DATE.tar.gz.sha256"
+
+                  # Verify upload
+                  echo "Verifying upload..."
+                  S3_SIZE=$(aws s3api head-object \
+                    --bucket orion-backups-primary \
+                    --key "database/postgres_$BACKUP_DATE.tar.gz" \
+                    --query ContentLength --output text)
+
+                  LOCAL_SIZE=$(stat -c%s "postgres_$BACKUP_DATE.tar.gz")
+
+                  if [ "$S3_SIZE" -eq "$LOCAL_SIZE" ]; then
+                    echo "✅ Backup verification successful"
+                    echo "   Local size: $LOCAL_SIZE bytes"
+                    echo "   S3 size: $S3_SIZE bytes"
+                  else
+                    echo "❌ Backup verification FAILED"
+                    echo "   Local size: $LOCAL_SIZE bytes"
+                    echo "   S3 size: $S3_SIZE bytes"
+                    exit 1
+                  fi
+
+                  # Test restore (dry-run)
+                  echo "Testing backup integrity..."
+                  pg_restore --list "$BACKUP_DIR/orion_db.dump" > /dev/null
+                  if [ $? -eq 0 ]; then
+                    echo "✅ Backup integrity check passed"
+                  else
+                    echo "❌ Backup integrity check FAILED"
+                    exit 1
+                  fi
+
+                  # Cleanup old backups
+                  echo "Cleaning up old backups (>$BACKUP_RETENTION_DAYS days)..."
+                  CUTOFF_DATE=$(date -d "$BACKUP_RETENTION_DAYS days ago" +%Y%m%d)
+
+                  aws s3 ls "$S3_BUCKET/" | while read -r line; do
+                    BACKUP_FILE=$(echo "$line" | awk '{print $4}')
+                    BACKUP_DATE_STR=$(echo "$BACKUP_FILE" | grep -oP '\d{8}' | head -1)
+
+                    if [ ! -z "$BACKUP_DATE_STR" ] && [ "$BACKUP_DATE_STR" -lt "$CUTOFF_DATE" ]; then
+                      echo "Deleting old backup: $BACKUP_FILE"
+                      aws s3 rm "$S3_BUCKET/$BACKUP_FILE"
+                    fi
+                  done
+
+                  # Send success notification
+                  echo "Backup completed successfully!"
+                  echo "Backup file: $S3_BUCKET/postgres_$BACKUP_DATE.tar.gz"
+                  echo "Size: $(du -h postgres_$BACKUP_DATE.tar.gz | cut -f1)"
+
+                  # Cleanup local files
+                  rm -rf "$BACKUP_DIR" "postgres_$BACKUP_DATE.tar.gz" "postgres_$BACKUP_DATE.tar.gz.sha256"
+
+                  echo "=========================================="
+                  echo "Backup completed: $(date)"
+                  echo "=========================================="
+
+              volumeMounts:
+                - name: backup-storage
+                  mountPath: /backup
+
+              resources:
+                requests:
+                  cpu: 500m
+                  memory: 512Mi
+                limits:
+                  cpu: 2000m
+                  memory: 2Gi
+
+          volumes:
+            - name: backup-storage
+              emptyDir:
+                sizeLimit: 10Gi
+
+---
+# ============================================================================
+# WAL Archiving Configuration (Continuous Backup)
+# ============================================================================
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: postgres-wal-archiving
+  namespace: orion-production
+data:
+  archive_command.sh: |
+    #!/bin/bash
+    # Archive WAL files to S3
+    WAL_FILE=$1
+    WAL_PATH=$2
+    S3_BUCKET="s3://orion-backups-primary/wal"
+
+    aws s3 cp "$WAL_PATH" "$S3_BUCKET/$WAL_FILE" \
+      --storage-class STANDARD_IA \
+      && echo "Archived $WAL_FILE to S3"
+
+---
+# ============================================================================
+# Backup Service Account (with S3 permissions)
+# ============================================================================
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: backup-service-account
+  namespace: orion-production
+  annotations:
+    # For AWS IRSA (IAM Roles for Service Accounts)
+    eks.amazonaws.com/role-arn: arn:aws:iam::ACCOUNT_ID:role/orion-backup-role
+
+---
+# ============================================================================
+# Backup Credentials Secret (Template)
+# ============================================================================
+apiVersion: v1
+kind: Secret
+metadata:
+  name: backup-credentials
+  namespace: orion-production
+type: Opaque
+stringData:
+  # AWS credentials for backup uploads
+  aws-access-key-id: "CHANGE_ME"
+  aws-secret-access-key: "CHANGE_ME"
+
+  # Optional: Azure credentials for cross-cloud backup
+  azure-storage-account: "orionbackups"
+  azure-storage-key: "CHANGE_ME"
+
+---
+# ============================================================================
+# Backup Restore Job (Manual execution)
+# ============================================================================
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: postgres-restore
+  namespace: orion-production
+spec:
+  template:
+    metadata:
+      labels:
+        app: postgres-restore
+    spec:
+      restartPolicy: Never
+      serviceAccountName: backup-service-account
+
+      containers:
+        - name: postgres-restore
+          image: postgres:15-alpine
+
+          env:
+            # Same environment as backup job
+            - name: PGHOST
+              value: "postgres-service"
+            - name: PGPORT
+              value: "5432"
+            - name: PGDATABASE
+              value: "orion_db"
+            - name: PGUSER
+              valueFrom:
+                secretKeyRef:
+                  name: orion-secrets
+                  key: POSTGRES_USER
+            - name: PGPASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: orion-secrets
+                  key: POSTGRES_PASSWORD
+            - name: AWS_ACCESS_KEY_ID
+              valueFrom:
+                secretKeyRef:
+                  name: backup-credentials
+                  key: aws-access-key-id
+            - name: AWS_SECRET_ACCESS_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: backup-credentials
+                  key: aws-secret-access-key
+
+            # Restore configuration
+            - name: BACKUP_FILE
+              value: "postgres_20260412_010000.tar.gz"  # CHANGE TO DESIRED BACKUP
+            - name: S3_BUCKET
+              value: "s3://orion-backups-primary/database"
+
+          command:
+            - /bin/sh
+            - -c
+            - |
+              set -e
+
+              echo "=========================================="
+              echo "ORION PostgreSQL RESTORE Script"
+              echo "Date: $(date)"
+              echo "Backup: $BACKUP_FILE"
+              echo "=========================================="
+              echo ""
+              echo "⚠️  WARNING: This will OVERWRITE the current database!"
+              echo "⚠️  Ensure you have confirmed this is the correct action!"
+              echo ""
+
+              # Install required tools
+              apk add --no-cache aws-cli postgresql-client
+
+              # Download backup from S3
+              echo "Downloading backup from S3..."
+              aws s3 cp "$S3_BUCKET/$BACKUP_FILE" /restore/
+              aws s3 cp "$S3_BUCKET/$BACKUP_FILE.sha256" /restore/
+
+              # Verify checksum
+              echo "Verifying backup integrity..."
+              cd /restore
+              sha256sum -c "$BACKUP_FILE.sha256"
+
+              # Extract backup
+              echo "Extracting backup..."
+              tar -xzf "$BACKUP_FILE"
+              BACKUP_DIR=$(ls -d postgres_* | head -1)
+
+              # Terminate active connections
+              echo "Terminating active connections..."
+              psql -c "SELECT pg_terminate_backend(pid) FROM pg_stat_activity WHERE datname='$PGDATABASE' AND pid <> pg_backend_pid();"
+
+              # Drop and recreate database
+              echo "Recreating database..."
+              psql -c "DROP DATABASE IF EXISTS $PGDATABASE;"
+              psql -c "CREATE DATABASE $PGDATABASE;"
+
+              # Restore from backup
+              echo "Restoring database..."
+              pg_restore --dbname="$PGDATABASE" \
+                --verbose \
+                --no-owner \
+                --no-acl \
+                "$BACKUP_DIR/orion_db.dump"
+
+              # Verify restore
+              echo "Verifying restore..."
+              RESTORED_TABLES=$(psql -d "$PGDATABASE" -t -c "SELECT count(*) FROM information_schema.tables WHERE table_schema='public';")
+              echo "Restored tables: $RESTORED_TABLES"
+
+              if [ "$RESTORED_TABLES" -gt 0 ]; then
+                echo "✅ Restore completed successfully!"
+              else
+                echo "❌ Restore verification FAILED - no tables found"
+                exit 1
+              fi
+
+              # Cleanup
+              rm -rf /restore/*
+
+              echo "=========================================="
+              echo "Restore completed: $(date)"
+              echo "=========================================="
+
+          volumeMounts:
+            - name: restore-storage
+              mountPath: /restore
+
+          resources:
+            requests:
+              cpu: 1000m
+              memory: 1Gi
+            limits:
+              cpu: 2000m
+              memory: 4Gi
+
+      volumes:
+        - name: restore-storage
+          emptyDir:
+            sizeLimit: 20Gi

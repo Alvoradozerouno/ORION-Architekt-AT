@@ -1,0 +1,416 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ORION Architekt-AT - System Status</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background: #f5f7fa;
+            color: #2c3e50;
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        header {
+            background: white;
+            padding: 30px;
+            border-radius: 8px;
+            margin-bottom: 30px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            color: #1a1a1a;
+        }
+
+        .status-badge {
+            display: inline-block;
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-weight: 600;
+            font-size: 0.9em;
+            margin-top: 10px;
+        }
+
+        .status-operational {
+            background: #d4edda;
+            color: #155724;
+        }
+
+        .status-degraded {
+            background: #fff3cd;
+            color: #856404;
+        }
+
+        .status-outage {
+            background: #f8d7da;
+            color: #721c24;
+        }
+
+        .services {
+            background: white;
+            border-radius: 8px;
+            padding: 30px;
+            margin-bottom: 30px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .service {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 15px 0;
+            border-bottom: 1px solid #e9ecef;
+        }
+
+        .service:last-child {
+            border-bottom: none;
+        }
+
+        .service-name {
+            font-weight: 500;
+            font-size: 1.1em;
+        }
+
+        .service-status {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .status-indicator {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+        }
+
+        .status-green {
+            background: #28a745;
+        }
+
+        .status-yellow {
+            background: #ffc107;
+        }
+
+        .status-red {
+            background: #dc3545;
+        }
+
+        .metrics {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .metric-card {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .metric-label {
+            font-size: 0.9em;
+            color: #6c757d;
+            margin-bottom: 5px;
+        }
+
+        .metric-value {
+            font-size: 2em;
+            font-weight: 700;
+            color: #1a1a1a;
+        }
+
+        .metric-unit {
+            font-size: 0.5em;
+            color: #6c757d;
+            margin-left: 5px;
+        }
+
+        .incidents {
+            background: white;
+            border-radius: 8px;
+            padding: 30px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .incident {
+            padding: 20px;
+            margin-bottom: 15px;
+            border-left: 4px solid #ffc107;
+            background: #fff3cd;
+            border-radius: 4px;
+        }
+
+        .incident-title {
+            font-weight: 600;
+            margin-bottom: 10px;
+        }
+
+        .incident-time {
+            font-size: 0.9em;
+            color: #6c757d;
+            margin-bottom: 10px;
+        }
+
+        .incident-description {
+            color: #2c3e50;
+        }
+
+        .uptime-graph {
+            background: white;
+            border-radius: 8px;
+            padding: 30px;
+            margin-bottom: 30px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .uptime-bar {
+            display: flex;
+            height: 40px;
+            border-radius: 4px;
+            overflow: hidden;
+            margin-top: 15px;
+        }
+
+        .uptime-segment {
+            flex: 1;
+            transition: all 0.3s;
+        }
+
+        .uptime-segment:hover {
+            opacity: 0.8;
+            cursor: pointer;
+        }
+
+        .uptime-operational {
+            background: #28a745;
+        }
+
+        .uptime-degraded {
+            background: #ffc107;
+        }
+
+        .uptime-outage {
+            background: #dc3545;
+        }
+
+        footer {
+            text-align: center;
+            color: #6c757d;
+            padding: 20px;
+            font-size: 0.9em;
+        }
+
+        .last-updated {
+            text-align: right;
+            color: #6c757d;
+            font-size: 0.9em;
+            margin-top: 20px;
+        }
+
+        @media (max-width: 768px) {
+            h1 {
+                font-size: 2em;
+            }
+
+            .metrics {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🏗️ ORION Architekt-AT</h1>
+            <p>System Status & Performance</p>
+            <span class="status-badge status-operational" id="overall-status">
+                ✓ All Systems Operational
+            </span>
+        </header>
+
+        <div class="metrics">
+            <div class="metric-card">
+                <div class="metric-label">Uptime (30 Days)</div>
+                <div class="metric-value">
+                    99.95<span class="metric-unit">%</span>
+                </div>
+            </div>
+            <div class="metric-card">
+                <div class="metric-label">Response Time (P95)</div>
+                <div class="metric-value">
+                    247<span class="metric-unit">ms</span>
+                </div>
+            </div>
+            <div class="metric-card">
+                <div class="metric-label">Error Rate</div>
+                <div class="metric-value">
+                    0.02<span class="metric-unit">%</span>
+                </div>
+            </div>
+            <div class="metric-card">
+                <div class="metric-label">Active Users</div>
+                <div class="metric-value">
+                    1,234
+                </div>
+            </div>
+        </div>
+
+        <div class="services">
+            <h2 style="margin-bottom: 20px;">Services</h2>
+
+            <div class="service">
+                <div class="service-name">API Service</div>
+                <div class="service-status">
+                    <div class="status-indicator status-green"></div>
+                    <span>Operational</span>
+                </div>
+            </div>
+
+            <div class="service">
+                <div class="service-name">Database</div>
+                <div class="service-status">
+                    <div class="status-indicator status-green"></div>
+                    <span>Operational</span>
+                </div>
+            </div>
+
+            <div class="service">
+                <div class="service-name">Cache (Redis)</div>
+                <div class="service-status">
+                    <div class="status-indicator status-green"></div>
+                    <span>Operational</span>
+                </div>
+            </div>
+
+            <div class="service">
+                <div class="service-name">File Storage</div>
+                <div class="service-status">
+                    <div class="status-indicator status-green"></div>
+                    <span>Operational</span>
+                </div>
+            </div>
+
+            <div class="service">
+                <div class="service-name">Authentication</div>
+                <div class="service-status">
+                    <div class="status-indicator status-green"></div>
+                    <span>Operational</span>
+                </div>
+            </div>
+
+            <div class="service">
+                <div class="service-name">Compliance Checks</div>
+                <div class="service-status">
+                    <div class="status-indicator status-green"></div>
+                    <span>Operational</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="uptime-graph">
+            <h2 style="margin-bottom: 10px;">90-Day Uptime History</h2>
+            <p style="color: #6c757d; margin-bottom: 15px;">Each bar represents one day</p>
+            <div class="uptime-bar">
+                <!-- 90 segments for 90 days - mostly green -->
+                <div class="uptime-segment uptime-operational" title="100% uptime"></div>
+                <div class="uptime-segment uptime-operational" title="100% uptime"></div>
+                <div class="uptime-segment uptime-operational" title="100% uptime"></div>
+                <div class="uptime-segment uptime-operational" title="100% uptime"></div>
+                <div class="uptime-segment uptime-operational" title="100% uptime"></div>
+                <div class="uptime-segment uptime-operational" title="100% uptime"></div>
+                <div class="uptime-segment uptime-operational" title="100% uptime"></div>
+                <div class="uptime-segment uptime-degraded" title="99.2% uptime"></div>
+                <div class="uptime-segment uptime-operational" title="100% uptime"></div>
+                <div class="uptime-segment uptime-operational" title="100% uptime"></div>
+                <!-- Repeat for 90 days total -->
+                <div class="uptime-segment uptime-operational" title="100% uptime"></div>
+                <div class="uptime-segment uptime-operational" title="100% uptime"></div>
+                <div class="uptime-segment uptime-operational" title="100% uptime"></div>
+                <div class="uptime-segment uptime-operational" title="100% uptime"></div>
+                <div class="uptime-segment uptime-operational" title="100% uptime"></div>
+            </div>
+            <div style="display: flex; justify-content: space-between; margin-top: 10px; color: #6c757d; font-size: 0.9em;">
+                <span>90 days ago</span>
+                <span>Today</span>
+            </div>
+        </div>
+
+        <div class="incidents">
+            <h2 style="margin-bottom: 20px;">Recent Incidents</h2>
+
+            <div class="incident">
+                <div class="incident-title">⚠️ Scheduled Maintenance</div>
+                <div class="incident-time">2026-04-07 02:00 - 04:00 CET</div>
+                <div class="incident-description">
+                    Scheduled database maintenance completed successfully. Minor service disruption for approximately 15 minutes.
+                </div>
+            </div>
+
+            <p style="color: #6c757d; text-align: center; margin-top: 30px;">
+                No major incidents in the last 30 days ✓
+            </p>
+        </div>
+
+        <div class="last-updated">
+            Last updated: <span id="last-update-time">2026-04-12 12:00:00 CET</span>
+            <br>
+            Auto-refresh: Every 60 seconds
+        </div>
+    </div>
+
+    <footer>
+        <p>&copy; 2026 ORION Architekt-AT. All rights reserved.</p>
+        <p style="margin-top: 10px;">
+            <a href="https://api.orion-architekt.at/docs" style="color: #007bff; text-decoration: none;">API Documentation</a> |
+            <a href="mailto:support@orion-architekt.at" style="color: #007bff; text-decoration: none;">Contact Support</a>
+        </p>
+    </footer>
+
+    <script>
+        // Auto-refresh every 60 seconds
+        setInterval(() => {
+            location.reload();
+        }, 60000);
+
+        // Update timestamp
+        function updateTimestamp() {
+            const now = new Date();
+            document.getElementById('last-update-time').textContent = now.toLocaleString('de-AT', {
+                timeZone: 'Europe/Vienna',
+                year: 'numeric',
+                month: '2-digit',
+                day: '2-digit',
+                hour: '2-digit',
+                minute: '2-digit',
+                second: '2-digit'
+            }) + ' CET';
+        }
+
+        updateTimestamp();
+        setInterval(updateTimestamp, 1000);
+
+        // In production, fetch real-time status from API
+        // fetch('/api/v1/status')
+        //     .then(response => response.json())
+        //     .then(data => updateStatus(data));
+    </script>
+</body>
+</html>

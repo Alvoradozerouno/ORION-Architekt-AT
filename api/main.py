@@ -24,9 +24,10 @@ from api.routers import (
     reports,
     ai_recommendations,
     bim_integration,
-    collaboration
+    collaboration,
+    tendering
 )
-from api.middleware import rate_limit, auth, logging_middleware
+from api.middleware import RateLimitMiddleware, LoggingMiddleware
 from api.database import engine, Base
 from api.models import User
 from orion_logging import setup_default_logging, get_logger
@@ -56,6 +57,7 @@ app = FastAPI(
     * 🏗️ **BIM Integration** - UNIQUE: IFC file processing
     * 👥 **Real-time Collaboration** - UNIQUE: Multi-user project work
     * 📊 **Advanced Analytics** - Performance metrics and insights
+    * 📝 **ÖNORM A 2063 Tendering** - UNIQUE: Professional Austrian tendering system
 
     ## Authentication
 
@@ -83,6 +85,7 @@ app = FastAPI(
         {"name": "validation", "description": "Knowledge base validation"},
         {"name": "bundesland", "description": "Bundesland-specific regulations"},
         {"name": "reports", "description": "Generate comprehensive reports"},
+        {"name": "tendering", "description": "📝 ÖNORM A 2063 Tendering & Bid Management (UNIQUE)"},
         {"name": "ai", "description": "🤖 AI-powered recommendations (UNIQUE)"},
         {"name": "bim", "description": "🏗️ BIM integration (UNIQUE)"},
         {"name": "collaboration", "description": "👥 Real-time collaboration (UNIQUE)"},
@@ -100,8 +103,8 @@ app.add_middleware(
     allow_headers=["*"],
 )
 app.add_middleware(GZipMiddleware, minimum_size=1000)
-app.add_middleware(logging_middleware.LoggingMiddleware)
-app.add_middleware(rate_limit.RateLimitMiddleware)
+app.add_middleware(LoggingMiddleware)
+app.add_middleware(RateLimitMiddleware)
 
 # Prometheus metrics
 Instrumentator().instrument(app).expose(app)
@@ -112,10 +115,11 @@ app.include_router(compliance.router, prefix="/api/v1/compliance", tags=["compli
 app.include_router(validation.router, prefix="/api/v1/validation", tags=["validation"])
 app.include_router(bundesland.router, prefix="/api/v1/bundesland", tags=["bundesland"])
 app.include_router(reports.router, prefix="/api/v1/reports", tags=["reports"])
+app.include_router(tendering.router, tags=["tendering"])  # Uses own prefix
 app.include_router(ai_recommendations.router, prefix="/api/v1/ai", tags=["ai"])
 app.include_router(bim_integration.router, prefix="/api/v1/bim", tags=["bim"])
 app.include_router(collaboration.router, prefix="/api/v1/collaboration", tags=["collaboration"])
-app.include_router(auth.router, prefix="/auth", tags=["auth"])
+app.include_router(auth_router, prefix="/auth", tags=["auth"])
 
 # Health check endpoints
 @app.get("/health", tags=["health"])

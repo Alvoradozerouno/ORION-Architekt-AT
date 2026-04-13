@@ -1,0 +1,98 @@
+# ============================================================================
+# ORION Architekt-AT - Production Dockerfile
+# ============================================================================
+# Multi-stage build for optimized production deployment
+# Author: ORION Engineering Team
+# Date: 2026-04-11
+# Status: PRODUCTION READY
+# ============================================================================
+
+# ============================================================================
+# Stage 1: Build Stage
+# ============================================================================
+FROM python:3.11-slim as builder
+
+# Set environment variables
+ENV PYTHONDONTWRITEBYTECODE=1 \
+    PYTHONUNBUFFERED=1 \
+    PIP_NO_CACHE_DIR=1 \
+    PIP_DISABLE_PIP_VERSION_CHECK=1
+
+# Install build dependencies
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    gcc \
+    g++ \
+    make \
+    libpq-dev \
+    && rm -rf /var/lib/apt/lists/*
+
+# Create and set working directory
+WORKDIR /build
+
+# Copy requirements file
+COPY requirements.txt .
+
+# Install Python dependencies
+RUN pip install --user --no-cache-dir -r requirements.txt
+
+# ============================================================================
+# Stage 2: Production Stage
+# ============================================================================
+FROM python:3.11-slim
+
+# Set metadata
+LABEL maintainer="ORION Architekt-AT Team <support@orion-architekt.at>" \
+      version="3.0.0" \
+      description="Austrian Building Regulations API - Production"
+
+# Set environment variables
+ENV PYTHONDONTWRITEBYTECODE=1 \
+    PYTHONUNBUFFERED=1 \
+    PATH=/root/.local/bin:$PATH \
+    APP_HOME=/app \
+    ENVIRONMENT=production
+
+# Install runtime dependencies only
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    libpq5 \
+    curl \
+    && rm -rf /var/lib/apt/lists/*
+
+# Create non-root user for security
+RUN groupadd -r orion && useradd -r -g orion orion
+
+# Create app directory
+WORKDIR ${APP_HOME}
+
+# Copy Python dependencies from builder
+COPY --from=builder /root/.local /root/.local
+
+# Copy application code
+COPY --chown=orion:orion . .
+
+# Create necessary directories
+RUN mkdir -p /app/logs /app/uploads /app/tmp && \
+    chown -R orion:orion /app
+
+# Switch to non-root user
+USER orion
+
+# Expose port
+EXPOSE 8000
+
+# Health check
+HEALTHCHECK --interval=30s --timeout=10s --start-period=40s --retries=3 \
+    CMD curl -f http://localhost:8000/health/live || exit 1
+
+# Default command - use Gunicorn for production
+CMD ["gunicorn", \
+     "--bind", "0.0.0.0:8000", \
+     "--workers", "4", \
+     "--worker-class", "uvicorn.workers.UvicornWorker", \
+     "--timeout", "120", \
+     "--access-logfile", "-", \
+     "--error-logfile", "-", \
+     "--log-level", "info", \
+     "--max-requests", "1000", \
+     "--max-requests-jitter", "100", \
+     "api.main:app"]

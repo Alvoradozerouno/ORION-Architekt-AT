@@ -1,0 +1,64 @@
+<svg width="400" height="400" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="logoGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#1a237e;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#3949ab;stop-opacity:1" />
+    </linearGradient>
+    <linearGradient id="accentGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" style="stop-color:#ed1c24;stop-opacity:1" />
+      <stop offset="50%" style="stop-color:#ffffff;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#ed1c24;stop-opacity:1" />
+    </linearGradient>
+  </defs>
+
+  <!-- Background Circle -->
+  <circle cx="200" cy="200" r="190" fill="url(#logoGrad)" stroke="#ffffff" stroke-width="4"/>
+
+  <!-- Building Icon -->
+  <g transform="translate(200, 180)">
+    <!-- Main Building Body -->
+    <rect x="-60" y="-80" width="120" height="120" fill="rgba(255,255,255,0.9)" stroke="#1a237e" stroke-width="3"/>
+
+    <!-- Windows Row 1 -->
+    <rect x="-45" y="-65" width="20" height="20" fill="#3949ab"/>
+    <rect x="-10" y="-65" width="20" height="20" fill="#3949ab"/>
+    <rect x="25" y="-65" width="20" height="20" fill="#3949ab"/>
+
+    <!-- Windows Row 2 -->
+    <rect x="-45" y="-35" width="20" height="20" fill="#3949ab"/>
+    <rect x="-10" y="-35" width="20" height="20" fill="#3949ab"/>
+    <rect x="25" y="-35" width="20" height="20" fill="#3949ab"/>
+
+    <!-- Windows Row 3 -->
+    <rect x="-45" y="-5" width="20" height="20" fill="#3949ab"/>
+    <rect x="-10" y="-5" width="20" height="20" fill="#3949ab"/>
+    <rect x="25" y="-5" width="20" height="20" fill="#3949ab"/>
+
+    <!-- Door -->
+    <rect x="-15" y="25" width="30" height="15" fill="#1a237e"/>
+
+    <!-- Roof -->
+    <polygon points="0,-95 -75,-80 75,-80" fill="url(#accentGrad)" stroke="#ed1c24" stroke-width="2"/>
+
+    <!-- Austrian Flag on Roof -->
+    <rect x="-8" y="-105" width="16" height="10" fill="#ed1c24"/>
+    <rect x="-8" y="-105" width="16" height="3.33" fill="#ffffff"/>
+    <rect x="-8" y="-98.33" width="16" height="3.34" fill="#ffffff"/>
+  </g>
+
+  <!-- ORION Text Arc -->
+  <path id="arcPath" d="M 80,200 A 120,120 0 0,1 320,200" fill="none"/>
+  <text font-family="'Arial Black', sans-serif" font-size="32" font-weight="bold" fill="#ffffff">
+    <textPath href="#arcPath" startOffset="50%" text-anchor="middle">
+      ORION
+    </textPath>
+  </text>
+
+  <!-- Bottom Text -->
+  <text x="200" y="340" font-family="Arial, sans-serif" font-size="22" font-weight="bold" fill="#ffffff" text-anchor="middle">
+    ARCHITEKT
+  </text>
+  <text x="200" y="365" font-family="Arial, sans-serif" font-size="24" font-weight="bold" fill="#ed1c24" text-anchor="middle">
+    AT
+  </text>
+</svg>

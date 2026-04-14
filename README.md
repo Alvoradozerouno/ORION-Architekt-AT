@@ -1,3 +1,7 @@
+<div align="center">
+  <img src="assets/orion_architekt_banner.svg" alt="ORION Architekt AT — Austrian Building Intelligence Platform" width="100%"/>
+</div>
+
 # ORION Architekt Oesterreich
 
 [![Python](https://img.shields.io/badge/Python-3.11+-blue.svg)](#)

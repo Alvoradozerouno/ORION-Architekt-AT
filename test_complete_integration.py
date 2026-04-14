@@ -61,7 +61,7 @@ def test_complete_system_integration():
         takeoff_result = automatic_quantity_takeoff_workflow(
             source_file="projekt_wohnanlage_wien.ifc",
             project_name="Wohnanlage Wien Donaustadt",
-            bundesland="wien"
+            bundesland="wien",
         )
 
         print(f"✓ Elements extracted: {takeoff_result['statistics']['total_elements']}")
@@ -82,11 +82,7 @@ def test_complete_system_integration():
     print_header("MODULE 2: Live Cost Database Integration")
 
     try:
-        from live_cost_database import (
-            calculate_live_price,
-            MaterialCategory,
-            BAUPREISINDEX_2026
-        )
+        from live_cost_database import BAUPREISINDEX_2026, MaterialCategory, calculate_live_price
 
         print("📊 Loading current Baupreisindex (Statistik Austria)...")
 
@@ -117,7 +113,7 @@ def test_complete_system_integration():
             building_usage="residential",
             gross_floor_area_m2=600.0,
             bundesland="wien",
-            altitude_m=500.0
+            altitude_m=500.0,
         )
 
         print(f"✓ Dead load: {loads.dead_load_total_kn:.1f} kN")
@@ -138,8 +134,8 @@ def test_complete_system_integration():
     print_header("MODULE 4: Structural Engineering (ÖNORM B 4700)")
 
     try:
-        from structural_engineering_integration import ConcreteGrade
         from integration_fixes import SteelGradeCompat, design_beam_wrapper
+        from structural_engineering_integration import ConcreteGrade
 
         print("🏗️  Designing structural members...")
 
@@ -148,10 +144,12 @@ def test_complete_system_integration():
             width_mm=300,
             height_mm=600,
             concrete_grade=ConcreteGrade.C30_37,
-            steel_grade=SteelGradeCompat.BST_500S
+            steel_grade=SteelGradeCompat.BST_500S,
         )
 
-        print(f"✓ Beam design: {int(beam_design.cross_section.width*1000)}x{int(beam_design.cross_section.height*1000)}mm")
+        print(
+            f"✓ Beam design: {int(beam_design.cross_section.width*1000)}x{int(beam_design.cross_section.height*1000)}mm"
+        )
         print(f"✓ Required As: {beam_design.as_required_bottom:.2f} cm²")
         print(f"✓ Provided As: {beam_design.as_provided_bottom:.2f} cm²")
         print(f"✓ Utilization: {beam_design.utilization_bending*100:.1f}%")
@@ -169,21 +167,19 @@ def test_complete_system_integration():
 
     try:
         from reinforcement_detailing import (
+            BondCondition,
+        )
+        from reinforcement_detailing import ConcreteGrade as RCConcreteGrade
+        from reinforcement_detailing import (
             calculate_design_anchorage_length,
             design_shear_reinforcement,
-            ConcreteGrade as RCConcreteGrade,
-            BondCondition
         )
 
         print("📐 Calculating reinforcement details...")
 
         # Anchorage length
         anchorage = calculate_design_anchorage_length(
-            diameter_mm=20,
-            fyd=434.8,
-            fbd=4.35,
-            bond_condition=BondCondition.GOOD,
-            confined=True
+            diameter_mm=20, fyd=434.8, fbd=4.35, bond_condition=BondCondition.GOOD, confined=True
         )
 
         print(f"✓ Anchorage length: lbd = {anchorage.lbd:.0f} mm (Ø20)")
@@ -194,7 +190,7 @@ def test_complete_system_integration():
             width_mm=300,
             effective_depth_mm=550,
             concrete_grade=RCConcreteGrade.C30_37,
-            as_longitudinal_mm2=1570.0
+            as_longitudinal_mm2=1570.0,
         )
 
         print(f"✓ Stirrups: Ø{shear.stirrup_diameter.value}mm @ {shear.spacing_mm:.0f}mm")
@@ -211,8 +207,8 @@ def test_complete_system_integration():
     print_header("MODULE 6: Structural Software Connectors")
 
     try:
-        from structural_software_connectors import UniversalConnector
         from integration_fixes import prepare_structural_model_for_export
+        from structural_software_connectors import UniversalConnector
 
         print("🔗 Exporting to ETABS/SAP2000/STAAD.Pro...")
 
@@ -223,13 +219,9 @@ def test_complete_system_integration():
             {"id": 1, "x": 0, "y": 0, "z": 0},
             {"id": 2, "x": 6000, "y": 0, "z": 0},
         ]
-        members_raw = [
-            {"id": 1, "node_i": 1, "node_j": 2, "section": "B30x60"}
-        ]
+        members_raw = [{"id": 1, "node_i": 1, "node_j": 2, "section": "B30x60"}]
 
-        nodes, members, load_cases = prepare_structural_model_for_export(
-            nodes_raw, members_raw, []
-        )
+        nodes, members, load_cases = prepare_structural_model_for_export(nodes_raw, members_raw, [])
 
         files = connector.export_all(nodes, members, load_cases, "/tmp")
 
@@ -249,23 +241,15 @@ def test_complete_system_integration():
     print_header("MODULE 7: Generative Design AI")
 
     try:
-        from generative_design_ai import (
-            create_beam_optimization_problem,
-            GenerativeDesignEngine
-        )
+        from generative_design_ai import GenerativeDesignEngine, create_beam_optimization_problem
 
         print("🧬 Running genetic algorithm optimization...")
 
         template, objectives, constraints = create_beam_optimization_problem(
-            span_m=6.0,
-            load_kn_m=20.0
+            span_m=6.0, load_kn_m=20.0
         )
 
-        engine = GenerativeDesignEngine(
-            population_size=20,
-            n_generations=10,
-            mutation_rate=0.15
-        )
+        engine = GenerativeDesignEngine(population_size=20, n_generations=10, mutation_rate=0.15)
         engine.objectives = objectives
         engine.constraints = constraints
         engine.initialize_population(template)
@@ -276,8 +260,10 @@ def test_complete_system_integration():
         cost, weight, co2 = best.calculate_cost()
 
         print(f"✓ Optimal solution found:")
-        print(f"  Dimensions: {best.get_parameter_value('width_mm'):.0f}x"
-              f"{best.get_parameter_value('height_mm'):.0f}mm")
+        print(
+            f"  Dimensions: {best.get_parameter_value('width_mm'):.0f}x"
+            f"{best.get_parameter_value('height_mm'):.0f}mm"
+        )
         print(f"  Cost: EUR {cost:,.0f}")
         print(f"  CO₂: {co2:+,.0f} kg")
         print(f"  Generations: {result.n_generations}")
@@ -295,10 +281,10 @@ def test_complete_system_integration():
 
     try:
         from sustainability_esg import (
+            EnergyCertificateClass,
+            EUTaxonomyAssessment,
             calculate_lca_residential_building,
             create_energy_certificate_oenorm_h5055,
-            EUTaxonomyAssessment,
-            EnergyCertificateClass
         )
 
         print("🌱 Performing Life Cycle Assessment...")
@@ -307,7 +293,7 @@ def test_complete_system_integration():
         lca = calculate_lca_residential_building(
             gross_floor_area_m2=150.0,
             structure_type="timber",
-            energy_class=EnergyCertificateClass.A_PLUS
+            energy_class=EnergyCertificateClass.A_PLUS,
         )
 
         print(f"✓ Embodied carbon: {lca.embodied_carbon_per_m2:.1f} kg CO₂/m²")
@@ -321,7 +307,7 @@ def test_complete_system_integration():
             u_walls=0.12,
             u_roof=0.10,
             u_floor=0.15,
-            u_windows=0.70
+            u_windows=0.70,
         )
 
         print(f"✓ Energy certificate: Class {cert.energy_class.value}")
@@ -332,7 +318,7 @@ def test_complete_system_integration():
             project_name="Test",
             building_type="residential",
             primary_energy_demand_kwh_m2_a=cert.peb_kwh_m2_a,
-            gwp_embodied_kg_m2=abs(lca.embodied_carbon_per_m2)
+            gwp_embodied_kg_m2=abs(lca.embodied_carbon_per_m2),
         )
         taxonomy.assess_compliance()
 
@@ -362,16 +348,11 @@ def test_complete_system_integration():
                 execution_time_days=180,
                 warranty_years=5,
                 technical_proposal="Standard",
-                company_profile="ÖNORM compliant"
+                company_profile="ÖNORM compliant",
             )
         ]
 
-        criteria = {
-            "price": 0.4,
-            "quality": 0.3,
-            "technical": 0.2,
-            "timeline": 0.1
-        }
+        criteria = {"price": 0.4, "quality": 0.3, "technical": 0.2, "timeline": 0.1}
 
         evaluation = ai_evaluate_bid(bids[0], bids, criteria)
 
@@ -390,15 +371,15 @@ def test_complete_system_integration():
     print_header("MODULE 10: Master Orchestrator")
 
     try:
-        from orion_master_integration import execute_orion_workflow
         from integration_fixes import wrap_workflow_result
+        from orion_master_integration import execute_orion_workflow
 
         print("🎼 Running complete orchestrated workflow...")
 
         workflow_result_raw = execute_orion_workflow(
             project_name="Integration Test Building",
             bundesland="wien",
-            ifc_file="test_building.ifc"
+            ifc_file="test_building.ifc",
         )
 
         workflow_result = wrap_workflow_result(workflow_result_raw)
@@ -455,8 +436,11 @@ def test_complete_system_integration():
     }
 
     total_possible = sum(rating_points.values())
-    achieved = sum(rating_points[m.replace("✓ ", "")] for m in modules_tested
-                   if m.replace("✓ ", "") in rating_points)
+    achieved = sum(
+        rating_points[m.replace("✓ ", "")]
+        for m in modules_tested
+        if m.replace("✓ ", "") in rating_points
+    )
 
     global_rating = (achieved / total_possible) * 10
 
@@ -480,7 +464,7 @@ def test_complete_system_integration():
         "Trimble (Tekla)": 8.0,
         "Bentley (STAAD.Pro)": 7.5,
         "Nemetschek (Allplan)": 7.8,
-        "ORION Architekt AT": global_rating
+        "ORION Architekt AT": global_rating,
     }
 
     print("\nMarket Positioning:")
@@ -502,7 +486,7 @@ def test_complete_system_integration():
         "✓ Austrian-specific data (Bundesländer, zones, regulations)",
         "✓ Full software integration (ETABS, SAP2000, STAAD.Pro)",
         "✓ Live cost database (Baupreisindex)",
-        "✓ End-to-end automation (IFC → Tender)"
+        "✓ End-to-end automation (IFC → Tender)",
     ]
 
     print()
@@ -539,5 +523,6 @@ if __name__ == "__main__":
     except Exception as e:
         print(f"\n❌ CRITICAL ERROR: {e}")
         import traceback
+
         traceback.print_exc()
         sys.exit(1)

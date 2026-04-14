@@ -1,16 +1,20 @@
 """
 Database Models for ORION Architekt-AT
 """
-from sqlalchemy import Column, Integer, String, Float, Boolean, DateTime, ForeignKey, Text, JSON
-from sqlalchemy.orm import relationship
-from sqlalchemy.ext.declarative import declarative_base
+
 from datetime import datetime
+
 import bcrypt
+from sqlalchemy import JSON, Boolean, Column, DateTime, Float, ForeignKey, Integer, String, Text
+from sqlalchemy.ext.declarative import declarative_base
+from sqlalchemy.orm import relationship
 
 Base = declarative_base()
 
+
 class User(Base):
     """User model"""
+
     __tablename__ = "users"
 
     id = Column(Integer, primary_key=True, index=True)
@@ -31,16 +35,17 @@ class User(Base):
 
     def verify_password(self, password: str) -> bool:
         """Verify password"""
-        return bcrypt.checkpw(password.encode('utf-8'), self.hashed_password.encode('utf-8'))
+        return bcrypt.checkpw(password.encode("utf-8"), self.hashed_password.encode("utf-8"))
 
     @staticmethod
     def hash_password(password: str) -> str:
         """Hash password"""
-        return bcrypt.hashpw(password.encode('utf-8'), bcrypt.gensalt()).decode('utf-8')
+        return bcrypt.hashpw(password.encode("utf-8"), bcrypt.gensalt()).decode("utf-8")
 
 
 class Project(Base):
     """Project model"""
+
     __tablename__ = "projects"
 
     id = Column(Integer, primary_key=True, index=True)
@@ -70,6 +75,7 @@ class Project(Base):
 
 class ProjectMember(Base):
     """Project team members"""
+
     __tablename__ = "project_members"
 
     id = Column(Integer, primary_key=True, index=True)
@@ -85,6 +91,7 @@ class ProjectMember(Base):
 
 class Comment(Base):
     """Comments on projects"""
+
     __tablename__ = "comments"
 
     id = Column(Integer, primary_key=True, index=True)
@@ -106,6 +113,7 @@ class Comment(Base):
 
 class Calculation(Base):
     """Stored calculations"""
+
     __tablename__ = "calculations"
 
     id = Column(Integer, primary_key=True, index=True)
@@ -122,6 +130,7 @@ class Calculation(Base):
 
 class BIMFile(Base):
     """BIM/IFC files"""
+
     __tablename__ = "bim_files"
 
     id = Column(Integer, primary_key=True, index=True)
@@ -143,6 +152,7 @@ class BIMFile(Base):
 
 class APIKey(Base):
     """API keys for authentication"""
+
     __tablename__ = "api_keys"
 
     id = Column(Integer, primary_key=True, index=True)
@@ -161,6 +171,7 @@ class APIKey(Base):
 
 class ActivityLog(Base):
     """Activity log for audit trail"""
+
     __tablename__ = "activity_logs"
 
     id = Column(Integer, primary_key=True, index=True)

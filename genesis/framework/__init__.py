@@ -16,8 +16,8 @@ from .epistemology.state_taxonomy import (
     VerificationLevel,
 )
 from .policy.decision_policy import (
-    DecisionPolicyEngine,
     DecisionMode,
+    DecisionPolicyEngine,
     PolicyViolationError,
 )
 

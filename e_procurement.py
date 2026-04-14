@@ -35,28 +35,31 @@ Lizenz: Apache 2.0
 ═══════════════════════════════════════════════════════════════════════════
 """
 
-from dataclasses import dataclass, field
-from typing import Dict, List, Optional, Any
-from datetime import datetime, timezone, timedelta
-from enum import Enum
 import hashlib
 import json
-
+from dataclasses import dataclass, field
+from datetime import datetime, timedelta, timezone
+from enum import Enum
+from typing import Any, Dict, List, Optional
 
 # ═══════════════════════════════════════════════════════════════════════════
 # E-Procurement Enums
 # ═══════════════════════════════════════════════════════════════════════════
 
+
 class ProcurementPlatform(str, Enum):
     """E-Procurement platforms in Austria and EU"""
+
     EBVA = "ebva"  # Austrian Federal Procurement Agency
     TED = "ted"  # EU Tenders Electronic Daily
     EVERGABE = "evergabe"  # eVergabe.gv.at
     BBG = "bbg"  # Bundesbeschaffung GmbH
     ANKOE = "ankoe"  # Austrian municipalities
 
+
 class ProcurementProcedure(str, Enum):
     """Procurement procedures per EU Directives"""
+
     OPEN = "open"  # Open procedure
     RESTRICTED = "restricted"  # Restricted procedure
     NEGOTIATED = "negotiated"  # Negotiated procedure
@@ -64,8 +67,10 @@ class ProcurementProcedure(str, Enum):
     INNOVATION_PARTNERSHIP = "innovation_partnership"
     DIRECT_AWARD = "direct_award"  # Below threshold
 
+
 class TenderStatus(str, Enum):
     """Status of tender"""
+
     DRAFT = "draft"
     PUBLISHED = "published"
     CLARIFICATION = "clarification"  # Q&A period
@@ -74,8 +79,10 @@ class TenderStatus(str, Enum):
     AWARDED = "awarded"
     CANCELLED = "cancelled"
 
+
 class CPVCode(str, Enum):
     """Common Procurement Vocabulary - Construction codes"""
+
     BUILDING_CONSTRUCTION = "45000000"  # Construction work
     BUILDING_INSTALLATION = "45300000"  # Building installation work
     CIVIL_ENGINEERING = "45200000"  # Civil engineering work
@@ -87,9 +94,11 @@ class CPVCode(str, Enum):
 # E-Procurement Data Classes
 # ═══════════════════════════════════════════════════════════════════════════
 
+
 @dataclass
 class ContractingAuthority:
     """Contracting authority (Auftraggeber)"""
+
     name: str
     official_name: str
     uid_nummer: str  # Austrian UID
@@ -110,6 +119,7 @@ class TenderNotice:
 
     Based on EU eForms and ÖNORM A 2063
     """
+
     tender_id: str
     title: str
     description: str
@@ -158,10 +168,7 @@ class TenderNotice:
             },
             "procedure": self.procedure.value,
             "cpv_codes": self.cpv_codes,
-            "estimated_value": {
-                "amount": self.estimated_value,
-                "currency": "EUR"
-            },
+            "estimated_value": {"amount": self.estimated_value, "currency": "EUR"},
             "deadlines": {
                 "submission": self.deadline_submission,
                 "questions": self.deadline_questions,
@@ -185,6 +192,7 @@ class TenderNotice:
 @dataclass
 class BidSubmission:
     """Electronic bid submission"""
+
     bid_id: str
     tender_id: str
     bidder_name: str
@@ -230,6 +238,7 @@ class BidSubmission:
 @dataclass
 class ProcurementPublication:
     """Publication record across platforms"""
+
     publication_id: str
     tender_id: str
     platforms: List[ProcurementPlatform]
@@ -243,6 +252,7 @@ class ProcurementPublication:
 # ═══════════════════════════════════════════════════════════════════════════
 # E-Procurement Functions
 # ═══════════════════════════════════════════════════════════════════════════
+
 
 def calculate_eu_threshold_category(estimated_value: float, is_utilities: bool = False) -> str:
     """
@@ -277,7 +287,7 @@ def erstelle_ausschreibung(
     geschaetzer_wert: float,
     lv_dokument_id: str,
     verfahrensart: ProcurementProcedure = ProcurementProcedure.OPEN,
-    angebotsfrist_tage: int = 45
+    angebotsfrist_tage: int = 45,
 ) -> TenderNotice:
     """
     Create tender notice for e-procurement platform
@@ -303,7 +313,7 @@ def erstelle_ausschreibung(
         city="Wien",
         country="AT",
         email="vergabe@example.at",
-        phone="+43 1 12345"
+        phone="+43 1 12345",
     )
 
     # Determine CPV codes based on project type
@@ -332,13 +342,12 @@ def erstelle_ausschreibung(
             "financial_standing": "Umsatz letzte 3 Jahre mind. EUR 1 Mio/Jahr",
             "technical_capacity": "Mind. 10 Mitarbeiter, davon 2 Bauleiter",
             "experience": "Mind. 5 Jahre Erfahrung im Hochbau",
-        }
+        },
     )
 
 
 def publiziere_auf_plattformen(
-    tender_notice: TenderNotice,
-    platforms: List[ProcurementPlatform]
+    tender_notice: TenderNotice, platforms: List[ProcurementPlatform]
 ) -> ProcurementPublication:
     """
     Publish tender notice on e-procurement platforms
@@ -364,7 +373,9 @@ def publiziere_auf_plattformen(
             publication_urls["ted"] = f"https://ted.europa.eu/notice/{tender_notice.tender_id}"
         elif platform == ProcurementPlatform.EVERGABE:
             # Publish to eVergabe.gv.at
-            publication_urls["evergabe"] = f"https://evergabe.gv.at/tender/{tender_notice.tender_id}"
+            publication_urls["evergabe"] = (
+                f"https://evergabe.gv.at/tender/{tender_notice.tender_id}"
+            )
         elif platform == ProcurementPlatform.EBVA:
             # Publish to eBVA
             publication_urls["ebva"] = f"https://ebva.at/tender/{tender_notice.tender_id}"
@@ -374,9 +385,13 @@ def publiziere_auf_plattformen(
         tender_id=tender_notice.tender_id,
         platforms=platforms,
         published_at=datetime.now(timezone.utc).isoformat(),
-        ted_notice_number=f"{tender_notice.tender_id}-TED" if ProcurementPlatform.TED in platforms else None,
-        evergabe_reference=f"{tender_notice.tender_id}-EVG" if ProcurementPlatform.EVERGABE in platforms else None,
-        publication_urls=publication_urls
+        ted_notice_number=(
+            f"{tender_notice.tender_id}-TED" if ProcurementPlatform.TED in platforms else None
+        ),
+        evergabe_reference=(
+            f"{tender_notice.tender_id}-EVG" if ProcurementPlatform.EVERGABE in platforms else None
+        ),
+        publication_urls=publication_urls,
     )
 
 
@@ -389,7 +404,7 @@ def erstelle_angebot_submission(
     ausfuehrungszeit_tage: int,
     gewaehrleistung_jahre: int,
     gaeb_xml: Optional[str] = None,
-    signatur_id: Optional[str] = None
+    signatur_id: Optional[str] = None,
 ) -> BidSubmission:
     """
     Create electronic bid submission
@@ -410,7 +425,7 @@ def erstelle_angebot_submission(
         warranty_years=gewaehrleistung_jahre,
         gaeb_response_xml=gaeb_xml,
         digital_signature_id=signatur_id,
-        platform=ProcurementPlatform.EVERGABE
+        platform=ProcurementPlatform.EVERGABE,
     )
 
 
@@ -430,22 +445,28 @@ def validiere_oenorm_konformitaet(tender_notice: TenderNotice) -> Dict[str, Any]
 
     # Check deadlines
     try:
-        deadline_sub = datetime.fromisoformat(tender_notice.deadline_submission.replace('Z', '+00:00'))
-        deadline_q = datetime.fromisoformat(tender_notice.deadline_questions.replace('Z', '+00:00'))
+        deadline_sub = datetime.fromisoformat(
+            tender_notice.deadline_submission.replace("Z", "+00:00")
+        )
+        deadline_q = datetime.fromisoformat(tender_notice.deadline_questions.replace("Z", "+00:00"))
 
         if deadline_sub <= deadline_q:
             errors.append("Angebotsfrist muss nach Fragefrist liegen")
 
         days_until_submission = (deadline_sub - datetime.now(timezone.utc)).days
         if days_until_submission < 30:
-            warnings.append(f"Angebotsfrist sehr kurz ({days_until_submission} Tage) - ÖNORM empfiehlt mind. 30 Tage")
+            warnings.append(
+                f"Angebotsfrist sehr kurz ({days_until_submission} Tage) - ÖNORM empfiehlt mind. 30 Tage"
+            )
     except ValueError as e:
         errors.append(f"Ungültiges Datumsformat: {e}")
     except TypeError as e:
         errors.append(f"Datumsfeld fehlt oder hat falschen Typ: {e}")
 
     # Check award criteria
-    total_weight = tender_notice.award_criteria_price_weight + tender_notice.award_criteria_quality_weight
+    total_weight = (
+        tender_notice.award_criteria_price_weight + tender_notice.award_criteria_quality_weight
+    )
     if abs(total_weight - 1.0) > 0.01:
         errors.append(f"Zuschlagskriterien Gewichtung muss 1.0 ergeben (ist {total_weight})")
 
@@ -462,10 +483,7 @@ def validiere_oenorm_konformitaet(tender_notice: TenderNotice) -> Dict[str, Any]
     }
 
 
-def synchronisiere_mit_gaeb(
-    tender_notice: TenderNotice,
-    gaeb_xml: str
-) -> Dict[str, Any]:
+def synchronisiere_mit_gaeb(tender_notice: TenderNotice, gaeb_xml: str) -> Dict[str, Any]:
     """
     Synchronize tender notice with GAEB XML
 
@@ -559,9 +577,7 @@ def generiere_ted_xml(tender_notice: TenderNotice) -> str:
 </TED_EXPORT>"""
 
 
-def erstelle_platform_dashboard(
-    tender_notices: List[TenderNotice]
-) -> Dict[str, Any]:
+def erstelle_platform_dashboard(tender_notices: List[TenderNotice]) -> Dict[str, Any]:
     """
     Create dashboard view of all tenders across platforms
 
@@ -606,6 +622,7 @@ def erstelle_platform_dashboard(
 # Platform-Specific API Clients (Placeholders)
 # ═══════════════════════════════════════════════════════════════════════════
 
+
 class EvergabeAPIClient:
     """
     API Client for eVergabe.gv.at
@@ -628,17 +645,13 @@ class EvergabeAPIClient:
         return {
             "success": True,
             "reference": f"EVG-{tender_notice.tender_id}",
-            "url": f"https://evergabe.gv.at/tender/{tender_notice.tender_id}"
+            "url": f"https://evergabe.gv.at/tender/{tender_notice.tender_id}",
         }
 
     def submit_bid(self, bid: BidSubmission) -> Dict[str, Any]:
         """Submit bid to tender"""
         # In production: POST to API
-        return {
-            "success": True,
-            "bid_id": bid.bid_id,
-            "submitted_at": bid.submitted_at
-        }
+        return {"success": True, "bid_id": bid.bid_id, "submitted_at": bid.submitted_at}
 
 
 class TEDAPIClient:
@@ -660,7 +673,7 @@ class TEDAPIClient:
         return {
             "success": True,
             "ted_notice_number": f"2026/S 042-123456",
-            "publication_date": datetime.now(timezone.utc).date().isoformat()
+            "publication_date": datetime.now(timezone.utc).date().isoformat(),
         }
 
 
@@ -678,7 +691,7 @@ if __name__ == "__main__":
         auftraggeber_name="Mustermann GmbH",
         auftraggeber_uid="ATU12345678",
         geschaetzer_wert=450000.0,
-        lv_dokument_id="LV-2026-001"
+        lv_dokument_id="LV-2026-001",
     )
     print(f"✓ Tender erstellt: {tender.tender_id}")
     print(f"  Verfahren: {tender.procedure.value}")
@@ -694,17 +707,16 @@ if __name__ == "__main__":
     print("Test: ÖNORM Konformität prüfen...")
     validation = validiere_oenorm_konformitaet(tender)
     print(f"✓ Konform: {validation['konform']}")
-    if validation['fehler']:
+    if validation["fehler"]:
         print(f"  Fehler: {validation['fehler']}")
-    if validation['warnungen']:
+    if validation["warnungen"]:
         print(f"  Warnungen: {validation['warnungen']}")
     print()
 
     # Publish
     print("Test: Publikation simulieren...")
     publication = publiziere_auf_plattformen(
-        tender,
-        [ProcurementPlatform.EVERGABE, ProcurementPlatform.TED]
+        tender, [ProcurementPlatform.EVERGABE, ProcurementPlatform.TED]
     )
     print(f"✓ Publiziert auf {len(publication.platforms)} Plattformen")
     for platform, url in publication.publication_urls.items():
@@ -720,7 +732,7 @@ if __name__ == "__main__":
         email="angebot@meier.at",
         angebotssumme=425000.0,
         ausfuehrungszeit_tage=180,
-        gewaehrleistung_jahre=5
+        gewaehrleistung_jahre=5,
     )
     print(f"✓ Angebot erstellt: {bid.bid_id}")
     print(f"  Angebotssumme: EUR {bid.bid_amount:,.2f}")

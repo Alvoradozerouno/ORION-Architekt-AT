@@ -34,13 +34,12 @@ NICHT SCOPE (Future):
 =============================================================================
 """
 
-import math
 import hashlib
 import json
-from dataclasses import dataclass, asdict
-from typing import List, Optional, Dict, Any
+import math
+from dataclasses import asdict, dataclass
 from datetime import datetime
-
+from typing import Any, Dict, List, Optional
 
 # =============================================================================
 # ÖSTERREICHISCHE BODEN-DATENBANK (Typische Werte)
@@ -199,9 +198,7 @@ class FlachfundamentEC7AT_V1:
         N_gesamt = N_nutz + N_fundament + N_erde
         return N_gesamt
 
-    def calculate_soil_pressure(
-        self, N_gesamt_kn: float, b_m: float, l_m: float
-    ) -> float:
+    def calculate_soil_pressure(self, N_gesamt_kn: float, b_m: float, l_m: float) -> float:
         """
         Sohldruckspannung berechnen (EN 1997-1 Section 6.5)
 
@@ -221,9 +218,7 @@ class FlachfundamentEC7AT_V1:
         sigma_kpa = N_gesamt_kn / A_m2
         return sigma_kpa
 
-    def calculate_settlement(
-        self, sigma_kpa: float, b_m: float, e_s_mpa: float
-    ) -> float:
+    def calculate_settlement(self, sigma_kpa: float, b_m: float, e_s_mpa: float) -> float:
         """
         Setzung abschätzen (vereinfacht, elastisch)
 
@@ -311,9 +306,9 @@ class FlachfundamentEC7AT_V1:
             "n_ed_kn": self.config.N_ED_KN,
             "bodenklasse": self.config.BODENKLASSE,
         }
-        audit_hash = hashlib.sha256(
-            json.dumps(audit_data, sort_keys=True).encode()
-        ).hexdigest()[:16]
+        audit_hash = hashlib.sha256(json.dumps(audit_data, sort_keys=True).encode()).hexdigest()[
+            :16
+        ]
 
         # Ergebnis
         if not self.results:

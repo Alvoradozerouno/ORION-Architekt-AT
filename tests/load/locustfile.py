@@ -9,22 +9,37 @@ Date: 2026-04-12
 Status: PRODUCTION TESTING
 """
 
-from locust import HttpUser, task, between, events
 import json
 import random
 import time
-from typing import Dict, Any
+from typing import Any, Dict
 
+from locust import HttpUser, between, events, task
 
 # ============================================================================
 # Test Data
 # ============================================================================
 
-BUNDESLAENDER = ["wien", "tirol", "salzburg", "vorarlberg", "steiermark",
-                 "oberoesterreich", "niederoesterreich", "kaernten", "burgenland"]
+BUNDESLAENDER = [
+    "wien",
+    "tirol",
+    "salzburg",
+    "vorarlberg",
+    "steiermark",
+    "oberoesterreich",
+    "niederoesterreich",
+    "kaernten",
+    "burgenland",
+]
 
-BUILDING_TYPES = ["einfamilienhaus", "mehrfamilienhaus", "wohngebaeude",
-                  "buerogebaeude", "gewerbe", "industrie"]
+BUILDING_TYPES = [
+    "einfamilienhaus",
+    "mehrfamilienhaus",
+    "wohngebaeude",
+    "buerogebaeude",
+    "gewerbe",
+    "industrie",
+]
 
 MATERIALS = [
     ("Außenputz", 10, 0.7),
@@ -38,6 +53,7 @@ MATERIALS = [
 # ============================================================================
 # Test Scenarios
 # ============================================================================
+
 
 class BaseORIONUser(HttpUser):
     """Base user with common functionality"""
@@ -94,23 +110,21 @@ class AuthenticatedFreeUser(BaseORIONUser):
 
         for i in range(num_layers):
             material, dicke, lambda_val = random.choice(MATERIALS)
-            schichten.append({
-                "material": material,
-                "dicke_mm": dicke + random.randint(-10, 10),
-                "lambda_wert": lambda_val
-            })
+            schichten.append(
+                {
+                    "material": material,
+                    "dicke_mm": dicke + random.randint(-10, 10),
+                    "lambda_wert": lambda_val,
+                }
+            )
 
-        payload = {
-            "schichten": schichten,
-            "innen_uebergang": 0.13,
-            "aussen_uebergang": 0.04
-        }
+        payload = {"schichten": schichten, "innen_uebergang": 0.13, "aussen_uebergang": 0.04}
 
         with self.client.post(
             "/api/v1/berechnungen/uwert",
             json=payload,
             name="/api/v1/berechnungen/uwert",
-            catch_response=True
+            catch_response=True,
         ) as response:
             if response.status_code == 200:
                 result = response.json()
@@ -129,13 +143,13 @@ class AuthenticatedFreeUser(BaseORIONUser):
         payload = {
             "bundesland": random.choice(BUNDESLAENDER),
             "wohnungen": random.randint(10, 100),
-            "building_type": random.choice(BUILDING_TYPES)
+            "building_type": random.choice(BUILDING_TYPES),
         }
 
         self.client.post(
             "/api/v1/berechnungen/stellplaetze",
             json=payload,
-            name="/api/v1/berechnungen/stellplaetze"
+            name="/api/v1/berechnungen/stellplaetze",
         )
 
     @task(3)
@@ -147,13 +161,11 @@ class AuthenticatedFreeUser(BaseORIONUser):
             "rampe_steigung_prozent": random.uniform(3, 6),
             "aufzug_vorhanden": random.choice([True, False]),
             "geschosse": random.randint(1, 8),
-            "bundesland": random.choice(BUNDESLAENDER)
+            "bundesland": random.choice(BUNDESLAENDER),
         }
 
         self.client.post(
-            "/api/v1/checks/barrierefreiheit",
-            json=payload,
-            name="/api/v1/checks/barrierefreiheit"
+            "/api/v1/checks/barrierefreiheit", json=payload, name="/api/v1/checks/barrierefreiheit"
         )
 
     @task(2)
@@ -164,13 +176,11 @@ class AuthenticatedFreeUser(BaseORIONUser):
             "uwert_wand": random.uniform(0.15, 0.35),
             "uwert_dach": random.uniform(0.12, 0.25),
             "uwert_fenster": random.uniform(0.8, 1.3),
-            "bundesland": random.choice(BUNDESLAENDER)
+            "bundesland": random.choice(BUNDESLAENDER),
         }
 
         self.client.post(
-            "/api/v1/berechnungen/heizlast",
-            json=payload,
-            name="/api/v1/berechnungen/heizlast"
+            "/api/v1/berechnungen/heizlast", json=payload, name="/api/v1/berechnungen/heizlast"
         )
 
 
@@ -192,22 +202,18 @@ class AuthenticatedPremiumUser(BaseORIONUser):
 
             for i in range(num_layers):
                 material, dicke, lambda_val = random.choice(MATERIALS)
-                schichten.append({
-                    "material": material,
-                    "dicke_mm": dicke + random.randint(-10, 10),
-                    "lambda_wert": lambda_val
-                })
+                schichten.append(
+                    {
+                        "material": material,
+                        "dicke_mm": dicke + random.randint(-10, 10),
+                        "lambda_wert": lambda_val,
+                    }
+                )
 
-            payload = {
-                "schichten": schichten,
-                "innen_uebergang": 0.13,
-                "aussen_uebergang": 0.04
-            }
+            payload = {"schichten": schichten, "innen_uebergang": 0.13, "aussen_uebergang": 0.04}
 
             self.client.post(
-                "/api/v1/berechnungen/uwert",
-                json=payload,
-                name="/api/v1/berechnungen/uwert"
+                "/api/v1/berechnungen/uwert", json=payload, name="/api/v1/berechnungen/uwert"
             )
 
             time.sleep(0.1)  # Small delay between batch operations
@@ -221,14 +227,10 @@ class AuthenticatedPremiumUser(BaseORIONUser):
             "bgf_m2": random.randint(200, 2000),
             "geschosse": random.randint(2, 12),
             "wohnungen": random.randint(20, 200),
-            "richtlinien": [1, 2, 3, 4, 5, 6]
+            "richtlinien": [1, 2, 3, 4, 5, 6],
         }
 
-        self.client.post(
-            "/api/v1/compliance/oib",
-            json=payload,
-            name="/api/v1/compliance/oib"
-        )
+        self.client.post("/api/v1/compliance/oib", json=payload, name="/api/v1/compliance/oib")
 
     @task(5)
     def advanced_calculations(self):
@@ -249,7 +251,7 @@ class AuthenticatedPremiumUser(BaseORIONUser):
             "rampe_steigung_prozent": 6,
             "aufzug_vorhanden": True,
             "geschosse": 5,
-            "bundesland": "wien"
+            "bundesland": "wien",
         }
         self.client.post("/api/v1/checks/barrierefreiheit", json=barrierefreiheit_payload)
 
@@ -271,8 +273,11 @@ class EnterpriseUser(BaseORIONUser):
             # Multiple calculations per project
             for _ in range(2):
                 schichten = [
-                    {"material": f"Material_{i}", "dicke_mm": random.randint(50, 200),
-                     "lambda_wert": random.uniform(0.03, 2.0)}
+                    {
+                        "material": f"Material_{i}",
+                        "dicke_mm": random.randint(50, 200),
+                        "lambda_wert": random.uniform(0.03, 2.0),
+                    }
                     for i in range(random.randint(4, 10))
                 ]
 
@@ -280,7 +285,7 @@ class EnterpriseUser(BaseORIONUser):
                 self.client.post(
                     "/api/v1/berechnungen/uwert",
                     json=payload,
-                    name="/api/v1/berechnungen/uwert [Enterprise]"
+                    name="/api/v1/berechnungen/uwert [Enterprise]",
                 )
 
             time.sleep(0.05)  # Minimal delay
@@ -289,6 +294,7 @@ class EnterpriseUser(BaseORIONUser):
 # ============================================================================
 # Stress Test User
 # ============================================================================
+
 
 class StressTestUser(BaseORIONUser):
     """
@@ -304,13 +310,15 @@ class StressTestUser(BaseORIONUser):
     def rapid_fire_requests(self):
         """Rapid fire requests to stress the system"""
         endpoints = [
-            ("/api/v1/berechnungen/uwert", {
-                "schichten": [{"material": "Test", "dicke_mm": 100, "lambda_wert": 1.0}]
-            }),
-            ("/api/v1/berechnungen/stellplaetze", {
-                "bundesland": "wien", "wohnungen": 50, "building_type": "mehrfamilienhaus"
-            }),
-            ("/health", None)
+            (
+                "/api/v1/berechnungen/uwert",
+                {"schichten": [{"material": "Test", "dicke_mm": 100, "lambda_wert": 1.0}]},
+            ),
+            (
+                "/api/v1/berechnungen/stellplaetze",
+                {"bundesland": "wien", "wohnungen": 50, "building_type": "mehrfamilienhaus"},
+            ),
+            ("/health", None),
         ]
 
         endpoint, payload = random.choice(endpoints)
@@ -325,6 +333,7 @@ class StressTestUser(BaseORIONUser):
 # Test Lifecycle Events
 # ============================================================================
 
+
 @events.test_start.add_listener
 def on_test_start(environment, **kwargs):
     """Called when load test starts"""
@@ -332,7 +341,9 @@ def on_test_start(environment, **kwargs):
     print("ORION Load Test Starting")
     print("=" * 80)
     print(f"Target: {environment.host}")
-    print(f"Users: {environment.runner.target_user_count if hasattr(environment.runner, 'target_user_count') else 'Unknown'}")
+    print(
+        f"Users: {environment.runner.target_user_count if hasattr(environment.runner, 'target_user_count') else 'Unknown'}"
+    )
     print("=" * 80)
 
 
@@ -347,6 +358,7 @@ def on_test_stop(environment, **kwargs):
 # ============================================================================
 # Custom Metrics
 # ============================================================================
+
 
 @events.request.add_listener
 def on_request(request_type, name, response_time, response_length, exception, **kwargs):

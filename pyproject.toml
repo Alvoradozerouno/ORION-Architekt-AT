@@ -96,7 +96,17 @@ requires = ["setuptools>=68.0", "wheel"]
 build-backend = "setuptools.build_meta"
 
 [tool.setuptools]
-packages = ["orion_architekt_at", "tests"]
+py-modules = [
+    "orion_architekt_at",
+    "orion_architekt",
+    "orion_kernel",
+    "orion_logging",
+    "orion_kb_validation",
+    "orion_oenorm_a2063",
+    "app",
+    "models",
+]
+packages = ["api", "tests"]
 
 [tool.setuptools.package-data]
 orion_architekt_at = ["*.json", "*.md"]

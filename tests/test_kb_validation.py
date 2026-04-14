@@ -2,26 +2,28 @@
 Test Suite for orion_kb_validation module
 Tests knowledge base validation, RIS integration, OIB monitoring, etc.
 """
-import pytest
-from datetime import datetime, timezone
-import sys
+
 import os
+import sys
+from datetime import datetime, timezone
+
+import pytest
 
 # Add parent directory to path
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from orion_kb_validation import (
-    validate_knowledge_base,
+    STANDARD_VERSIONS,
     check_all_standards,
-    check_oib_updates,
-    check_oenorm_updates,
-    check_ris_updates,
-    check_naturgefahren,
-    is_standard_current,
-    get_standard_version,
     check_data_freshness,
+    check_naturgefahren,
+    check_oenorm_updates,
+    check_oib_updates,
+    check_ris_updates,
     export_validation_report,
-    STANDARD_VERSIONS
+    get_standard_version,
+    is_standard_current,
+    validate_knowledge_base,
 )
 
 
@@ -31,11 +33,20 @@ class TestStandardVersions:
     def test_all_standards_exist(self):
         """Test that all expected standards are defined"""
         expected_standards = [
-            "OIB-RL 1", "OIB-RL 2", "OIB-RL 3",
-            "OIB-RL 4", "OIB-RL 5", "OIB-RL 6",
-            "ÖNORM B 1800", "ÖNORM B 1600", "ÖNORM B 1601",
-            "ÖNORM B 2110", "ÖNORM B 8110-3", "ÖNORM A 2063",
-            "ÖNORM A 6240", "ÖNORM EN 62305"
+            "OIB-RL 1",
+            "OIB-RL 2",
+            "OIB-RL 3",
+            "OIB-RL 4",
+            "OIB-RL 5",
+            "OIB-RL 6",
+            "ÖNORM B 1800",
+            "ÖNORM B 1600",
+            "ÖNORM B 1601",
+            "ÖNORM B 2110",
+            "ÖNORM B 8110-3",
+            "ÖNORM A 2063",
+            "ÖNORM A 6240",
+            "ÖNORM EN 62305",
         ]
         for standard in expected_standards:
             assert standard in STANDARD_VERSIONS, f"{standard} not found in STANDARD_VERSIONS"
@@ -170,10 +181,7 @@ class TestValidationReport:
     def test_validate_knowledge_base_basic(self):
         """Test basic knowledge base validation"""
         result = validate_knowledge_base(
-            include_ris=False,
-            include_oib=True,
-            include_oenorm=False,
-            include_hora=False
+            include_ris=False, include_oib=True, include_oenorm=False, include_hora=False
         )
         assert "timestamp" in result
         assert "ergebnis" in result
@@ -186,7 +194,7 @@ class TestValidationReport:
             include_ris=True,
             include_oib=True,
             include_oenorm=True,
-            include_hora=True
+            include_hora=True,
         )
         assert "ergebnis" in result
         assert "oib" in result["ergebnis"]

@@ -17,19 +17,20 @@ Date: 2026-04-09
 Standards: ÖNORM B 1991-1-1, ÖNORM B 1991-1-3, ÖNORM B 1991-1-4, ÖNORM EN 1990
 """
 
-from dataclasses import dataclass, field
-from typing import List, Dict, Optional, Any, Tuple
-from enum import Enum
-from datetime import datetime
 import math
-
+from dataclasses import dataclass, field
+from datetime import datetime
+from enum import Enum
+from typing import Any, Dict, List, Optional, Tuple
 
 # ============================================================================
 # Austrian Climate & Terrain Zones
 # ============================================================================
 
+
 class SnowZoneAustria(str, Enum):
     """Schneelastzonen Österreich nach ÖNORM B 1991-1-3"""
+
     ZONE_1 = "Zone 1"  # < 400m Seehöhe
     ZONE_2 = "Zone 2"  # 400-800m
     ZONE_3 = "Zone 3"  # 800-1200m
@@ -39,6 +40,7 @@ class SnowZoneAustria(str, Enum):
 
 class WindZoneAustria(str, Enum):
     """Windzonen Österreich nach ÖNORM B 1991-1-4"""
+
     ZONE_1 = "Zone 1"  # Flachland, Osten
     ZONE_2 = "Zone 2"  # Hügelland
     ZONE_3 = "Zone 3"  # Bergland, alpines Gebiet
@@ -47,6 +49,7 @@ class WindZoneAustria(str, Enum):
 
 class TerrainCategory(str, Enum):
     """Geländekategorien nach ÖNORM B 1991-1-4"""
+
     CAT_0 = "0"  # See, Küste
     CAT_I = "I"  # Offenes Gelände
     CAT_II = "II"  # Gelände mit niedrigen Hindernissen
@@ -56,6 +59,7 @@ class TerrainCategory(str, Enum):
 
 class BuildingUsage(str, Enum):
     """Gebäudenutzung nach ÖNORM B 1991-1-1"""
+
     RESIDENTIAL = "Wohngebäude"
     OFFICE = "Büro"
     ASSEMBLY = "Versammlungsraum"
@@ -73,9 +77,11 @@ class BuildingUsage(str, Enum):
 # Data Classes
 # ============================================================================
 
+
 @dataclass
 class LoadParameters:
     """Parameters for load calculation"""
+
     # Location
     bundesland: str
     seaLevel_m: int  # Seehöhe [m]
@@ -94,6 +100,7 @@ class LoadParameters:
 @dataclass
 class DeadLoad:
     """Eigenlast (Dead Load)"""
+
     element_type: str  # "Stahlbetondecke", "Mauerwerk", etc.
     area_m2: float
     thickness_m: float
@@ -105,6 +112,7 @@ class DeadLoad:
 @dataclass
 class LiveLoad:
     """Nutzlast (Live Load) nach ÖNORM B 1991-1-1"""
+
     usage: BuildingUsage
     area_m2: float
     characteristic_load_kN_m2: float  # qk
@@ -115,6 +123,7 @@ class LiveLoad:
 @dataclass
 class SnowLoad:
     """Schneelast nach ÖNORM B 1991-1-3"""
+
     zone: SnowZoneAustria
     altitude_m: int
     roof_angle_deg: float
@@ -130,6 +139,7 @@ class SnowLoad:
 @dataclass
 class WindLoad:
     """Windlast nach ÖNORM B 1991-1-4"""
+
     zone: WindZoneAustria
     terrain: TerrainCategory
     building_height_m: float
@@ -144,6 +154,7 @@ class WindLoad:
 @dataclass
 class LoadCombination:
     """Lastkombination nach ÖNORM EN 1990"""
+
     combination_id: str
     combination_type: str  # "ULS", "SLS"
     combination_rule: str  # "6.10a", "6.10b"
@@ -189,10 +200,7 @@ MATERIAL_DENSITIES = {
 
 
 def calculate_dead_load(
-    element_type: str,
-    area_m2: float,
-    thickness_m: float,
-    material: str = "Stahlbeton"
+    element_type: str, area_m2: float, thickness_m: float, material: str = "Stahlbeton"
 ) -> DeadLoad:
     """
     Calculate dead load for a building element
@@ -223,7 +231,7 @@ def calculate_dead_load(
         thickness_m=thickness_m,
         density_kN_m3=density,
         total_load_kN=total_kN,
-        distributed_load_kN_m2=distributed_kN_m2
+        distributed_load_kN_m2=distributed_kN_m2,
     )
 
 
@@ -233,24 +241,22 @@ def calculate_dead_load(
 
 # Characteristic live loads [kN/m²] nach ÖNORM B 1991-1-1 Tabelle 6.1
 LIVE_LOADS_OENORM = {
-    BuildingUsage.RESIDENTIAL: 1.5,          # Kategorie A - Wohnräume
-    BuildingUsage.OFFICE: 2.0,               # Kategorie B - Büroräume
-    BuildingUsage.ASSEMBLY: 4.0,             # Kategorie C1 - Versammlungsräume mit Tischen
-    BuildingUsage.RETAIL: 4.0,               # Kategorie D1 - Verkaufsflächen
-    BuildingUsage.STORAGE_LIGHT: 5.0,        # Kategorie E1 - Lager (leicht)
-    BuildingUsage.STORAGE_HEAVY: 7.5,        # Kategorie E2 - Lager (schwer)
-    BuildingUsage.PARKING: 2.5,              # Kategorie F - Parkflächen ≤2.5t
-    BuildingUsage.ROOF: 0.75,                # Kategorie H - Dächer (nicht begehbar)
-    BuildingUsage.ROOF_ACCESSIBLE: 1.5,      # Kategorie I - Dächer (begehbar)
-    BuildingUsage.BALCONY: 4.0,              # Kategorie A - Balkone
-    BuildingUsage.STAIRS: 3.0,               # Kategorie A - Treppen
+    BuildingUsage.RESIDENTIAL: 1.5,  # Kategorie A - Wohnräume
+    BuildingUsage.OFFICE: 2.0,  # Kategorie B - Büroräume
+    BuildingUsage.ASSEMBLY: 4.0,  # Kategorie C1 - Versammlungsräume mit Tischen
+    BuildingUsage.RETAIL: 4.0,  # Kategorie D1 - Verkaufsflächen
+    BuildingUsage.STORAGE_LIGHT: 5.0,  # Kategorie E1 - Lager (leicht)
+    BuildingUsage.STORAGE_HEAVY: 7.5,  # Kategorie E2 - Lager (schwer)
+    BuildingUsage.PARKING: 2.5,  # Kategorie F - Parkflächen ≤2.5t
+    BuildingUsage.ROOF: 0.75,  # Kategorie H - Dächer (nicht begehbar)
+    BuildingUsage.ROOF_ACCESSIBLE: 1.5,  # Kategorie I - Dächer (begehbar)
+    BuildingUsage.BALCONY: 4.0,  # Kategorie A - Balkone
+    BuildingUsage.STAIRS: 3.0,  # Kategorie A - Treppen
 }
 
 
 def calculate_live_load(
-    usage: BuildingUsage,
-    area_m2: float,
-    apply_reduction: bool = True
+    usage: BuildingUsage, area_m2: float, apply_reduction: bool = True
 ) -> LiveLoad:
     """
     Calculate live load according to ÖNORM B 1991-1-1
@@ -271,9 +277,11 @@ def calculate_live_load(
     # αn = 1.0 for categories E, H
 
     reduction_factor = 1.0
-    if apply_reduction and usage not in [BuildingUsage.STORAGE_LIGHT,
-                                         BuildingUsage.STORAGE_HEAVY,
-                                         BuildingUsage.ROOF]:
+    if apply_reduction and usage not in [
+        BuildingUsage.STORAGE_LIGHT,
+        BuildingUsage.STORAGE_HEAVY,
+        BuildingUsage.ROOF,
+    ]:
         if 50 < area_m2 <= 1000:
             reduction_factor = 0.77 + 23.5 / area_m2
         elif area_m2 > 1000:
@@ -286,13 +294,14 @@ def calculate_live_load(
         area_m2=area_m2,
         characteristic_load_kN_m2=qk,
         total_load_kN=total_load,
-        reduction_factor=reduction_factor
+        reduction_factor=reduction_factor,
     )
 
 
 # ============================================================================
 # Snow Load Calculations (ÖNORM B 1991-1-3)
 # ============================================================================
+
 
 def get_snow_zone_austria(bundesland: str, altitude_m: int) -> SnowZoneAustria:
     """
@@ -318,10 +327,7 @@ def get_snow_zone_austria(bundesland: str, altitude_m: int) -> SnowZoneAustria:
         return SnowZoneAustria.ZONE_5
 
 
-def calculate_characteristic_snow_load(
-    zone: SnowZoneAustria,
-    altitude_m: int
-) -> float:
+def calculate_characteristic_snow_load(zone: SnowZoneAustria, altitude_m: int) -> float:
     """
     Calculate characteristic ground snow load sk
 
@@ -352,10 +358,7 @@ def calculate_characteristic_snow_load(
     return sk
 
 
-def calculate_snow_load(
-    params: LoadParameters,
-    roof_area_m2: float
-) -> SnowLoad:
+def calculate_snow_load(params: LoadParameters, roof_area_m2: float) -> SnowLoad:
     """
     Calculate snow load according to ÖNORM B 1991-1-3
 
@@ -400,13 +403,14 @@ def calculate_snow_load(
         thermal_coefficient=Ct,
         snow_on_roof_kN_m2=s,
         area_m2=roof_area_m2,
-        total_load_kN=total_load
+        total_load_kN=total_load,
     )
 
 
 # ============================================================================
 # Wind Load Calculations (ÖNORM B 1991-1-4)
 # ============================================================================
+
 
 def get_wind_zone_austria(bundesland: str) -> WindZoneAustria:
     """Get wind zone for Austrian Bundesland"""
@@ -418,10 +422,7 @@ def get_wind_zone_austria(bundesland: str) -> WindZoneAustria:
         return WindZoneAustria.ZONE_1
 
 
-def calculate_wind_load(
-    params: LoadParameters,
-    exposed_area_m2: float
-) -> WindLoad:
+def calculate_wind_load(params: LoadParameters, exposed_area_m2: float) -> WindLoad:
     """
     Calculate wind load according to ÖNORM B 1991-1-4
 
@@ -467,7 +468,7 @@ def calculate_wind_load(
     pressure_coefficients = {
         "cpe_windward": 0.8,
         "cpe_leeward": -0.5,
-        "cpi": 0.0  # closed building
+        "cpi": 0.0,  # closed building
     }
 
     # Wind pressure (windward side)
@@ -485,7 +486,7 @@ def calculate_wind_load(
         pressure_coefficients=pressure_coefficients,
         wind_pressure_kN_m2=w,
         exposed_area_m2=exposed_area_m2,
-        total_load_kN=total_load
+        total_load_kN=total_load,
     )
 
 
@@ -493,11 +494,9 @@ def calculate_wind_load(
 # Load Combinations (ÖNORM EN 1990)
 # ============================================================================
 
+
 def generate_load_combinations(
-    dead_load_kN: float,
-    live_load_kN: float,
-    snow_load_kN: float,
-    wind_load_kN: float
+    dead_load_kN: float, live_load_kN: float, snow_load_kN: float, wind_load_kN: float
 ) -> List[LoadCombination]:
     """
     Generate load combinations according to ÖNORM EN 1990
@@ -520,7 +519,7 @@ def generate_load_combinations(
     # Partial safety factors
     gamma_G = 1.35  # Dead load (unfavorable)
     gamma_G_fav = 1.0  # Dead load (favorable)
-    gamma_Q = 1.5   # Variable loads
+    gamma_Q = 1.5  # Variable loads
 
     # Combination factors ψ0
     psi_0_live = 0.7
@@ -535,7 +534,7 @@ def generate_load_combinations(
         dead_load_factor=gamma_G_fav,
         live_load_factor=0.0,
         snow_load_factor=0.0,
-        wind_load_factor=0.0
+        wind_load_factor=0.0,
     )
     comb1.total_dead_kN = gamma_G_fav * dead_load_kN
     comb1.total_combined_kN = comb1.total_dead_kN
@@ -552,14 +551,15 @@ def generate_load_combinations(
         wind_load_factor=gamma_Q,
         psi_0_live=psi_0_live,
         psi_0_snow=psi_0_snow,
-        psi_0_wind=psi_0_wind
+        psi_0_wind=psi_0_wind,
     )
     comb2.total_dead_kN = gamma_G * dead_load_kN
     comb2.total_live_kN = gamma_Q * live_load_kN
     comb2.total_snow_kN = gamma_Q * psi_0_snow * snow_load_kN
     comb2.total_wind_kN = gamma_Q * psi_0_wind * wind_load_kN
-    comb2.total_combined_kN = (comb2.total_dead_kN + comb2.total_live_kN +
-                                comb2.total_snow_kN + comb2.total_wind_kN)
+    comb2.total_combined_kN = (
+        comb2.total_dead_kN + comb2.total_live_kN + comb2.total_snow_kN + comb2.total_wind_kN
+    )
     combinations.append(comb2)
 
     # 3. Dead + Snow (dominant)
@@ -573,14 +573,15 @@ def generate_load_combinations(
         wind_load_factor=gamma_Q,
         psi_0_live=psi_0_live,
         psi_0_snow=psi_0_snow,
-        psi_0_wind=psi_0_wind
+        psi_0_wind=psi_0_wind,
     )
     comb3.total_dead_kN = gamma_G * dead_load_kN
     comb3.total_live_kN = gamma_Q * psi_0_live * live_load_kN
     comb3.total_snow_kN = gamma_Q * snow_load_kN
     comb3.total_wind_kN = gamma_Q * psi_0_wind * wind_load_kN
-    comb3.total_combined_kN = (comb3.total_dead_kN + comb3.total_live_kN +
-                                comb3.total_snow_kN + comb3.total_wind_kN)
+    comb3.total_combined_kN = (
+        comb3.total_dead_kN + comb3.total_live_kN + comb3.total_snow_kN + comb3.total_wind_kN
+    )
     combinations.append(comb3)
 
     # 4. Dead + Wind (dominant)
@@ -594,14 +595,15 @@ def generate_load_combinations(
         wind_load_factor=gamma_Q,
         psi_0_live=psi_0_live,
         psi_0_snow=psi_0_snow,
-        psi_0_wind=psi_0_wind
+        psi_0_wind=psi_0_wind,
     )
     comb4.total_dead_kN = gamma_G * dead_load_kN
     comb4.total_live_kN = gamma_Q * psi_0_live * live_load_kN
     comb4.total_snow_kN = gamma_Q * psi_0_snow * snow_load_kN
     comb4.total_wind_kN = gamma_Q * wind_load_kN
-    comb4.total_combined_kN = (comb4.total_dead_kN + comb4.total_live_kN +
-                                comb4.total_snow_kN + comb4.total_wind_kN)
+    comb4.total_combined_kN = (
+        comb4.total_dead_kN + comb4.total_live_kN + comb4.total_snow_kN + comb4.total_wind_kN
+    )
     combinations.append(comb4)
 
     return combinations
@@ -625,11 +627,13 @@ if __name__ == "__main__":
         building_width_m=20.0,
         building_length_m=30.0,
         roof_angle_deg=15.0,
-        usage_category=BuildingUsage.OFFICE
+        usage_category=BuildingUsage.OFFICE,
     )
 
     print(f"\nGebäude: Bürogebäude in {params.bundesland}")
-    print(f"Abmessungen: {params.building_length_m} x {params.building_width_m} x {params.building_height_m} m")
+    print(
+        f"Abmessungen: {params.building_length_m} x {params.building_width_m} x {params.building_height_m} m"
+    )
     print(f"Seehöhe: {params.seaLevel_m} m")
     print(f"Dachneigung: {params.roof_angle_deg}°")
 
@@ -661,7 +665,9 @@ if __name__ == "__main__":
     roof_area = slab_area / math.cos(math.radians(params.roof_angle_deg))
     snow = calculate_snow_load(params, roof_area)
     print(f"Schneezone: {snow.zone.value}")
-    print(f"Charakteristische Schneelast am Boden: sk = {snow.characteristic_ground_snow_kN_m2:.2f} kN/m²")
+    print(
+        f"Charakteristische Schneelast am Boden: sk = {snow.characteristic_ground_snow_kN_m2:.2f} kN/m²"
+    )
     print(f"Formbeiwert μ: {snow.shape_coefficient:.2f}")
     print(f"Schneelast auf Dach: s = {snow.snow_on_roof_kN_m2:.2f} kN/m²")
     print(f"Gesamtlast: {snow.total_load_kN:.1f} kN")
@@ -687,18 +693,20 @@ if __name__ == "__main__":
         dead_load_kN=dead_slab.total_load_kN,
         live_load_kN=live.total_load_kN,
         snow_load_kN=snow.total_load_kN,
-        wind_load_kN=wind.total_load_kN
+        wind_load_kN=wind.total_load_kN,
     )
 
     print(f"\n{'ID':<15} {'Typ':<8} {'G':<10} {'Q':<10} {'S':<10} {'W':<10} {'Total':<12}")
     print("-" * 80)
     for comb in combinations:
-        print(f"{comb.combination_id:<15} {comb.combination_type:<8} "
-              f"{comb.total_dead_kN:>8.1f}  "
-              f"{comb.total_live_kN:>8.1f}  "
-              f"{comb.total_snow_kN:>8.1f}  "
-              f"{comb.total_wind_kN:>8.1f}  "
-              f"{comb.total_combined_kN:>10.1f} kN")
+        print(
+            f"{comb.combination_id:<15} {comb.combination_type:<8} "
+            f"{comb.total_dead_kN:>8.1f}  "
+            f"{comb.total_live_kN:>8.1f}  "
+            f"{comb.total_snow_kN:>8.1f}  "
+            f"{comb.total_wind_kN:>8.1f}  "
+            f"{comb.total_combined_kN:>10.1f} kN"
+        )
 
     # Find governing combination
     governing = max(combinations, key=lambda c: c.total_combined_kN)

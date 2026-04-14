@@ -2,32 +2,33 @@
 Test Suite for orion_architekt_at core functionality
 Tests Austrian building regulations, calculations, compliance checks
 """
-import pytest
-import sys
+
 import os
+import sys
+
+import pytest
 
 # Add parent directory to path
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-from orion_architekt_at import (
-    berechne_uwert_mehrschicht,
-    berechne_stellplaetze,
-    pruefe_barrierefreiheit,
-    berechne_fluchtweg,
-    berechne_tageslicht,
+from orion_architekt_at import (  # New validation functions
+    BUNDESLAENDER,
+    OIB_RICHTLINIEN_AT,
     berechne_abstandsflaechen,
-    pruefe_blitzschutz,
-    pruefe_rauchableitung,
-    pruefe_gefahrenzonen,
     berechne_flaechen_oenorm_b1800,
+    berechne_fluchtweg,
+    berechne_stellplaetze,
+    berechne_tageslicht,
+    berechne_uwert_mehrschicht,
     generiere_leistungsverzeichnis,
     generiere_raumprogramm,
-    # New validation functions
-    pruefe_wissensdatenbank,
-    pruefe_oib_richtlinien,
+    pruefe_barrierefreiheit,
+    pruefe_blitzschutz,
+    pruefe_gefahrenzonen,
     pruefe_oenorm,
-    BUNDESLAENDER,
-    OIB_RICHTLINIEN_AT
+    pruefe_oib_richtlinien,
+    pruefe_rauchableitung,
+    pruefe_wissensdatenbank,
 )
 
 
@@ -37,9 +38,15 @@ class TestBundeslaender:
     def test_all_bundeslaender_exist(self):
         """Test that all 9 Bundesländer are defined"""
         expected = [
-            "burgenland", "kaernten", "niederoesterreich",
-            "oberoesterreich", "salzburg", "steiermark",
-            "tirol", "vorarlberg", "wien"
+            "burgenland",
+            "kaernten",
+            "niederoesterreich",
+            "oberoesterreich",
+            "salzburg",
+            "steiermark",
+            "tirol",
+            "vorarlberg",
+            "wien",
         ]
         for bl in expected:
             assert bl in BUNDESLAENDER, f"{bl} not found"
@@ -100,10 +107,7 @@ class TestStellplatzberechnung:
     def test_stellplatz_wohnbau_tirol(self):
         """Test parking calculation for residential in Tirol"""
         result = berechne_stellplaetze(
-            nutzungsart="wohnbau",
-            flaeche_m2=300,
-            anzahl_wohnungen=4,
-            bundesland="tirol"
+            nutzungsart="wohnbau", flaeche_m2=300, anzahl_wohnungen=4, bundesland="tirol"
         )
         assert "stellplaetze_erforderlich" in result
         assert result["stellplaetze_erforderlich"] >= 4
@@ -111,10 +115,7 @@ class TestStellplatzberechnung:
     def test_stellplatz_wohnbau_wien(self):
         """Test parking calculation for residential in Wien"""
         result = berechne_stellplaetze(
-            nutzungsart="wohnbau",
-            flaeche_m2=200,
-            anzahl_wohnungen=3,
-            bundesland="wien"
+            nutzungsart="wohnbau", flaeche_m2=200, anzahl_wohnungen=3, bundesland="wien"
         )
         assert "stellplaetze_erforderlich" in result
         # Wien requires 1-1.5 per apartment
@@ -122,11 +123,7 @@ class TestStellplatzberechnung:
 
     def test_stellplatz_buero(self):
         """Test parking calculation for office"""
-        result = berechne_stellplaetze(
-            nutzungsart="buero",
-            flaeche_m2=500,
-            bundesland="tirol"
-        )
+        result = berechne_stellplaetze(nutzungsart="buero", flaeche_m2=500, bundesland="tirol")
         assert result["stellplaetze_erforderlich"] > 0
 
 
@@ -141,7 +138,7 @@ class TestBarrierefreiheit:
             wohnungen_pro_geschoss=2,
             tueren_breite_cm=85,
             aufzug_vorhanden=True,
-            bundesland="wien"
+            bundesland="wien",
         )
         assert result["erfuellt"] == True
 
@@ -153,7 +150,7 @@ class TestBarrierefreiheit:
             wohnungen_pro_geschoss=2,
             tueren_breite_cm=85,
             aufzug_vorhanden=False,
-            bundesland="wien"
+            bundesland="wien",
         )
         assert result["erfuellt"] == False
         assert any("Aufzug" in m for m in result["mangel"])
@@ -166,7 +163,7 @@ class TestBarrierefreiheit:
             wohnungen_pro_geschoss=2,
             tueren_breite_cm=75,  # Too narrow
             aufzug_vorhanden=False,
-            bundesland="tirol"
+            bundesland="tirol",
         )
         assert result["erfuellt"] == False
 
@@ -184,7 +181,7 @@ class TestFluchtwegBerechnung:
             fluchtweglaenge_m=30,
             anzahl_fluchtwege=1,
             treppenbreite_cm=120,
-            bundesland="tirol"
+            bundesland="tirol",
         )
         assert "erfuellt" in result
 
@@ -198,7 +195,7 @@ class TestFluchtwegBerechnung:
             fluchtweglaenge_m=50,  # Too long for GK1
             anzahl_fluchtwege=1,
             treppenbreite_cm=120,
-            bundesland="tirol"
+            bundesland="tirol",
         )
         assert result["erfuellt"] == False
 
@@ -213,7 +210,7 @@ class TestTageslichtBerechnung:
             fensterflaeche_m2=3,
             raumtiefe_m=5,
             fensterhoehe_m=1.5,
-            raumnutzung="wohnen"
+            raumnutzung="wohnen",
         )
         assert "tageslichtfaktor_prozent" in result
         assert result["erfuellt"] == True
@@ -225,7 +222,7 @@ class TestTageslichtBerechnung:
             fensterflaeche_m2=1,  # Too small
             raumtiefe_m=8,
             fensterhoehe_m=1.0,
-            raumnutzung="wohnen"
+            raumnutzung="wohnen",
         )
         assert result["erfuellt"] == False or len(result["mangel"]) > 0
 
@@ -240,7 +237,7 @@ class TestAbstandsflaechen:
             gebaeude_laenge_m=20,
             bebauungsart="offen",
             grenze_typ="nachbar",
-            bundesland="tirol"
+            bundesland="tirol",
         )
         assert "abstand_erforderlich_m" in result
         assert result["abstand_erforderlich_m"] >= 10  # Tirol factor 1.0
@@ -252,7 +249,7 @@ class TestAbstandsflaechen:
             gebaeude_laenge_m=20,
             bebauungsart="offen",
             grenze_typ="nachbar",
-            bundesland="wien"
+            bundesland="wien",
         )
         assert result["abstand_erforderlich_m"] >= 4  # Wien factor 0.4
 
@@ -263,9 +260,7 @@ class TestBlitzschutz:
     def test_blitzschutz_wohnhaus(self):
         """Test lightning protection for residential"""
         result = pruefe_blitzschutz(
-            gebaeude_hoehe_m=10,
-            gebaeude_lage="standard",
-            gebaeude_nutzung="wohnhaus"
+            gebaeude_hoehe_m=10, gebaeude_lage="standard", gebaeude_nutzung="wohnhaus"
         )
         assert "blitzschutzklasse" in result
         assert "LPK" in result["blitzschutzklasse"]
@@ -273,9 +268,7 @@ class TestBlitzschutz:
     def test_blitzschutz_hochhaus(self):
         """Test lightning protection for high-rise"""
         result = pruefe_blitzschutz(
-            gebaeude_hoehe_m=30,
-            gebaeude_lage="exponiert",
-            gebaeude_nutzung="hochhaus"
+            gebaeude_hoehe_m=30, gebaeude_lage="exponiert", gebaeude_nutzung="hochhaus"
         )
         assert "LPK I" in result["blitzschutzklasse"] or "LPK II" in result["blitzschutzklasse"]
 
@@ -286,20 +279,14 @@ class TestRauchableitung:
     def test_rauchableitung_gk1(self):
         """Test smoke extraction for GK1"""
         result = pruefe_rauchableitung(
-            gebaeudeklasse=1,
-            geschosse=2,
-            treppenhaus_typ="offen",
-            fluchtweglaenge_m=30
+            gebaeudeklasse=1, geschosse=2, treppenhaus_typ="offen", fluchtweglaenge_m=30
         )
         assert "anforderungen" in result
 
     def test_rauchableitung_gk4(self):
         """Test smoke extraction for GK4"""
         result = pruefe_rauchableitung(
-            gebaeudeklasse=4,
-            geschosse=6,
-            treppenhaus_typ="geschlossen",
-            fluchtweglaenge_m=40
+            gebaeudeklasse=4, geschosse=6, treppenhaus_typ="geschlossen", fluchtweglaenge_m=40
         )
         assert "anforderungen" in result
 
@@ -310,9 +297,7 @@ class TestGefahrenzonen:
     def test_gefahrenzonen_lawinen(self):
         """Test avalanche check"""
         result = pruefe_gefahrenzonen(
-            adresse_plz="6380",
-            adresse_ort="St. Johann in Tirol",
-            grundstueck_hoehe_m=1500
+            adresse_plz="6380", adresse_ort="St. Johann in Tirol", grundstueck_hoehe_m=1500
         )
         assert "warnungen" in result
         assert any("Lawinen" in w for w in result["warnungen"])
@@ -320,9 +305,7 @@ class TestGefahrenzonen:
     def test_gefahrenzonen_tal(self):
         """Test low altitude - no avalanche"""
         result = pruefe_gefahrenzonen(
-            adresse_plz="1010",
-            adresse_ort="Wien",
-            grundstueck_hoehe_m=500
+            adresse_plz="1010", adresse_ort="Wien", grundstueck_hoehe_m=500
         )
         # Should have less avalanche risk
         assert "warnungen" in result
@@ -340,13 +323,10 @@ class TestFlaechenberechnung:
             "bad": {"flaeche": 8, "typ": "nutzflaeche"},
             "flur": {"flaeche": 10, "typ": "verkehrsflaeche"},
             "technik": {"flaeche": 4, "typ": "funktionsflaeche"},
-            "wand_aussen": {"flaeche": 12, "typ": "konstruktionsflaeche"}
+            "wand_aussen": {"flaeche": 12, "typ": "konstruktionsflaeche"},
         }
         result = berechne_flaechen_oenorm_b1800(
-            grundriss_flaechen=grundriss_flaechen,
-            geschosse=2,
-            keller=False,
-            dachgeschoss=False
+            grundriss_flaechen=grundriss_flaechen, geschosse=2, keller=False, dachgeschoss=False
         )
         assert "BGF_m2" in result
         assert "BRI_m3" in result
@@ -359,13 +339,10 @@ class TestFlaechenberechnung:
             "schlafen": {"flaeche": 30, "typ": "nutzflaeche"},
             "flur": {"flaeche": 8, "typ": "verkehrsflaeche"},
             "technik": {"flaeche": 3, "typ": "funktionsflaeche"},
-            "waende": {"flaeche": 10, "typ": "konstruktionsflaeche"}
+            "waende": {"flaeche": 10, "typ": "konstruktionsflaeche"},
         }
         result = berechne_flaechen_oenorm_b1800(
-            grundriss_flaechen=grundriss_flaechen,
-            geschosse=2,
-            keller=False,
-            dachgeschoss=False
+            grundriss_flaechen=grundriss_flaechen, geschosse=2, keller=False, dachgeschoss=False
         )
         assert result["kompaktheit_A_V"] > 0
 
@@ -379,7 +356,7 @@ class TestLeistungsverzeichnis:
             bauvorhaben_typ="neubau_einfamilienhaus",
             bgf_m2=200,
             baukosten_gesamt=400000,
-            bundesland="tirol"
+            bundesland="tirol",
         )
         assert "lv_positionen" in result
         assert len(result["lv_positionen"]) >= 10
@@ -388,10 +365,7 @@ class TestLeistungsverzeichnis:
     def test_lv_sanierung(self):
         """Test LV for renovation"""
         result = generiere_leistungsverzeichnis(
-            bauvorhaben_typ="sanierung",
-            bgf_m2=150,
-            baukosten_gesamt=300000,
-            bundesland="tirol"
+            bauvorhaben_typ="sanierung", bgf_m2=150, baukosten_gesamt=300000, bundesland="tirol"
         )
         assert result["baukosten_gesamt_netto"] > 0
 
@@ -405,7 +379,7 @@ class TestRaumprogramm:
             haushaltsgroesse=4,
             wohnwunsch_typ="komfortabel",
             budget_euro=500000,
-            besondere_wuensche=["homeoffice"]
+            besondere_wuensche=["homeoffice"],
         )
         assert "raeume" in result
         assert "nf_gesamt_m2" in result
@@ -414,10 +388,7 @@ class TestRaumprogramm:
     def test_raumprogramm_budget_check(self):
         """Test budget checking"""
         result = generiere_raumprogramm(
-            haushaltsgroesse=2,
-            wohnwunsch_typ="kompakt",
-            budget_euro=200000,
-            besondere_wuensche=[]
+            haushaltsgroesse=2, wohnwunsch_typ="kompakt", budget_euro=200000, besondere_wuensche=[]
         )
         assert "budget_status" in result
         assert "schaetzkosten_euro" in result
@@ -450,10 +421,7 @@ class TestIntegration:
         """Test complete building compliance workflow"""
         # 1. Stellplatz
         stellplatz = berechne_stellplaetze(
-            nutzungsart="wohnbau",
-            flaeche_m2=250,
-            anzahl_wohnungen=3,
-            bundesland="tirol"
+            nutzungsart="wohnbau", flaeche_m2=250, anzahl_wohnungen=3, bundesland="tirol"
         )
         assert stellplatz["stellplaetze_erforderlich"] > 0
 
@@ -464,7 +432,7 @@ class TestIntegration:
             wohnungen_pro_geschoss=1,
             tueren_breite_cm=85,
             aufzug_vorhanden=False,
-            bundesland="tirol"
+            bundesland="tirol",
         )
         assert "erfuellt" in barrierefrei
 
@@ -477,7 +445,7 @@ class TestIntegration:
             fluchtweglaenge_m=35,
             anzahl_fluchtwege=1,
             treppenbreite_cm=120,
-            bundesland="tirol"
+            bundesland="tirol",
         )
         assert "erfuellt" in fluchtweg
 

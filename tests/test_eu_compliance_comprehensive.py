@@ -21,13 +21,13 @@ Status: PRODUCTION
 ═══════════════════════════════════════════════════════════════════════════
 """
 
-import json
 import hashlib
+import json
 import re
 import sys
+from datetime import datetime, timedelta, timezone
 from pathlib import Path
-from datetime import datetime, timezone, timedelta
-from typing import Dict, List, Any
+from typing import Any, Dict, List
 
 # Add parent directory to path
 sys.path.insert(0, str(Path(__file__).parent.parent))
@@ -35,20 +35,29 @@ sys.path.insert(0, str(Path(__file__).parent.parent))
 
 class SkipException(Exception):
     """Exception to skip tests"""
+
     pass
+
 
 # Import modules to test
 try:
-    from api.safety.audit_trail import AuditTrail, AuditEntry
+    from api.safety.audit_trail import AuditEntry, AuditTrail
     from api.validation import (
-        sanitize_string, validate_api_key, validate_jwt_format,
-        ValidatedFileUpload, ValidatedComplianceRequest
+        ValidatedComplianceRequest,
+        ValidatedFileUpload,
+        sanitize_string,
+        validate_api_key,
+        validate_jwt_format,
     )
     from eidas_signature import (
-        SignatureType, SignatureFormat, TrustServiceProvider,
-        berechne_dokument_hash, erstelle_signatur_placeholder,
-        verifiziere_signatur
+        SignatureFormat,
+        SignatureType,
+        TrustServiceProvider,
+        berechne_dokument_hash,
+        erstelle_signatur_placeholder,
+        verifiziere_signatur,
     )
+
     MODULES_AVAILABLE = True
 except ImportError as e:
     MODULES_AVAILABLE = False
@@ -58,6 +67,7 @@ except ImportError as e:
 # ═══════════════════════════════════════════════════════════════════════════
 # 1. GDPR COMPLIANCE TESTS (Regulation EU 2016/679)
 # ═══════════════════════════════════════════════════════════════════════════
+
 
 class TestGDPRCompliance:
     """Test GDPR data protection requirements"""
@@ -74,7 +84,7 @@ class TestGDPRCompliance:
             "bundesland": "wien",
             "building_type": "einfamilienhaus",
             "bgf_m2": 150.0,
-            "geschosse": 2
+            "geschosse": 2,
         }
 
         request = ValidatedComplianceRequest(**request_data)
@@ -87,9 +97,7 @@ class TestGDPRCompliance:
         if not MODULES_AVAILABLE:
             raise SkipException("Modules not available")
         # Test XSS prevention
-        malicious_inputs = [
-            "\x00null_byte_attack"
-        ]
+        malicious_inputs = ["\x00null_byte_attack"]
 
         for malicious_input in malicious_inputs:
             try:
@@ -122,7 +130,7 @@ class TestGDPRCompliance:
             action="test_action",
             resource="test_resource",
             result="success",
-            details={"test": "data"}
+            details={"test": "data"},
         )
 
         # Verify entries exist
@@ -144,12 +152,12 @@ class TestGDPRCompliance:
             action="oib_rl_validation",
             resource="building_123",
             result="success",
-            details={"compliant": True}
+            details={"compliant": True},
         )
 
         # Verify timestamp exists
         assert entry.timestamp
-        timestamp = datetime.fromisoformat(entry.timestamp.replace('Z', '+00:00'))
+        timestamp = datetime.fromisoformat(entry.timestamp.replace("Z", "+00:00"))
 
         # Verify timestamp is recent
         now = datetime.now(timezone.utc)
@@ -175,8 +183,8 @@ class TestGDPRCompliance:
             details={
                 "data_categories": ["building_dimensions", "location"],
                 "processing_purpose": "OIB-RL compliance check",
-                "legal_basis": "contract"
-            }
+                "legal_basis": "contract",
+            },
         )
 
         # Verify complete record
@@ -205,6 +213,7 @@ class TestGDPRCompliance:
 # 2. eIDAS COMPLIANCE TESTS (Regulation EU No 910/2014)
 # ═══════════════════════════════════════════════════════════════════════════
 
+
 class TestEIDASCompliance:
     """Test eIDAS digital signature requirements"""
 
@@ -222,7 +231,7 @@ class TestEIDASCompliance:
             dokument_inhalt=doc_content,
             signer_name="Dipl.-Ing. Test Ziviltechniker",
             signer_email="test@zt.at",
-            organisation="Test ZT GmbH"
+            organisation="Test ZT GmbH",
         )
 
         # Verify qualified signature properties
@@ -245,11 +254,15 @@ class TestEIDASCompliance:
             dokument_id="test-123",
             dokument_inhalt=doc_content,
             signer_name="Test Signer",
-            signer_email="test@test.at"
+            signer_email="test@test.at",
         )
 
         # Verify signature format is set
-        assert sig.metadata.signature_format in [SignatureFormat.XADES, SignatureFormat.PADES, SignatureFormat.CADES]
+        assert sig.metadata.signature_format in [
+            SignatureFormat.XADES,
+            SignatureFormat.PADES,
+            SignatureFormat.CADES,
+        ]
 
         print("✅ eIDAS - Signature formats (XAdES/PAdES/CAdES): PASS")
 
@@ -263,14 +276,14 @@ class TestEIDASCompliance:
             dokument_id="test-456",
             dokument_inhalt=doc_content,
             signer_name="Test",
-            signer_email="test@test.at"
+            signer_email="test@test.at",
         )
 
         # Verify timestamp exists
         assert sig.metadata.timestamp is not None
 
         # Verify timestamp is recent
-        ts = datetime.fromisoformat(sig.metadata.timestamp.replace('Z', '+00:00'))
+        ts = datetime.fromisoformat(sig.metadata.timestamp.replace("Z", "+00:00"))
         now = datetime.now(timezone.utc)
         assert (now - ts) < timedelta(minutes=1)
 
@@ -286,7 +299,7 @@ class TestEIDASCompliance:
             dokument_id="test-789",
             dokument_inhalt="Test",
             signer_name="Test",
-            signer_email="test@test.at"
+            signer_email="test@test.at",
         )
 
         # Verify Austrian trust provider is used
@@ -294,7 +307,7 @@ class TestEIDASCompliance:
             TrustServiceProvider.A_TRUST,
             TrustServiceProvider.GLOBALSIGN,
             TrustServiceProvider.QUOVADIS,
-            TrustServiceProvider.RUNDFUNK_GIS
+            TrustServiceProvider.RUNDFUNK_GIS,
         ]
 
         print("✅ eIDAS - Austrian trust service providers: PASS")
@@ -311,7 +324,7 @@ class TestEIDASCompliance:
             dokument_id="verify-test-001",
             dokument_inhalt=doc_content,
             signer_name="Test",
-            signer_email="test@test.at"
+            signer_email="test@test.at",
         )
 
         # Verify signature
@@ -331,6 +344,7 @@ class TestEIDASCompliance:
 # ═══════════════════════════════════════════════════════════════════════════
 # 3. EU AI ACT COMPLIANCE (Article 12 - High-Risk AI Systems)
 # ═══════════════════════════════════════════════════════════════════════════
+
 
 class TestEUAIActCompliance:
     """Test EU AI Act Article 12 requirements"""
@@ -353,8 +367,8 @@ class TestEUAIActCompliance:
                 "input_parameters": {"length_m": 6.0, "load_kn": 50.0},
                 "output": {"max_stress_mpa": 180.5, "safety_factor": 1.5},
                 "model_version": "eurocode_ec2_v1.0",
-                "confidence": 0.95
-            }
+                "confidence": 0.95,
+            },
         )
 
         assert len(trail.entries) > 0
@@ -380,7 +394,7 @@ class TestEUAIActCompliance:
                 action=f"calculation_{i}",
                 resource=f"project_{i}",
                 result="success",
-                details={"iteration": i}
+                details={"iteration": i},
             )
 
         # Verify chain integrity
@@ -416,16 +430,16 @@ class TestEUAIActCompliance:
                 "input_features": {
                     "site_area_m2": 500,
                     "bundesland": "wien",
-                    "building_type": "mehrfamilienhaus"
+                    "building_type": "mehrfamilienhaus",
                 },
                 "recommendation": {
                     "layout": "compact_l_shape",
-                    "reasoning": "optimal solar gain and space efficiency"
+                    "reasoning": "optimal solar gain and space efficiency",
                 },
                 "alternatives_considered": 5,
                 "confidence_score": 0.87,
-                "human_review_required": False
-            }
+                "human_review_required": False,
+            },
         )
 
         entry = trail.entries[-1]
@@ -456,8 +470,8 @@ class TestEUAIActCompliance:
                 "human_decision": "approved",
                 "review_notes": "Verified per ÖNORM EN 1992-1-1",
                 "reviewer_qualification": "Ziviltechniker für Bauwesen",
-                "review_duration_seconds": 180
-            }
+                "review_duration_seconds": 180,
+            },
         )
 
         entry = trail.entries[-1]
@@ -472,6 +486,7 @@ class TestEUAIActCompliance:
 # 4. ACCESSIBILITY COMPLIANCE (EN 301 549 / WCAG 2.1 AA)
 # ═══════════════════════════════════════════════════════════════════════════
 
+
 class TestAccessibilityCompliance:
     """Test accessibility requirements (EN 301 549 / WCAG 2.1 AA)"""
 
@@ -483,7 +498,7 @@ class TestAccessibilityCompliance:
         sample_response = {
             "result": "compliant",
             "uwert": 0.24,
-            "description": "U-Wert calculation result"
+            "description": "U-Wert calculation result",
         }
 
         # Verify JSON is valid
@@ -505,15 +520,14 @@ class TestAccessibilityCompliance:
         """WCAG 2.1 - Guideline 3.3 Input Assistance"""
         if not MODULES_AVAILABLE:
             raise SkipException("Modules not available")
-        from api.validation import ValidatedUWertRequest
         from pydantic import ValidationError
+
+        from api.validation import ValidatedUWertRequest
 
         # Test clear error messages
         try:
             invalid_request = ValidatedUWertRequest(
-                schichten=[],  # Empty - should fail
-                innen_uebergang=0.13,
-                aussen_uebergang=0.04
+                schichten=[], innen_uebergang=0.13, aussen_uebergang=0.04  # Empty - should fail
             )
             assert False, "Should have raised validation error"
         except ValidationError as e:
@@ -530,7 +544,7 @@ class TestAccessibilityCompliance:
         test_responses = [
             {"status": "success", "data": {"value": 123}},
             {"status": "error", "message": "Invalid input"},
-            {"results": [1, 2, 3], "count": 3}
+            {"results": [1, 2, 3], "count": 3},
         ]
 
         for response in test_responses:
@@ -552,6 +566,7 @@ class TestAccessibilityCompliance:
 # ═══════════════════════════════════════════════════════════════════════════
 # 5. EU PUBLIC PROCUREMENT COMPLIANCE (Directives 2014/24/EU, 2014/25/EU)
 # ═══════════════════════════════════════════════════════════════════════════
+
 
 class TestPublicProcurementCompliance:
     """Test EU Public Procurement Directive compliance"""
@@ -600,8 +615,8 @@ class TestPublicProcurementCompliance:
                 "cpv_code": "45000000",
                 "estimated_value_eur": 500000,
                 "procedure_type": "open",
-                "deadline": "2026-05-15T12:00:00Z"
-            }
+                "deadline": "2026-05-15T12:00:00Z",
+            },
         )
 
         assert len(trail.entries) > 0
@@ -618,6 +633,7 @@ class TestPublicProcurementCompliance:
 # ═══════════════════════════════════════════════════════════════════════════
 # 6. DIGITAL SERVICES ACT (DSA) - Regulation (EU) 2022/2065
 # ═══════════════════════════════════════════════════════════════════════════
+
 
 class TestDigitalServicesActCompliance:
     """Test Digital Services Act requirements"""
@@ -639,8 +655,8 @@ class TestDigitalServicesActCompliance:
             details={
                 "service_type": "uwert_calculation",
                 "user_tier": "free",
-                "timestamp": datetime.now(timezone.utc).isoformat()
-            }
+                "timestamp": datetime.now(timezone.utc).isoformat(),
+            },
         )
 
         assert len(trail.entries) > 0
@@ -657,6 +673,7 @@ class TestDigitalServicesActCompliance:
 # ═══════════════════════════════════════════════════════════════════════════
 # 7. NIS2 DIRECTIVE (Cybersecurity) - Directive (EU) 2022/2555
 # ═══════════════════════════════════════════════════════════════════════════
+
 
 class TestNIS2DirectiveCompliance:
     """Test NIS2 Directive cybersecurity requirements"""
@@ -679,8 +696,8 @@ class TestNIS2DirectiveCompliance:
                 "incident_type": "rate_limit_violation",
                 "source_ip": "192.168.1.100",
                 "severity": "medium",
-                "action_taken": "temporary_block"
-            }
+                "action_taken": "temporary_block",
+            },
         )
 
         entry = trail.entries[-1]
@@ -701,11 +718,12 @@ class TestNIS2DirectiveCompliance:
 # MAIN TEST EXECUTION
 # ═══════════════════════════════════════════════════════════════════════════
 
+
 def run_all_eu_compliance_tests():
     """Execute all EU compliance tests"""
-    print("\n" + "="*75)
+    print("\n" + "=" * 75)
     print("COMPREHENSIVE EU COMPLIANCE TEST SUITE")
-    print("="*75)
+    print("=" * 75)
 
     test_classes = [
         ("GDPR (Regulation EU 2016/679)", TestGDPRCompliance),
@@ -724,10 +742,10 @@ def run_all_eu_compliance_tests():
     for regulation_name, test_class in test_classes:
         print(f"\n{'='*75}")
         print(f"Testing: {regulation_name}")
-        print('='*75)
+        print("=" * 75)
 
         test_instance = test_class()
-        test_methods = [m for m in dir(test_instance) if m.startswith('test_')]
+        test_methods = [m for m in dir(test_instance) if m.startswith("test_")]
 
         for method_name in test_methods:
             total_tests += 1
@@ -742,14 +760,14 @@ def run_all_eu_compliance_tests():
                 print(f"❌ FAILED: {method_name} - {e}")
 
     # Summary
-    print("\n" + "="*75)
+    print("\n" + "=" * 75)
     print("EU COMPLIANCE TEST SUMMARY")
-    print("="*75)
+    print("=" * 75)
     print(f"Total tests:  {total_tests}")
     print(f"Passed:       {passed_tests} ✅")
     print(f"Failed:       {failed_tests} ❌")
     print(f"Success rate: {(passed_tests/total_tests*100):.1f}%")
-    print("="*75)
+    print("=" * 75)
 
     if failed_tests == 0:
         print("\n🎉 ALL EU COMPLIANCE TESTS PASSED!")

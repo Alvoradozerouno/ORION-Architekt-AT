@@ -14,14 +14,15 @@ Author: ORION Team
 Date: 2026-04-10
 """
 
-from fastapi import Request, HTTPException, status
+import hashlib
+import logging
+import re
+import secrets
+from typing import Callable
+
+from fastapi import HTTPException, Request, status
 from fastapi.responses import JSONResponse
 from starlette.middleware.base import BaseHTTPMiddleware
-from typing import Callable
-import secrets
-import hashlib
-import re
-import logging
 
 logger = logging.getLogger(__name__)
 
@@ -37,7 +38,9 @@ class SecurityHeadersMiddleware(BaseHTTPMiddleware):
         response = await call_next(request)
 
         # HSTS - Force HTTPS for 1 year
-        response.headers["Strict-Transport-Security"] = "max-age=31536000; includeSubDomains; preload"
+        response.headers["Strict-Transport-Security"] = (
+            "max-age=31536000; includeSubDomains; preload"
+        )
 
         # CSP - Content Security Policy
         csp_directives = [
@@ -49,7 +52,7 @@ class SecurityHeadersMiddleware(BaseHTTPMiddleware):
             "connect-src 'self'",
             "frame-ancestors 'none'",
             "base-uri 'self'",
-            "form-action 'self'"
+            "form-action 'self'",
         ]
         response.headers["Content-Security-Policy"] = "; ".join(csp_directives)
 
@@ -74,7 +77,7 @@ class SecurityHeadersMiddleware(BaseHTTPMiddleware):
             "usb=()",
             "magnetometer=()",
             "gyroscope=()",
-            "accelerometer=()"
+            "accelerometer=()",
         ]
         response.headers["Permissions-Policy"] = ", ".join(permissions_policies)
 
@@ -109,7 +112,7 @@ class HTTPSEnforcementMiddleware(BaseHTTPMiddleware):
                 return JSONResponse(
                     status_code=status.HTTP_301_MOVED_PERMANENTLY,
                     headers={"Location": https_url},
-                    content={"detail": "Please use HTTPS"}
+                    content={"detail": "Please use HTTPS"},
                 )
 
         return await call_next(request)
@@ -122,25 +125,25 @@ class InputSanitizationMiddleware(BaseHTTPMiddleware):
 
     # Dangerous patterns to detect
     XSS_PATTERNS = [
-        r'<script[^>]*>.*?</script>',
-        r'javascript:',
-        r'onerror=',
-        r'onload=',
-        r'onclick=',
-        r'<iframe',
-        r'<embed',
-        r'<object'
+        r"<script[^>]*>.*?</script>",
+        r"javascript:",
+        r"onerror=",
+        r"onload=",
+        r"onclick=",
+        r"<iframe",
+        r"<embed",
+        r"<object",
     ]
 
     SQL_INJECTION_PATTERNS = [
-        r'(\bUNION\b.*\bSELECT\b)',
-        r'(\bDROP\b.*\bTABLE\b)',
-        r'(\bINSERT\b.*\bINTO\b)',
-        r'(\bDELETE\b.*\bFROM\b)',
-        r'(--.*$)',
-        r'(;.*\bEXEC\b)',
-        r'(\bOR\b.*=.*)',
-        r'(\bAND\b.*=.*)'
+        r"(\bUNION\b.*\bSELECT\b)",
+        r"(\bDROP\b.*\bTABLE\b)",
+        r"(\bINSERT\b.*\bINTO\b)",
+        r"(\bDELETE\b.*\bFROM\b)",
+        r"(--.*$)",
+        r"(;.*\bEXEC\b)",
+        r"(\bOR\b.*=.*)",
+        r"(\bAND\b.*=.*)",
     ]
 
     def _is_suspicious(self, value: str) -> bool:
@@ -166,7 +169,7 @@ class InputSanitizationMiddleware(BaseHTTPMiddleware):
                 logger.warning(f"Suspicious input detected: {value[:100]}")
                 raise HTTPException(
                     status_code=status.HTTP_400_BAD_REQUEST,
-                    detail="Invalid input detected. Please remove potentially malicious content."
+                    detail="Invalid input detected. Please remove potentially malicious content.",
                 )
             return value
         elif isinstance(value, dict):
@@ -188,7 +191,7 @@ class InputSanitizationMiddleware(BaseHTTPMiddleware):
                 if body:
                     # Note: This is a simplified check
                     # In production, parse JSON and sanitize each field
-                    body_str = body.decode('utf-8', errors='ignore')
+                    body_str = body.decode("utf-8", errors="ignore")
 
                     # Basic XSS check on raw body
                     for pattern in self.XSS_PATTERNS[:4]:  # Check critical patterns only
@@ -196,7 +199,7 @@ class InputSanitizationMiddleware(BaseHTTPMiddleware):
                             logger.warning(f"XSS attempt detected in request body")
                             return JSONResponse(
                                 status_code=status.HTTP_400_BAD_REQUEST,
-                                content={"detail": "Invalid input detected"}
+                                content={"detail": "Invalid input detected"},
                             )
             except Exception as e:
                 logger.error(f"Error sanitizing input: {e}")

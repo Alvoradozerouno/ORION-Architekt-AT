@@ -33,13 +33,12 @@ NICHT SCOPE (Future):
 =============================================================================
 """
 
-import math
 import hashlib
 import json
-from dataclasses import dataclass, asdict
-from typing import List, Optional, Dict, Any
+import math
+from dataclasses import asdict, dataclass
 from datetime import datetime
-
+from typing import Any, Dict, List, Optional
 
 # =============================================================================
 # ÖSTERREICHISCHE MAUERSTEIN-DATENBANK
@@ -206,10 +205,7 @@ class MauerwerkWandEC6AT_V1:
             Schlankheit λ
         """
         # Effektive Höhe (abhängig von Lagerung)
-        if (
-            self.config.LAGERUNG_OBEN == "GEHALTEN"
-            and self.config.LAGERUNG_UNTEN == "GEHALTEN"
-        ):
+        if self.config.LAGERUNG_OBEN == "GEHALTEN" and self.config.LAGERUNG_UNTEN == "GEHALTEN":
             rho = 0.75  # Beidseitig gehalten
         elif self.config.LAGERUNG_OBEN == "FREI":
             rho = 1.0  # Oben frei
@@ -333,9 +329,9 @@ class MauerwerkWandEC6AT_V1:
             "n_ed_kn": self.config.N_ED_KN,
             "mauerstein": self.config.MAUERSTEIN,
         }
-        audit_hash = hashlib.sha256(
-            json.dumps(audit_data, sort_keys=True).encode()
-        ).hexdigest()[:16]
+        audit_hash = hashlib.sha256(json.dumps(audit_data, sort_keys=True).encode()).hexdigest()[
+            :16
+        ]
 
         # Ergebnis
         if not self.results:

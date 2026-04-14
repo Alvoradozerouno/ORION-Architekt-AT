@@ -1,14 +1,15 @@
 """
 Middleware package
 """
-from api.middleware.logging_middleware import LoggingMiddleware, AccessLogMiddleware
-from api.middleware.rate_limit import RateLimitMiddleware, rate_limit
+
 from api.middleware.auth import (
-    get_current_user,
     get_current_active_user,
+    get_current_user,
     require_admin,
-    require_premium
+    require_premium,
 )
+from api.middleware.logging_middleware import AccessLogMiddleware, LoggingMiddleware
+from api.middleware.rate_limit import RateLimitMiddleware, rate_limit
 
 __all__ = [
     "LoggingMiddleware",
@@ -18,5 +19,5 @@ __all__ = [
     "get_current_user",
     "get_current_active_user",
     "require_admin",
-    "require_premium"
+    "require_premium",
 ]

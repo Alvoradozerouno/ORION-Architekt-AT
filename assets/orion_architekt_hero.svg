@@ -1,0 +1,602 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!--
+  ORION Architekt AT — Global Leading Digital Art
+  Professional Hero Banner · 1280 × 640 px
+  Austrian Building Intelligence Platform
+  © 2026 Elisabeth Steurer & Gerhard Hirschmann · Apache 2.0
+-->
+<svg width="1280" height="640" viewBox="0 0 1280 640"
+     xmlns="http://www.w3.org/2000/svg"
+     xmlns:xlink="http://www.w3.org/1999/xlink"
+     role="img"
+     aria-label="ORION Architekt AT — Austrian Building Intelligence Platform">
+
+  <defs>
+
+    <!-- ── Backgrounds ───────────────────────────────────────────────── -->
+    <linearGradient id="bgMain" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%"   stop-color="#060D1B"/>
+      <stop offset="55%"  stop-color="#0B1525"/>
+      <stop offset="100%" stop-color="#101E30"/>
+    </linearGradient>
+
+    <linearGradient id="panelRight" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%"   stop-color="#0C192B"/>
+      <stop offset="100%" stop-color="#081320"/>
+    </linearGradient>
+
+    <!-- ── Gold accent ───────────────────────────────────────────────── -->
+    <linearGradient id="gold" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%"   stop-color="#A87820"/>
+      <stop offset="30%"  stop-color="#D4A820"/>
+      <stop offset="65%"  stop-color="#F0C835"/>
+      <stop offset="100%" stop-color="#C88C18"/>
+    </linearGradient>
+
+    <linearGradient id="goldV" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%"   stop-color="#F0C835"/>
+      <stop offset="100%" stop-color="#A87820"/>
+    </linearGradient>
+
+    <!-- ── Austrian red ──────────────────────────────────────────────── -->
+    <linearGradient id="austRed" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%"   stop-color="#D01428"/>
+      <stop offset="100%" stop-color="#A80E1E"/>
+    </linearGradient>
+
+    <!-- ── Blue accent ───────────────────────────────────────────────── -->
+    <linearGradient id="techBlue" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%"   stop-color="#1E40AF"/>
+      <stop offset="100%" stop-color="#3B82F6"/>
+    </linearGradient>
+
+    <!-- ── Filters ───────────────────────────────────────────────────── -->
+    <filter id="glow" x="-30%" y="-30%" width="160%" height="160%">
+      <feGaussianBlur stdDeviation="5" result="blur"/>
+      <feMerge>
+        <feMergeNode in="blur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+
+    <filter id="subtleShadow" x="-5%" y="-5%" width="110%" height="120%">
+      <feGaussianBlur in="SourceAlpha" stdDeviation="8" result="blur"/>
+      <feOffset dx="0" dy="5" result="shadow"/>
+      <feMerge>
+        <feMergeNode in="shadow"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+
+    <filter id="dimGlow" x="-20%" y="-20%" width="140%" height="140%">
+      <feGaussianBlur stdDeviation="3" result="blur"/>
+      <feMerge>
+        <feMergeNode in="blur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+
+    <!-- ── Architectural grid pattern ───────────────────────────────── -->
+    <pattern id="archGrid" width="60" height="60" patternUnits="userSpaceOnUse">
+      <path d="M 60 0 L 0 0 0 60" fill="none"
+            stroke="#162840" stroke-width="0.6" opacity="1"/>
+    </pattern>
+
+    <!-- ── Small dot grid ───────────────────────────────────────────── -->
+    <pattern id="dotGrid" width="20" height="20" patternUnits="userSpaceOnUse">
+      <circle cx="10" cy="10" r="0.8" fill="#1A3050" opacity="0.8"/>
+    </pattern>
+
+    <!-- ── Right panel clip ──────────────────────────────────────────── -->
+    <clipPath id="rightClip">
+      <rect x="740" y="0" width="540" height="640"/>
+    </clipPath>
+
+    <!-- ── Glowing circle clip ───────────────────────────────────────── -->
+    <radialGradient id="orbGlow" cx="50%" cy="50%" r="50%">
+      <stop offset="0%"   stop-color="#1E40AF" stop-opacity="0.20"/>
+      <stop offset="100%" stop-color="#1E40AF" stop-opacity="0.00"/>
+    </radialGradient>
+
+  </defs>
+
+  <!-- ════════════════════════════════════════════════════════════════════
+       LAYER 1 — BACKGROUND
+       ════════════════════════════════════════════════════════════════════ -->
+
+  <!-- Base fill -->
+  <rect width="1280" height="640" fill="url(#bgMain)"/>
+
+  <!-- Architectural grid -->
+  <rect width="1280" height="640" fill="url(#archGrid)" opacity="0.55"/>
+
+  <!-- Dot grid — right panel only (subtle, precision feel) -->
+  <rect x="740" y="0" width="540" height="640" fill="url(#dotGrid)" opacity="0.5"/>
+
+  <!-- Right panel slight tint -->
+  <rect x="740" y="0" width="540" height="640" fill="url(#panelRight)" opacity="0.40"/>
+
+  <!-- ════════════════════════════════════════════════════════════════════
+       LAYER 2 — ALPINE SILHOUETTE (decorative background)
+       ════════════════════════════════════════════════════════════════════ -->
+
+  <!-- Far mountains -->
+  <polygon
+    points="0,640 0,430 80,380 160,420 280,310 400,360 510,260 600,310
+            680,220 760,280 860,200 960,270 1060,210 1160,290 1240,250 1280,330 1280,640"
+    fill="#0E1E35" opacity="0.55"/>
+
+  <!-- Near ridge -->
+  <polygon
+    points="0,640 0,510 100,475 200,490 310,445 430,470 530,420 640,455
+            740,410 840,445 940,400 1040,440 1140,405 1240,450 1280,440 1280,640"
+    fill="#0A1628" opacity="0.65"/>
+
+  <!-- ════════════════════════════════════════════════════════════════════
+       LAYER 3 — ORBITAL / SATELLITE MOTIF (ORION = star hunter)
+       ════════════════════════════════════════════════════════════════════ -->
+
+  <!-- Background glow halo -->
+  <ellipse cx="195" cy="320" rx="175" ry="175" fill="url(#orbGlow)"/>
+
+  <!-- Outer orbit -->
+  <ellipse cx="195" cy="320" rx="150" ry="55"
+           fill="none" stroke="#1E40AF" stroke-width="0.8" opacity="0.25"
+           transform="rotate(-12, 195, 320)"/>
+
+  <!-- Inner orbit -->
+  <ellipse cx="195" cy="320" rx="100" ry="37"
+           fill="none" stroke="#3B82F6" stroke-width="0.6" opacity="0.20"
+           transform="rotate(20, 195, 320)"/>
+
+  <!-- Satellite node 1 -->
+  <circle cx="340" cy="296" r="3" fill="#3B82F6" opacity="0.35"
+          transform="rotate(-12, 195, 320)"/>
+
+  <!-- Satellite node 2 -->
+  <circle cx="98" cy="338" r="2" fill="#60A5FA" opacity="0.25"
+          transform="rotate(20, 195, 320)"/>
+
+  <!-- ════════════════════════════════════════════════════════════════════
+       LAYER 4 — LEFT BORDER ACCENTS
+       ════════════════════════════════════════════════════════════════════ -->
+
+  <!-- Austrian flag left stripe -->
+  <rect x="0" y="0" width="5" height="640" fill="url(#austRed)"/>
+
+  <!-- Gold inner border (top) -->
+  <rect x="5" y="0" width="1275" height="2" fill="url(#gold)" opacity="0.70"/>
+
+  <!-- Gold inner border (bottom) -->
+  <rect x="5" y="638" width="1275" height="2" fill="url(#gold)" opacity="0.50"/>
+
+  <!-- Gold inner border (right) -->
+  <rect x="1278" y="0" width="2" height="640" fill="url(#goldV)" opacity="0.50"/>
+
+  <!-- ════════════════════════════════════════════════════════════════════
+       LAYER 5 — CORNER FRAME ACCENTS
+       ════════════════════════════════════════════════════════════════════ -->
+
+  <!-- Top-left L-frame -->
+  <path d="M 5,2 L 90,2 L 90,5 L 8,5 L 8,90 L 5,90 Z"
+        fill="url(#gold)" opacity="0.55"/>
+
+  <!-- Bottom-right L-frame -->
+  <path d="M 1278,550 L 1278,636 L 1190,636 L 1190,633 L 1275,633 L 1275,550 Z"
+        fill="url(#gold)" opacity="0.40"/>
+
+  <!-- ════════════════════════════════════════════════════════════════════
+       LAYER 6 — VERTICAL DIVIDER (left / right panels)
+       ════════════════════════════════════════════════════════════════════ -->
+
+  <line x1="742" y1="52" x2="742" y2="592"
+        stroke="#1A3252" stroke-width="1" opacity="0.80"/>
+
+  <!-- Gold pip at divider centre -->
+  <rect x="739" y="315" width="6" height="2" fill="url(#gold)" opacity="0.60"/>
+
+  <!-- ════════════════════════════════════════════════════════════════════
+       LAYER 7 — GLOBAL ANCHOR SYMBOL ⊘∞⧈∞⊘
+       ════════════════════════════════════════════════════════════════════ -->
+
+  <g transform="translate(26, 30)" filter="url(#dimGlow)" opacity="0.75">
+    <text font-family="'Georgia', 'Times New Roman', serif"
+          font-size="18" font-weight="400"
+          fill="url(#gold)" letter-spacing="4">
+      &#x2298;&#x221E;&#x29C8;&#x221E;&#x2298;
+    </text>
+  </g>
+
+  <!-- ════════════════════════════════════════════════════════════════════
+       LAYER 8 — MAIN TITLE: ORION
+       ════════════════════════════════════════════════════════════════════ -->
+
+  <!-- "ORION" — dominant wordmark -->
+  <text x="72" y="240"
+        font-family="'Arial Black', 'Helvetica Neue', 'Arial', sans-serif"
+        font-size="148" font-weight="900"
+        fill="#DDE8F5" letter-spacing="-3"
+        filter="url(#subtleShadow)"
+        opacity="0.97">
+    ORION
+  </text>
+
+  <!-- Gold underline beneath ORION -->
+  <rect x="72" y="250" width="556" height="3" fill="url(#gold)" opacity="0.80"/>
+
+  <!-- ════════════════════════════════════════════════════════════════════
+       LAYER 9 — SUBTITLE & TAGLINE
+       ════════════════════════════════════════════════════════════════════ -->
+
+  <!-- "ARCHITEKT · AT" -->
+  <text x="78" y="296"
+        font-family="'Helvetica Neue', 'Arial', sans-serif"
+        font-size="30" font-weight="300"
+        fill="#8BAAC8" letter-spacing="11">
+    ARCHITEKT&#160;·&#160;AT
+  </text>
+
+  <!-- Thin separator -->
+  <line x1="72" y1="322" x2="700" y2="322" stroke="#1A3252" stroke-width="1"/>
+
+  <!-- Tagline -->
+  <text x="78" y="354"
+        font-family="'Helvetica Neue', 'Arial', sans-serif"
+        font-size="17" font-weight="400"
+        fill="#4A6A88" letter-spacing="3.5">
+    AUSTRIAN&#160;BUILDING&#160;INTELLIGENCE&#160;PLATFORM
+  </text>
+
+  <!-- ════════════════════════════════════════════════════════════════════
+       LAYER 10 — FEATURE LIST
+       ════════════════════════════════════════════════════════════════════ -->
+
+  <!-- Row 1: headline features -->
+  <g font-family="'Helvetica Neue', 'Arial', sans-serif" font-size="13.5"
+     fill="#6A8FAA" letter-spacing="0.5">
+    <text x="78"  y="398">&#x25CF;&#160;9 Bundesl&#228;nder</text>
+    <text x="230" y="398">&#x25CF;&#160;20 Funktionen</text>
+    <text x="395" y="398">&#x25CF;&#160;ISO 26262 ASIL-D</text>
+    <text x="575" y="398">&#x25CF;&#160;EU AI Act</text>
+  </g>
+
+  <!-- Row 2: standards -->
+  <g font-family="'Helvetica Neue', 'Arial', sans-serif" font-size="13"
+     fill="#3D5E78" letter-spacing="0.4">
+    <text x="78"  y="424">OIB-RL 1–6</text>
+    <text x="185" y="424">&#x2022;&#160;&#214;NORM B&#160;1800 / 1600</text>
+    <text x="395" y="424">&#x2022;&#160;Eurocode EC2–EC8</text>
+    <text x="575" y="424">&#x2022;&#160;GDPR</text>
+  </g>
+
+  <!-- Row 3: Bundesländer detail (full list) -->
+  <g font-family="'Helvetica Neue', 'Arial', sans-serif" font-size="12"
+     fill="#2E4A62" letter-spacing="0.6">
+    <text x="78" y="452">
+      Wien&#160;&#160;&#183;&#160;&#160;Nieder&#246;sterreich&#160;&#160;&#183;&#160;&#160;Ober&#246;sterreich&#160;&#160;&#183;&#160;&#160;Steiermark&#160;&#160;&#183;&#160;&#160;K&#228;rnten
+    </text>
+    <text x="78" y="472">
+      Salzburg&#160;&#160;&#183;&#160;&#160;<tspan font-weight="600" fill="#5888A8">Tirol (ORION&#8217;s Heimat)</tspan>&#160;&#160;&#183;&#160;&#160;Vorarlberg&#160;&#160;&#183;&#160;&#160;Burgenland
+    </text>
+  </g>
+
+  <!-- ════════════════════════════════════════════════════════════════════
+       LAYER 11 — COMPLIANCE BADGE ROW
+       ════════════════════════════════════════════════════════════════════ -->
+
+  <!-- Badge: ÖNORM -->
+  <g transform="translate(78, 498)">
+    <rect width="90" height="26" rx="4" fill="#0C1F35" stroke="#1E3A5A" stroke-width="1"/>
+    <text x="45" y="18" font-family="'Helvetica Neue', 'Arial', sans-serif"
+          font-size="11" font-weight="600" fill="#5888A8" text-anchor="middle"
+          letter-spacing="1">&#214;NORM</text>
+  </g>
+
+  <!-- Badge: OIB-RL -->
+  <g transform="translate(178, 498)">
+    <rect width="74" height="26" rx="4" fill="#0C1F35" stroke="#1E3A5A" stroke-width="1"/>
+    <text x="37" y="18" font-family="'Helvetica Neue', 'Arial', sans-serif"
+          font-size="11" font-weight="600" fill="#5888A8" text-anchor="middle"
+          letter-spacing="1">OIB-RL</text>
+  </g>
+
+  <!-- Badge: Eurocode -->
+  <g transform="translate(262, 498)">
+    <rect width="88" height="26" rx="4" fill="#0C1F35" stroke="#1E3A5A" stroke-width="1"/>
+    <text x="44" y="18" font-family="'Helvetica Neue', 'Arial', sans-serif"
+          font-size="11" font-weight="600" fill="#5888A8" text-anchor="middle"
+          letter-spacing="1">EUROCODE</text>
+  </g>
+
+  <!-- Badge: ISO 26262 -->
+  <g transform="translate(360, 498)">
+    <rect width="92" height="26" rx="4" fill="#0D1E12" stroke="#1A3D22" stroke-width="1"/>
+    <text x="46" y="18" font-family="'Helvetica Neue', 'Arial', sans-serif"
+          font-size="11" font-weight="600" fill="#3D9A55" text-anchor="middle"
+          letter-spacing="0.5">ISO 26262</text>
+  </g>
+
+  <!-- Badge: ASIL-D -->
+  <g transform="translate(462, 498)">
+    <rect width="64" height="26" rx="4" fill="#0D1E12" stroke="#1A3D22" stroke-width="1"/>
+    <text x="32" y="18" font-family="'Helvetica Neue', 'Arial', sans-serif"
+          font-size="11" font-weight="700" fill="#22C55E" text-anchor="middle"
+          letter-spacing="1">ASIL-D</text>
+  </g>
+
+  <!-- Badge: TRL 5 -->
+  <g transform="translate(536, 498)">
+    <rect width="58" height="26" rx="4" fill="#0C1F35" stroke="#1A4A2E" stroke-width="1"/>
+    <text x="29" y="18" font-family="'Helvetica Neue', 'Arial', sans-serif"
+          font-size="11" font-weight="600" fill="#22C55E" text-anchor="middle"
+          letter-spacing="1">TRL&#160;5</text>
+  </g>
+
+  <!-- ════════════════════════════════════════════════════════════════════
+       LAYER 12 — RIGHT PANEL: ENGINEERING SCHEMATIC
+       ════════════════════════════════════════════════════════════════════ -->
+
+  <!-- Panel header: "ENGINEERING PRECISION" -->
+  <text x="1010" y="48"
+        font-family="'Helvetica Neue', 'Arial', sans-serif"
+        font-size="10" font-weight="600"
+        fill="#2A4860" text-anchor="middle" letter-spacing="3">
+    ENGINEERING&#160;PRECISION
+  </text>
+
+  <!-- Thin gold line below header -->
+  <line x1="820" y1="56" x2="1200" y2="56" stroke="url(#gold)" stroke-width="1" opacity="0.30"/>
+
+  <!-- ────────────────────────────────────────────────────────────────────
+       Architectural drawing: multi-storey building elevation
+       ──────────────────────────────────────────────────────────────────── -->
+
+  <g transform="translate(800, 80)"
+     stroke-linecap="round" stroke-linejoin="round">
+
+    <!-- Drawing border frame -->
+    <rect x="20" y="10" width="440" height="460" rx="2"
+          fill="none" stroke="#1A3252" stroke-width="0.8" opacity="0.6"/>
+
+    <!-- Title block -->
+    <line x1="20" y1="450" x2="460" y2="450" stroke="#1A3252" stroke-width="0.8" opacity="0.6"/>
+    <text x="240" y="468" font-family="'Helvetica Neue', 'Arial', sans-serif"
+          font-size="9" fill="#2A4860" text-anchor="middle" letter-spacing="1.5">
+      WOHNGEBÄUDE&#160;·&#160;SCHNITT&#160;A-A&#160;·&#160;ÖNORM A 6240
+    </text>
+
+    <!-- Ground line -->
+    <line x1="30" y1="420" x2="450" y2="420"
+          stroke="#2A4E78" stroke-width="1.5"/>
+
+    <!-- Foundation hatching -->
+    <g stroke="#1A3252" stroke-width="0.6" opacity="0.6">
+      <line x1="80"  y1="420" x2="70"  y2="440"/>
+      <line x1="110" y1="420" x2="100" y2="440"/>
+      <line x1="140" y1="420" x2="130" y2="440"/>
+      <line x1="170" y1="420" x2="160" y2="440"/>
+      <line x1="200" y1="420" x2="190" y2="440"/>
+      <line x1="230" y1="420" x2="220" y2="440"/>
+      <line x1="260" y1="420" x2="250" y2="440"/>
+      <line x1="290" y1="420" x2="280" y2="440"/>
+      <line x1="320" y1="420" x2="310" y2="440"/>
+      <line x1="350" y1="420" x2="340" y2="440"/>
+      <line x1="380" y1="420" x2="370" y2="440"/>
+      <line x1="410" y1="420" x2="400" y2="440"/>
+    </g>
+
+    <!-- ── Building outline ──────────────────────────────────────────── -->
+    <!-- Main building mass -->
+    <rect x="60" y="100" width="360" height="320"
+          fill="#0A1828" stroke="#2A4E78" stroke-width="1.2"/>
+
+    <!-- Roof parapet -->
+    <rect x="55" y="88" width="370" height="18"
+          fill="#0C1E32" stroke="#3B6EA0" stroke-width="1.0"/>
+
+    <!-- ── Floor slabs (horizontal lines) ───────────────────────────── -->
+    <g stroke="#1E3D5C" stroke-width="0.8">
+      <line x1="60" y1="180" x2="420" y2="180"/>   <!-- 3rd floor -->
+      <line x1="60" y1="260" x2="420" y2="260"/>   <!-- 2nd floor -->
+      <line x1="60" y1="340" x2="420" y2="340"/>   <!-- 1st floor -->
+    </g>
+
+    <!-- ── Load-bearing walls (thick vertical lines) ─────────────────── -->
+    <g stroke="#3B6EA0" stroke-width="2.5">
+      <line x1="60"  y1="100" x2="60"  y2="420"/>  <!-- left wall -->
+      <line x1="200" y1="100" x2="200" y2="420"/>  <!-- centre wall -->
+      <line x1="420" y1="100" x2="420" y2="420"/>  <!-- right wall -->
+    </g>
+
+    <!-- ── Interior partition walls ──────────────────────────────────── -->
+    <g stroke="#1A3252" stroke-width="0.8">
+      <line x1="140" y1="180" x2="140" y2="340"/>
+      <line x1="310" y1="260" x2="310" y2="420"/>
+      <line x1="60"  y1="420" x2="420" y2="420"/>  <!-- bottom slab -->
+    </g>
+
+    <!-- ── Windows: Ground floor ─────────────────────────────────────── -->
+    <!-- Left window -->
+    <rect x="75"  y="360" width="50" height="48"
+          fill="#0D2040" stroke="#3B6EA0" stroke-width="1.0"/>
+    <line x1="100" y1="360" x2="100" y2="408" stroke="#1E3D5C" stroke-width="0.6"/>
+
+    <!-- Centre-left door -->
+    <rect x="168" y="375" width="40" height="45"
+          fill="#0D2040" stroke="#D4A820" stroke-width="1.0" opacity="0.8"/>
+
+    <!-- Centre-right window -->
+    <rect x="220" y="360" width="60" height="48"
+          fill="#0D2040" stroke="#3B6EA0" stroke-width="1.0"/>
+    <line x1="250" y1="360" x2="250" y2="408" stroke="#1E3D5C" stroke-width="0.6"/>
+
+    <!-- Right window -->
+    <rect x="340" y="360" width="60" height="48"
+          fill="#0D2040" stroke="#3B6EA0" stroke-width="1.0"/>
+    <line x1="370" y1="360" x2="370" y2="408" stroke="#1E3D5C" stroke-width="0.6"/>
+
+    <!-- ── Windows: 1st floor ─────────────────────────────────────────── -->
+    <g fill="#0D2040" stroke="#3B6EA0" stroke-width="0.9">
+      <rect x="75"  y="280" width="50" height="42"/>
+      <rect x="165" y="280" width="50" height="42"/>
+      <rect x="220" y="280" width="60" height="42"/>
+      <rect x="340" y="280" width="60" height="42"/>
+    </g>
+    <g stroke="#1E3D5C" stroke-width="0.5">
+      <line x1="100" y1="280" x2="100" y2="322"/>
+      <line x1="190" y1="280" x2="190" y2="322"/>
+      <line x1="250" y1="280" x2="250" y2="322"/>
+      <line x1="370" y1="280" x2="370" y2="322"/>
+    </g>
+
+    <!-- ── Windows: 2nd floor ─────────────────────────────────────────── -->
+    <g fill="#0D2040" stroke="#3B6EA0" stroke-width="0.9">
+      <rect x="75"  y="200" width="50" height="42"/>
+      <rect x="165" y="200" width="50" height="42"/>
+      <rect x="220" y="200" width="60" height="42"/>
+      <rect x="340" y="200" width="60" height="42"/>
+    </g>
+    <g stroke="#1E3D5C" stroke-width="0.5">
+      <line x1="100" y1="200" x2="100" y2="242"/>
+      <line x1="190" y1="200" x2="190" y2="242"/>
+      <line x1="250" y1="200" x2="250" y2="242"/>
+      <line x1="370" y1="200" x2="370" y2="242"/>
+    </g>
+
+    <!-- ── Windows: 3rd floor ─────────────────────────────────────────── -->
+    <g fill="#0D2040" stroke="#3B6EA0" stroke-width="0.9">
+      <rect x="75"  y="116" width="50" height="42"/>
+      <rect x="165" y="116" width="50" height="42"/>
+      <rect x="220" y="116" width="60" height="42"/>
+      <rect x="340" y="116" width="60" height="42"/>
+    </g>
+    <g stroke="#1E3D5C" stroke-width="0.5">
+      <line x1="100" y1="116" x2="100" y2="158"/>
+      <line x1="190" y1="116" x2="190" y2="158"/>
+      <line x1="250" y1="116" x2="250" y2="158"/>
+      <line x1="370" y1="116" x2="370" y2="158"/>
+    </g>
+
+    <!-- ── Storey height dimension lines ─────────────────────────────── -->
+    <g stroke="#D4A820" stroke-width="0.6" opacity="0.55" stroke-dasharray="3,3">
+      <!-- Left dimension line -->
+      <line x1="42" y1="100" x2="42" y2="420"/>
+      <line x1="38" y1="100" x2="46" y2="100"/>
+      <line x1="38" y1="180" x2="46" y2="180"/>
+      <line x1="38" y1="260" x2="46" y2="260"/>
+      <line x1="38" y1="340" x2="46" y2="340"/>
+      <line x1="38" y1="420" x2="46" y2="420"/>
+    </g>
+
+    <!-- Storey labels -->
+    <g font-family="'Monaco', 'Courier New', monospace" font-size="7.5"
+       fill="#D4A820" opacity="0.65" text-anchor="end">
+      <text x="36" y="144">DG</text>
+      <text x="36" y="224">OG 2</text>
+      <text x="36" y="304">OG 1</text>
+      <text x="36" y="384">EG</text>
+    </g>
+
+    <!-- ── Right dimension: total height ──────────────────────────────── -->
+    <g stroke="#D4A820" stroke-width="0.6" opacity="0.45" stroke-dasharray="3,3">
+      <line x1="435" y1="88"  x2="435" y2="420"/>
+      <line x1="432" y1="88"  x2="438" y2="88"/>
+      <line x1="432" y1="420" x2="438" y2="420"/>
+    </g>
+    <text x="446" y="256" font-family="'Monaco', 'Courier New', monospace"
+          font-size="7.5" fill="#D4A820" opacity="0.65">12.40&#160;m</text>
+
+    <!-- ── Width dimension: ground level ─────────────────────────────── -->
+    <g stroke="#D4A820" stroke-width="0.6" opacity="0.45" stroke-dasharray="3,3">
+      <line x1="60"  y1="432" x2="420" y2="432"/>
+      <line x1="60"  y1="429" x2="60"  y2="435"/>
+      <line x1="420" y1="429" x2="420" y2="435"/>
+    </g>
+    <text x="240" y="445" font-family="'Monaco', 'Courier New', monospace"
+          font-size="7.5" fill="#D4A820" opacity="0.65" text-anchor="middle">
+      18.00&#160;m
+    </text>
+
+    <!-- ── BGF annotation ────────────────────────────────────────────── -->
+    <text x="240" y="160" font-family="'Monaco', 'Courier New', monospace"
+          font-size="8" fill="#2A4860" text-anchor="middle">
+      BGF&#160;=&#160;324&#160;m&#178;
+    </text>
+    <text x="240" y="240" font-family="'Monaco', 'Courier New', monospace"
+          font-size="8" fill="#2A4860" text-anchor="middle">
+      NGF&#160;=&#160;270&#160;m&#178;
+    </text>
+    <text x="240" y="320" font-family="'Monaco', 'Courier New', monospace"
+          font-size="8" fill="#2A4860" text-anchor="middle">
+      NRF&#160;=&#160;243&#160;m&#178;
+    </text>
+
+  </g>
+
+  <!-- ════════════════════════════════════════════════════════════════════
+       LAYER 13 — VERSION & LOCATION (top-right)
+       ════════════════════════════════════════════════════════════════════ -->
+
+  <!-- Version tag -->
+  <g transform="translate(1126, 20)">
+    <rect width="134" height="24" rx="3"
+          fill="#0B1828" stroke="#1A3252" stroke-width="1"/>
+    <text x="67" y="16.5"
+          font-family="'Monaco', 'Courier New', monospace"
+          font-size="10" fill="#2A4860" text-anchor="middle" letter-spacing="1">
+      v3.0.1&#160;RELEASE
+    </text>
+  </g>
+
+  <!-- ════════════════════════════════════════════════════════════════════
+       LAYER 14 — BOTTOM STATUS BAR
+       ════════════════════════════════════════════════════════════════════ -->
+
+  <!-- Bar background -->
+  <rect x="5" y="600" width="1273" height="38" fill="#040A14" opacity="0.90"/>
+
+  <!-- Thin gold separator line -->
+  <line x1="5" y1="600" x2="1278" y2="600" stroke="url(#gold)" stroke-width="1" opacity="0.40"/>
+
+  <!-- Left: Made in Austria -->
+  <text x="22" y="623"
+        font-family="'Helvetica Neue', 'Arial', sans-serif"
+        font-size="10" font-weight="600"
+        fill="#3D5A72" letter-spacing="2.5">
+    MADE IN AUSTRIA
+  </text>
+
+  <!-- Left bullet separator -->
+  <text x="152" y="623"
+        font-family="'Helvetica Neue', 'Arial', sans-serif"
+        font-size="10" fill="#1E3252">
+    &#160;&#183;&#160;
+  </text>
+
+  <!-- Centre: standards ribbon -->
+  <text x="640" y="623"
+        font-family="'Helvetica Neue', 'Arial', sans-serif"
+        font-size="10" fill="#2A4462"
+        text-anchor="middle" letter-spacing="1.5">
+    &#214;NORM&#160;&#160;&#183;&#160;&#160;OIB-RL&#160;&#160;&#183;&#160;&#160;Eurocode&#160;&#160;&#183;&#160;&#160;ISO&#160;26262&#160;ASIL-D&#160;&#160;&#183;&#160;&#160;EU&#160;AI&#160;Act&#160;Art.&#160;12&#160;&#160;&#183;&#160;&#160;GDPR&#160;Art.&#160;30
+  </text>
+
+  <!-- Right: coordinates -->
+  <text x="1258" y="623"
+        font-family="'Helvetica Neue', 'Arial', sans-serif"
+        font-size="10" fill="#2A4462"
+        text-anchor="end" letter-spacing="1">
+    St. Johann in Tirol&#160;&#183;&#160;47.52&#176;N&#160;12.43&#176;E
+  </text>
+
+  <!-- ════════════════════════════════════════════════════════════════════
+       LAYER 15 — AUTHORSHIP (very subtle, bottom-left of right panel)
+       ════════════════════════════════════════════════════════════════════ -->
+
+  <text x="760" y="592"
+        font-family="'Helvetica Neue', 'Arial', sans-serif"
+        font-size="8.5" fill="#1A3050" letter-spacing="0.8">
+    &#169;&#160;2026&#160;Elisabeth&#160;Steurer&#160;&amp;&#160;Gerhard&#160;Hirschmann&#160;&#160;&#183;&#160;&#160;Apache&#160;2.0
+  </text>
+
+</svg>

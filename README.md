@@ -1,9 +1,20 @@
 # ORION Architekt Oesterreich
 
-[![Python](https://img.shields.io/badge/Python-3.11+-blue.svg)](#)
-[![States](https://img.shields.io/badge/Bundeslaender-9-red.svg)](#)
-[![Functions](https://img.shields.io/badge/Funktionen-20-blue.svg)](#)
-[![OIB](https://img.shields.io/badge/OIB--RL-1_bis_6-green.svg)](#)
+<p align="center">
+  <img src="assets/orion_architekt_hero.svg"
+       alt="ORION Architekt AT — Austrian Building Intelligence Platform"
+       width="100%"/>
+</p>
+
+<p align="center">
+  <a href="#"><img src="https://img.shields.io/badge/Python-3.11+-blue.svg" alt="Python"/></a>
+  <a href="#"><img src="https://img.shields.io/badge/Bundeslaender-9-red.svg" alt="9 Bundesländer"/></a>
+  <a href="#"><img src="https://img.shields.io/badge/Funktionen-20-blue.svg" alt="20 Funktionen"/></a>
+  <a href="#"><img src="https://img.shields.io/badge/OIB--RL-1_bis_6-green.svg" alt="OIB-RL 1–6"/></a>
+  <a href="#"><img src="https://img.shields.io/badge/ISO_26262-ASIL--D-brightgreen.svg" alt="ISO 26262 ASIL-D"/></a>
+  <a href="#"><img src="https://img.shields.io/badge/Eurocode-EC2--EC8-blue.svg" alt="Eurocode"/></a>
+  <a href="#"><img src="https://img.shields.io/badge/TRL-5_%E2%9C%93-success.svg" alt="TRL 5"/></a>
+</p>
 
 **Vollstaendiges Bau-Engineering-Tool fuer alle 9 oesterreichischen Bundeslaender.**
 

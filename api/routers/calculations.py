@@ -28,7 +28,7 @@ class Schicht(BaseModel):
 class UWertRequest(BaseModel):
     """U-value calculation request"""
 
-    schichten: List[Schicht]
+    schichten: List[Schicht] = Field(..., min_length=1, max_length=20)
     innen_uebergang: float = Field(0.13, description="Internal heat transfer coefficient")
     aussen_uebergang: float = Field(0.04, description="External heat transfer coefficient")
 
@@ -64,9 +64,9 @@ class FlaecheRequest(BaseModel):
     """Area calculation request (ÖNORM B 1800)"""
 
     raumtyp: str
-    laenge_m: float = Field(..., gt=0)
-    breite_m: float = Field(..., gt=0)
-    hoehe_m: float = Field(..., gt=0)
+    laenge_m: float = Field(..., gt=0, le=1000)  # Max 1000m to prevent unrealistic values
+    breite_m: float = Field(..., gt=0, le=1000)  # Max 1000m to prevent unrealistic values
+    hoehe_m: float = Field(..., gt=0, le=100)  # Max 100m ceiling height
 
 
 class FlaecheResult(BaseModel):
@@ -77,6 +77,42 @@ class FlaecheResult(BaseModel):
     nrf_m2: float
     vgf_m2: float
     standard: str = "ÖNORM B 1800"
+
+
+class BarrierefreiheitRequest(BaseModel):
+    """Accessibility check request"""
+
+    tuer_breite_cm: float = Field(..., gt=0)
+    rampe_vorhanden: bool = False
+    rampe_steigung_prozent: Optional[float] = None
+    aufzug_vorhanden: bool = False
+    geschosse: int = Field(1, gt=0)
+
+
+class FluchtwegRequest(BaseModel):
+    """Emergency exit check request"""
+
+    max_entfernung_m: float = Field(..., gt=0)
+    treppenhaus_breite_m: float = Field(..., gt=0)
+    geschosse: int = Field(..., gt=0)
+    gebaudetyp: str = "wohngebaeude"
+
+
+class SchallschutzRequest(BaseModel):
+    """Sound insulation request"""
+
+    wandaufbau: List[Schicht]
+    gebaudetyp: str = "mehrfamilienhaus"
+
+
+class HeizlastRequest(BaseModel):
+    """Heating load calculation request"""
+
+    bgf_m2: float = Field(..., gt=0, le=100000)
+    uwert_wand: float = Field(..., gt=0, le=5)
+    uwert_dach: float = Field(..., gt=0, le=5)
+    uwert_fenster: float = Field(..., gt=0, le=5)
+    bundesland: str = "wien"
 
 
 # Endpoints
@@ -208,13 +244,7 @@ async def berechne_flaeche(request: FlaecheRequest):
 
 
 @router.post("/barrierefreiheit-check")
-async def check_barrierefreiheit(
-    tuer_breite_cm: float,
-    rampe_vorhanden: bool,
-    rampe_steigung_prozent: Optional[float] = None,
-    aufzug_vorhanden: bool = False,
-    geschosse: int = 1,
-):
+async def check_barrierefreiheit(request: BarrierefreiheitRequest):
     """
     ♿ **Barrierefreiheit Check**
 
@@ -226,17 +256,19 @@ async def check_barrierefreiheit(
     mangel = []
 
     # Door width check
-    if tuer_breite_cm < 90:
-        mangel.append(f"Türbreite {tuer_breite_cm}cm zu gering (minimum: 90cm)")
+    if request.tuer_breite_cm < 90:
+        mangel.append(f"Türbreite {request.tuer_breite_cm}cm zu gering (minimum: 90cm)")
 
     # Ramp check
-    if rampe_vorhanden and rampe_steigung_prozent:
-        if rampe_steigung_prozent > 6:
-            mangel.append(f"Rampensteigung {rampe_steigung_prozent}% zu steil (maximum: 6%)")
+    if request.rampe_vorhanden and request.rampe_steigung_prozent:
+        if request.rampe_steigung_prozent > 6:
+            mangel.append(
+                f"Rampensteigung {request.rampe_steigung_prozent}% zu steil (maximum: 6%)"
+            )
 
     # Elevator check
-    if geschosse >= 4 and not aufzug_vorhanden:
-        mangel.append(f"Aufzug erforderlich bei {geschosse} Geschoßen")
+    if request.geschosse >= 4 and not request.aufzug_vorhanden:
+        mangel.append(f"Aufzug erforderlich bei {request.geschosse} Geschoßen")
 
     return {
         "compliant": len(mangel) == 0,
@@ -247,12 +279,7 @@ async def check_barrierefreiheit(
 
 
 @router.post("/fluchtweg-check")
-async def check_fluchtweg(
-    max_entfernung_m: float,
-    treppenhaus_breite_m: float,
-    geschosse: int,
-    gebaudetyp: str = "wohngebaeude",
-):
+async def check_fluchtweg(request: FluchtwegRequest):
     """
     🚨 **Fluchtweg Check**
 
@@ -265,21 +292,23 @@ async def check_fluchtweg(
     warnings = []
 
     # Distance check
-    max_allowed = 40 if gebaudetyp == "wohngebaeude" else 35
-    if max_entfernung_m > max_allowed:
-        mangel.append(f"Fluchtweg {max_entfernung_m}m zu lang (maximum: {max_allowed}m)")
+    max_allowed = 40 if request.gebaudetyp == "wohngebaeude" else 35
+    if request.max_entfernung_m > max_allowed:
+        mangel.append(f"Fluchtweg {request.max_entfernung_m}m zu lang (maximum: {max_allowed}m)")
 
     # Stairway width check
-    min_breite = 1.20 if geschosse >= 4 else 1.00
-    if treppenhaus_breite_m < min_breite:
-        mangel.append(f"Treppenhaus {treppenhaus_breite_m}m zu schmal (minimum: {min_breite}m)")
-    elif treppenhaus_breite_m < min_breite + 0.1:
+    min_breite = 1.20 if request.geschosse >= 4 else 1.00
+    if request.treppenhaus_breite_m < min_breite:
+        mangel.append(
+            f"Treppenhaus {request.treppenhaus_breite_m}m zu schmal (minimum: {min_breite}m)"
+        )
+    elif request.treppenhaus_breite_m < min_breite + 0.1:
         warnings.append(
-            f"Treppenhaus {treppenhaus_breite_m}m knapp bemessen (empfohlen: >{min_breite}m)"
+            f"Treppenhaus {request.treppenhaus_breite_m}m knapp bemessen (empfohlen: >{min_breite}m)"
         )
 
     # High-rise requirements
-    if geschosse >= 5:
+    if request.geschosse >= 5:
         warnings.append("Hochhaus-Anforderungen prüfen: zweiter Fluchtweg, Feuerwehraufzug")
 
     return {
@@ -292,7 +321,7 @@ async def check_fluchtweg(
 
 
 @router.post("/schallschutz-berechnung")
-async def berechne_schallschutz(wandaufbau: List[Schicht], gebaudetyp: str = "mehrfamilienhaus"):
+async def berechne_schallschutz(request: SchallschutzRequest):
     """
     🔊 **Schallschutz-Berechnung**
 
@@ -304,7 +333,7 @@ async def berechne_schallschutz(wandaufbau: List[Schicht], gebaudetyp: str = "me
     # Sound reduction index increases with mass
     gesamtmasse_kg_m2 = sum(
         schicht.dicke_mm / 1000 * 2000  # Simplified: assuming 2000 kg/m3 average density
-        for schicht in wandaufbau
+        for schicht in request.wandaufbau
     )
 
     # Simplified mass law: R = 20*log10(m*f) - 47
@@ -312,7 +341,7 @@ async def berechne_schallschutz(wandaufbau: List[Schicht], gebaudetyp: str = "me
     rw_estimated = 20 * (gesamtmasse_kg_m2**0.5)  # Simplified
 
     # Requirements
-    required_rw = 55 if gebaudetyp == "mehrfamilienhaus" else 52
+    required_rw = 55 if request.gebaudetyp == "mehrfamilienhaus" else 52
 
     return {
         "rw_estimated": round(rw_estimated, 1),
@@ -325,13 +354,7 @@ async def berechne_schallschutz(wandaufbau: List[Schicht], gebaudetyp: str = "me
 
 
 @router.post("/heizlast-berechnung")
-async def berechne_heizlast(
-    bgf_m2: float,
-    uwert_wand: float,
-    uwert_dach: float,
-    uwert_fenster: float,
-    bundesland: str = "wien",
-):
+async def berechne_heizlast(request: HeizlastRequest):
     """
     🔥 **Heizlast-Berechnung**
 
@@ -353,26 +376,26 @@ async def berechne_heizlast(
         "burgenland": 0.9,
     }
 
-    klima_faktor = klima_faktoren.get(bundesland.lower(), 1.0)
+    klima_faktor = klima_faktoren.get(request.bundesland.lower(), 1.0)
 
     # Simplified calculation
     # Transmission losses: Q_T = A * U * ΔT
     delta_t = 25  # Temperature difference (20°C inside - (-5°C) outside)
 
-    q_wand = bgf_m2 * 3 * uwert_wand * delta_t  # Assuming 3x wall area
-    q_dach = bgf_m2 * uwert_dach * delta_t
-    q_fenster = bgf_m2 * 0.3 * uwert_fenster * delta_t  # 30% window area
+    q_wand = request.bgf_m2 * 3 * request.uwert_wand * delta_t  # Assuming 3x wall area
+    q_dach = request.bgf_m2 * request.uwert_dach * delta_t
+    q_fenster = request.bgf_m2 * 0.3 * request.uwert_fenster * delta_t  # 30% window area
 
     q_transmission = (q_wand + q_dach + q_fenster) * klima_faktor
 
     # Ventilation losses: Q_V = V * ρ * c * n * ΔT
-    volumen = bgf_m2 * 2.7  # 2.7m ceiling height
+    volumen = request.bgf_m2 * 2.7  # 2.7m ceiling height
     q_ventilation = volumen * 0.34 * 0.5 * delta_t  # 0.5 air changes/hour
 
     heizlast_gesamt = q_transmission + q_ventilation
 
     # Specific heating load
-    spezifische_heizlast = heizlast_gesamt / bgf_m2
+    spezifische_heizlast = heizlast_gesamt / request.bgf_m2
 
     return {
         "heizlast_gesamt_w": round(heizlast_gesamt, 0),
@@ -380,7 +403,7 @@ async def berechne_heizlast(
         "q_transmission_w": round(q_transmission, 0),
         "q_ventilation_w": round(q_ventilation, 0),
         "klima_faktor": klima_faktor,
-        "bundesland": bundesland,
+        "bundesland": request.bundesland,
         "standard": "ÖNORM EN 12831",
     }
 

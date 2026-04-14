@@ -11,15 +11,18 @@ Status: PRODUCTION SECURITY
 """
 
 import os
+import sys
 import time
 from typing import Any, Dict
 
-import httpx
 import pytest
+from fastapi.testclient import TestClient
 
-# Base URL from environment or default
-BASE_URL = os.getenv("TEST_API_URL", "http://localhost")
-TIMEOUT = 30
+# Add parent directory to path
+sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+
+# Import app
+from api.main import app
 
 
 class TestOWASPAPITop10:
@@ -28,7 +31,7 @@ class TestOWASPAPITop10:
     @pytest.fixture
     def client(self):
         """HTTP client for API testing"""
-        return httpx.Client(base_url=BASE_URL, timeout=TIMEOUT)
+        return TestClient(app)
 
     # ========================================================================
     # API1:2023 - Broken Object Level Authorization (BOLA)
@@ -42,17 +45,14 @@ class TestOWASPAPITop10:
         test_ids = ["1", "999", "../../etc/passwd", "../admin"]
 
         for resource_id in test_ids:
-            try:
-                response = client.get(f"/api/v1/projects/{resource_id}")
-                # Should return 401/403/404, not 200 with other user's data
-                assert response.status_code in [
-                    401,
-                    403,
-                    404,
-                    422,
-                ], f"BOLA vulnerability: Resource {resource_id} accessible without auth"
-            except httpx.HTTPError:
-                pass  # Connection error is acceptable for this test
+            response = client.get(f"/api/v1/projects/{resource_id}")
+            # Should return 401/403/404, not 200 with other user's data
+            assert response.status_code in [
+                401,
+                403,
+                404,
+                422,
+            ], f"BOLA vulnerability: Resource {resource_id} accessible without auth"
 
     # ========================================================================
     # API2:2023 - Broken Authentication

@@ -149,13 +149,12 @@ async def health_check():
 @app.get("/health/ready", tags=["health"])
 async def readiness_check():
     """Readiness check for kubernetes/docker"""
+    from api.database import get_db
+    from sqlalchemy import text
+    db_gen = get_db()
+    db = next(db_gen)
     try:
-        # Check database connection
-        from api.database import get_db
-        from sqlalchemy import text
-        db = next(get_db())
         db.execute(text("SELECT 1"))
-
         return {
             "status": "ready",
             "database": "connected",
@@ -164,6 +163,11 @@ async def readiness_check():
     except Exception as e:
         logger.error(f"Readiness check failed: {e}")
         raise HTTPException(status_code=503, detail="Service not ready")
+    finally:
+        try:
+            next(db_gen)
+        except StopIteration:
+            pass
 
 @app.get("/health/live", tags=["health"])
 async def liveness_check():

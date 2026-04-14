@@ -420,14 +420,14 @@ def validate_jwt_format(token: str) -> bool:
     if not token:
         return False
 
-    # JWT format: header.payload.signature (3 parts separated by dots)
+    # JWT format: header.payload.signature (3 non-empty parts separated by dots)
     parts = token.split('.')
     if len(parts) != 3:
         return False
 
-    # Each part should contain only base64url characters (A-Z, a-z, 0-9, -, _, =)
+    # Each part should be non-empty and contain only base64url characters (A-Z, a-z, 0-9, -, _, =)
     base64url_pattern = re.compile(r'^[A-Za-z0-9\-_=]+$')
-    return all(bool(base64url_pattern.match(part)) for part in parts if part)
+    return all(bool(part) and bool(base64url_pattern.match(part)) for part in parts)
 
 
 # ============================================================================

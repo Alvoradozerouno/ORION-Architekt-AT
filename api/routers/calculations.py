@@ -27,16 +27,18 @@ class Schicht(BaseModel):
         """Sanitize material name to prevent injection attacks"""
         # Remove null bytes
         v = v.replace('\x00', '')
-        # Reject strings with script/injection patterns
+        # Reject strings with script/injection patterns (SQL keywords, HTML tags, URLs)
         dangerous_patterns = [
-            r'<[^>]+>',          # HTML/XML tags
-            r'[;\'"\\]',         # SQL injection chars
-            r'https?://',        # URLs (SSRF)
-            r'file://',          # Local file access
+            r'<[^>]+>',                          # HTML/XML tags
+            r'--\s',                             # SQL comment injection
+            r';\s*(DROP|DELETE|INSERT|UPDATE|SELECT|CREATE|ALTER|EXEC)\b',  # SQL DML/DDL
+            r'https?://',                        # HTTP URLs (SSRF)
+            r'file://',                          # Local file access
+            r'ftp://',                           # FTP access
         ]
         for pattern in dangerous_patterns:
             if re.search(pattern, v, re.IGNORECASE):
-                raise ValueError(f"Invalid material name: contains disallowed characters or patterns")
+                raise ValueError("Invalid material name: contains disallowed characters or patterns")
         return v.strip()
 
 class UWertRequest(BaseModel):

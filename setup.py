@@ -14,8 +14,22 @@ long_description = (this_directory / "README.md").read_text(encoding="utf-8")
 
 # Read requirements
 def read_requirements(filename):
-    with open(filename) as f:
-        return [line.strip() for line in f if line.strip() and not line.startswith("#")]
+    """Read requirements from file, with fallback for isolated builds"""
+    try:
+        with open(filename) as f:
+            return [line.strip() for line in f if line.strip() and not line.startswith("#")]
+    except FileNotFoundError:
+        # Fallback for isolated build environments
+        return []
+
+
+# Core dependencies (fallback for isolated builds)
+CORE_DEPS = [
+    "fastapi>=0.104.0",
+    "uvicorn[standard]>=0.24.0",
+    "pydantic>=2.5.0",
+    "python-multipart>=0.0.6",
+]
 
 
 setup(
@@ -44,7 +58,7 @@ setup(
     ],
     packages=find_packages(include=["api", "api.*", "tests", "tests.*"]),
     python_requires=">=3.11",
-    install_requires=read_requirements("requirements.txt")[:10],  # Core dependencies only
+    install_requires=read_requirements("requirements.txt")[:10] or CORE_DEPS,
     extras_require={
         "dev": [
             "pytest>=8.0.0",
@@ -53,7 +67,7 @@ setup(
             "flake8>=7.0.0",
             "isort>=5.13.0",
         ],
-        "all": read_requirements("requirements.txt"),
+        "all": read_requirements("requirements.txt") or CORE_DEPS,
     },
     classifiers=[
         "Development Status :: 4 - Beta",

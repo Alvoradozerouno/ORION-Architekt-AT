@@ -10,7 +10,7 @@ Date: 2026-04-11
 Status: PRODUCTION
 """
 
-from pydantic import BaseModel, Field, validator, root_validator
+from pydantic import BaseModel, Field, field_validator, model_validator
 from typing import List, Optional, Dict, Any, ClassVar
 from enum import Enum
 import re
@@ -125,11 +125,13 @@ class ValidatedSchicht(BaseModel):
     dicke_mm: float = Field(..., gt=0, le=5000, description="Thickness in mm (max 5m)")
     lambda_wert: float = Field(..., gt=0, le=10, description="Thermal conductivity W/mK")
 
-    @validator('material')
+    @field_validator('material')
+    @classmethod
     def validate_material(cls, v):
         return sanitize_string(v, max_length=200)
 
-    @validator('dicke_mm')
+    @field_validator('dicke_mm')
+    @classmethod
     def validate_dicke(cls, v):
         if v > 5000:  # 5 meters maximum
             raise ValueError("Layer thickness unrealistic: > 5m")
@@ -137,7 +139,8 @@ class ValidatedSchicht(BaseModel):
             raise ValueError("Layer thickness too thin: < 1mm")
         return v
 
-    @validator('lambda_wert')
+    @field_validator('lambda_wert')
+    @classmethod
     def validate_lambda(cls, v):
         if v > 10:  # Unrealistically high
             raise ValueError("Lambda value unrealistic: > 10 W/mK")
@@ -148,11 +151,12 @@ class ValidatedSchicht(BaseModel):
 
 class ValidatedUWertRequest(BaseModel):
     """U-value calculation request with comprehensive validation"""
-    schichten: List[ValidatedSchicht] = Field(..., min_items=1, max_items=20)
+    schichten: List[ValidatedSchicht] = Field(..., min_length=1, max_length=20)
     innen_uebergang: float = Field(0.13, ge=0.04, le=0.25)
     aussen_uebergang: float = Field(0.04, ge=0.02, le=0.10)
 
-    @validator('schichten')
+    @field_validator('schichten')
+    @classmethod
     def validate_schichten(cls, v):
         if len(v) < 1:
             raise ValueError("At least one layer required")
@@ -175,7 +179,8 @@ class ValidatedStellplatzRequest(BaseModel):
     wohnungen: int = Field(..., gt=0, le=10000, description="Number of apartments")
     building_type: BuildingType = Field(BuildingType.MEHRFAMILIENHAUS)
 
-    @validator('wohnungen')
+    @field_validator('wohnungen')
+    @classmethod
     def validate_wohnungen(cls, v):
         if v > 10000:
             raise ValueError("Number of apartments unrealistic: > 10000")
@@ -191,7 +196,8 @@ class ValidatedFlaecheRequest(BaseModel):
     breite_m: float = Field(..., gt=0, le=1000)
     hoehe_m: float = Field(..., gt=0, le=100)
 
-    @validator('laenge_m', 'breite_m')
+    @field_validator('laenge_m', 'breite_m')
+    @classmethod
     def validate_dimensions(cls, v):
         if v > 1000:
             raise ValueError("Dimension unrealistic: > 1000m")
@@ -199,7 +205,8 @@ class ValidatedFlaecheRequest(BaseModel):
             raise ValueError("Dimension too small: < 0.1m")
         return v
 
-    @validator('hoehe_m')
+    @field_validator('hoehe_m')
+    @classmethod
     def validate_hoehe(cls, v):
         if v > 100:
             raise ValueError("Height unrealistic: > 100m")
@@ -207,10 +214,10 @@ class ValidatedFlaecheRequest(BaseModel):
             raise ValueError("Height too low: < 1.5m (Austrian minimum)")
         return v
 
-    @root_validator(skip_on_failure=True)
-    def validate_area(cls, values):
-        laenge = values.get('laenge_m', 0)
-        breite = values.get('breite_m', 0)
+    @model_validator(mode='after')
+    def validate_area(self):
+        laenge = self.laenge_m or 0
+        breite = self.breite_m or 0
         area = laenge * breite
 
         if area > 100000:  # 10 hectares
@@ -218,7 +225,7 @@ class ValidatedFlaecheRequest(BaseModel):
         if area < 1:
             raise ValueError(f"Room area too small: {area}m² < 1m²")
 
-        return values
+        return self
 
 
 class ValidatedBarrierefreiheitRequest(BaseModel):
@@ -230,15 +237,18 @@ class ValidatedBarrierefreiheitRequest(BaseModel):
     geschosse: int = Field(..., ge=1, le=200)
     bundesland: Optional[Bundesland] = Field(Bundesland.WIEN)
 
-    @validator('rampe_steigung_prozent')
-    def validate_rampe(cls, v, values):
+    @field_validator('rampe_steigung_prozent')
+    @classmethod
+    def validate_rampe(cls, v, info):
+        values = info.data
         if values.get('rampe_vorhanden') and v is None:
             raise ValueError("Ramp slope required when ramp exists")
         if v is not None and v > 100:
             raise ValueError("Ramp slope percentage unrealistic: > 100%")
         return v
 
-    @validator('geschosse')
+    @field_validator('geschosse')
+    @classmethod
     def validate_geschosse(cls, v):
         if v > 200:
             raise ValueError("Number of floors unrealistic: > 200")
@@ -252,7 +262,8 @@ class ValidatedFluchtwegRequest(BaseModel):
     geschosse: int = Field(..., ge=1, le=200)
     gebaudetyp: BuildingType = Field(BuildingType.WOHNGEBAEUDE)
 
-    @validator('max_entfernung_m')
+    @field_validator('max_entfernung_m')
+    @classmethod
     def validate_entfernung(cls, v):
         if v > 200:
             raise ValueError("Distance unrealistic: > 200m")
@@ -261,10 +272,11 @@ class ValidatedFluchtwegRequest(BaseModel):
 
 class ValidatedSchallschutzRequest(BaseModel):
     """Sound insulation check with validation"""
-    wandaufbau: List[ValidatedSchicht] = Field(..., min_items=1, max_items=15)
+    wandaufbau: List[ValidatedSchicht] = Field(..., min_length=1, max_length=15)
     gebaudetyp: BuildingType = Field(BuildingType.MEHRFAMILIENHAUS)
 
-    @validator('wandaufbau')
+    @field_validator('wandaufbau')
+    @classmethod
     def validate_wandaufbau(cls, v):
         total_thickness = sum(s.dicke_mm for s in v)
         if total_thickness > 1000:  # 1 meter
@@ -280,7 +292,8 @@ class ValidatedHeizlastRequest(BaseModel):
     uwert_fenster: float = Field(..., gt=0, le=10)
     bundesland: Bundesland = Field(Bundesland.WIEN)
 
-    @validator('bgf_m2')
+    @field_validator('bgf_m2')
+    @classmethod
     def validate_bgf(cls, v):
         if v > 1000000:  # 100 hectares
             raise ValueError("Building area unrealistic: > 1,000,000 m²")
@@ -288,7 +301,8 @@ class ValidatedHeizlastRequest(BaseModel):
             raise ValueError("Building area too small: < 10 m²")
         return v
 
-    @validator('uwert_wand', 'uwert_dach', 'uwert_fenster')
+    @field_validator('uwert_wand', 'uwert_dach', 'uwert_fenster')
+    @classmethod
     def validate_uwert(cls, v):
         if v > 5:
             raise ValueError(f"U-value unrealistic: {v} > 5 W/m²K")
@@ -304,17 +318,20 @@ class ValidatedComplianceRequest(BaseModel):
     bgf_m2: float = Field(..., gt=0, le=1000000)
     geschosse: int = Field(..., ge=1, le=200)
     wohnungen: Optional[int] = Field(None, ge=0, le=10000)
-    richtlinien: List[int] = Field(default=[1, 2, 3, 4, 5, 6], min_items=1, max_items=6)
+    richtlinien: List[int] = Field(default=[1, 2, 3, 4, 5, 6], min_length=1, max_length=6)
 
-    @validator('richtlinien')
+    @field_validator('richtlinien')
+    @classmethod
     def validate_richtlinien(cls, v):
         for rl in v:
             if rl < 1 or rl > 6:
                 raise ValueError(f"Invalid OIB-RL number: {rl}. Must be 1-6")
         return v
 
-    @validator('wohnungen')
-    def validate_wohnungen_optional(cls, v, values):
+    @field_validator('wohnungen')
+    @classmethod
+    def validate_wohnungen_optional(cls, v, info):
+        values = info.data
         building_type = values.get('building_type')
         if building_type in [BuildingType.MEHRFAMILIENHAUS, BuildingType.WOHNGEBAEUDE]:
             if v is None or v < 1:
@@ -342,7 +359,8 @@ class ValidatedFileUpload(BaseModel):
         'text/xml'
     }
 
-    @validator('filename')
+    @field_validator('filename')
+    @classmethod
     def validate_filename(cls, v):
         # Sanitize filename
         v = sanitize_string(v, max_length=255)
@@ -362,7 +380,8 @@ class ValidatedFileUpload(BaseModel):
 
         return v
 
-    @validator('file_size_bytes')
+    @field_validator('file_size_bytes')
+    @classmethod
     def validate_file_size(cls, v):
         max_size = 104857600  # 100 MB
         if v > max_size:
@@ -371,7 +390,8 @@ class ValidatedFileUpload(BaseModel):
             raise ValueError("File is empty")
         return v
 
-    @validator('mime_type')
+    @field_validator('mime_type')
+    @classmethod
     def validate_mime_type(cls, v):
         if v not in cls.ALLOWED_MIME_TYPES:
             raise ValueError(
@@ -400,21 +420,14 @@ def validate_jwt_format(token: str) -> bool:
     if not token:
         return False
 
-    # JWT format: header.payload.signature
+    # JWT format: header.payload.signature (3 parts separated by dots)
     parts = token.split('.')
     if len(parts) != 3:
         return False
 
-    # Each part should be base64url encoded
-    import base64
-    try:
-        for part in parts:
-            # Add padding if needed
-            padded = part + '=' * (4 - len(part) % 4)
-            base64.urlsafe_b64decode(padded)
-        return True
-    except Exception:
-        return False
+    # Each part should contain only base64url characters (A-Z, a-z, 0-9, -, _, =)
+    base64url_pattern = re.compile(r'^[A-Za-z0-9\-_=]+$')
+    return all(bool(base64url_pattern.match(part)) for part in parts if part)
 
 
 # ============================================================================

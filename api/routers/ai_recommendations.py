@@ -12,13 +12,13 @@ router = APIRouter()
 
 class BuildingInput(BaseModel):
     """Input data for AI recommendations"""
-    bundesland: str = Field(..., example="tirol")
-    gebaudetyp: str = Field(..., example="mehrfamilienhaus")
-    bgf_m2: float = Field(..., gt=0, example=500)
-    geschosse: int = Field(..., gt=0, example=3)
-    wohnungen: Optional[int] = Field(None, example=6)
-    budget_euro: Optional[float] = Field(None, example=800000)
-    energieziel: Optional[str] = Field("A", example="A+")
+    bundesland: str = Field(..., examples=["tirol"])
+    gebaudetyp: str = Field(..., examples=["mehrfamilienhaus"])
+    bgf_m2: float = Field(..., gt=0, examples=[500])
+    geschosse: int = Field(..., gt=0, examples=[3])
+    wohnungen: Optional[int] = Field(None, examples=[6])
+    budget_euro: Optional[float] = Field(None, examples=[800000])
+    energieziel: Optional[str] = Field("A", examples=["A+"])
 
 class OptimizationResult(BaseModel):
     """AI optimization recommendations"""

@@ -2,8 +2,7 @@
 Database Models for ORION Architekt-AT
 """
 from sqlalchemy import Column, Integer, String, Float, Boolean, DateTime, ForeignKey, Text, JSON
-from sqlalchemy.orm import relationship
-from sqlalchemy.ext.declarative import declarative_base
+from sqlalchemy.orm import relationship, declarative_base
 from datetime import datetime
 import bcrypt
 

@@ -3,8 +3,9 @@ Building Calculations Router
 U-Wert, Stellplätze, Flächenberechnung, etc.
 """
 from fastapi import APIRouter, HTTPException
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, field_validator
 from typing import List, Dict, Optional
+import re
 import sys
 import os
 
@@ -16,13 +17,33 @@ router = APIRouter()
 # Models
 class Schicht(BaseModel):
     """Layer in construction"""
-    material: str
-    dicke_mm: float = Field(..., gt=0)
-    lambda_wert: float = Field(..., gt=0)
+    material: str = Field(..., min_length=1, max_length=200)
+    dicke_mm: float = Field(..., gt=0, le=5000)
+    lambda_wert: float = Field(..., gt=0, le=10)
+
+    @field_validator('material')
+    @classmethod
+    def validate_material(cls, v: str) -> str:
+        """Sanitize material name to prevent injection attacks"""
+        # Remove null bytes
+        v = v.replace('\x00', '')
+        # Reject strings with script/injection patterns (SQL keywords, HTML tags, URLs)
+        dangerous_patterns = [
+            r'<[^>]+>',                          # HTML/XML tags
+            r'--\s',                             # SQL comment injection
+            r';\s*(DROP|DELETE|INSERT|UPDATE|SELECT|CREATE|ALTER|EXEC)\b',  # SQL DML/DDL
+            r'https?://',                        # HTTP URLs (SSRF)
+            r'file://',                          # Local file access
+            r'ftp://',                           # FTP access
+        ]
+        for pattern in dangerous_patterns:
+            if re.search(pattern, v, re.IGNORECASE):
+                raise ValueError("Invalid material name: contains disallowed characters or patterns")
+        return v.strip()
 
 class UWertRequest(BaseModel):
     """U-value calculation request"""
-    schichten: List[Schicht]
+    schichten: List[Schicht] = Field(..., min_length=1)
     innen_uebergang: float = Field(0.13, description="Internal heat transfer coefficient")
     aussen_uebergang: float = Field(0.04, description="External heat transfer coefficient")
 
@@ -50,9 +71,9 @@ class StellplatzResult(BaseModel):
 class FlaecheRequest(BaseModel):
     """Area calculation request (ÖNORM B 1800)"""
     raumtyp: str
-    laenge_m: float = Field(..., gt=0)
-    breite_m: float = Field(..., gt=0)
-    hoehe_m: float = Field(..., gt=0)
+    laenge_m: float = Field(..., gt=0, le=1000)
+    breite_m: float = Field(..., gt=0, le=1000)
+    hoehe_m: float = Field(..., gt=0, le=100)
 
 class FlaecheResult(BaseModel):
     """Area calculation result"""
@@ -62,8 +83,40 @@ class FlaecheResult(BaseModel):
     vgf_m2: float
     standard: str = "ÖNORM B 1800"
 
-# Endpoints
+# Request models for endpoints that previously used query parameters
+class BarrierefreiheitRequest(BaseModel):
+    """Accessibility check request"""
+    tuer_breite_cm: float = Field(..., ge=50, le=300)
+    rampe_vorhanden: bool
+    rampe_steigung_prozent: Optional[float] = None
+    aufzug_vorhanden: bool = False
+    geschosse: int = Field(1, ge=1, le=200)
 
+
+class FluchtwegRequest(BaseModel):
+    """Emergency exit check request"""
+    max_entfernung_m: float = Field(..., ge=0, le=200)
+    treppenhaus_breite_m: float = Field(..., ge=0.5, le=10)
+    geschosse: int = Field(..., ge=1, le=200)
+    gebaudetyp: str = Field("wohngebaeude")
+
+
+class SchallschutzRequest(BaseModel):
+    """Sound insulation check request"""
+    wandaufbau: List[Schicht] = Field(..., min_length=1)
+    gebaudetyp: str = Field("mehrfamilienhaus")
+
+
+class HeizlastRequest(BaseModel):
+    """Heating load calculation request"""
+    bgf_m2: float = Field(..., gt=0, le=1000000)
+    uwert_wand: float = Field(..., gt=0, le=5)
+    uwert_dach: float = Field(..., gt=0, le=5)
+    uwert_fenster: float = Field(..., gt=0, le=10)
+    bundesland: str = Field("wien")
+
+
+# Endpoints
 @router.post("/uwert", response_model=UWertResult)
 async def berechne_uwert(request: UWertRequest):
     """
@@ -191,13 +244,7 @@ async def berechne_flaeche(request: FlaecheRequest):
     )
 
 @router.post("/barrierefreiheit-check")
-async def check_barrierefreiheit(
-    tuer_breite_cm: float,
-    rampe_vorhanden: bool,
-    rampe_steigung_prozent: Optional[float] = None,
-    aufzug_vorhanden: bool = False,
-    geschosse: int = 1
-):
+async def check_barrierefreiheit(request: BarrierefreiheitRequest):
     """
     ♿ **Barrierefreiheit Check**
 
@@ -207,6 +254,11 @@ async def check_barrierefreiheit(
     - Elevator required for buildings with 4+ floors
     """
     mangel = []
+    tuer_breite_cm = request.tuer_breite_cm
+    rampe_vorhanden = request.rampe_vorhanden
+    rampe_steigung_prozent = request.rampe_steigung_prozent
+    aufzug_vorhanden = request.aufzug_vorhanden
+    geschosse = request.geschosse
 
     # Door width check
     if tuer_breite_cm < 90:
@@ -229,12 +281,7 @@ async def check_barrierefreiheit(
     }
 
 @router.post("/fluchtweg-check")
-async def check_fluchtweg(
-    max_entfernung_m: float,
-    treppenhaus_breite_m: float,
-    geschosse: int,
-    gebaudetyp: str = "wohngebaeude"
-):
+async def check_fluchtweg(request: FluchtwegRequest):
     """
     🚨 **Fluchtweg Check**
 
@@ -245,6 +292,10 @@ async def check_fluchtweg(
     """
     mangel = []
     warnings = []
+    max_entfernung_m = request.max_entfernung_m
+    treppenhaus_breite_m = request.treppenhaus_breite_m
+    geschosse = request.geschosse
+    gebaudetyp = request.gebaudetyp
 
     # Distance check
     max_allowed = 40 if gebaudetyp == "wohngebaeude" else 35
@@ -271,10 +322,7 @@ async def check_fluchtweg(
     }
 
 @router.post("/schallschutz-berechnung")
-async def berechne_schallschutz(
-    wandaufbau: List[Schicht],
-    gebaudetyp: str = "mehrfamilienhaus"
-):
+async def berechne_schallschutz(request: SchallschutzRequest):
     """
     🔊 **Schallschutz-Berechnung**
 
@@ -286,7 +334,7 @@ async def berechne_schallschutz(
     # Sound reduction index increases with mass
     gesamtmasse_kg_m2 = sum(
         schicht.dicke_mm / 1000 * 2000  # Simplified: assuming 2000 kg/m3 average density
-        for schicht in wandaufbau
+        for schicht in request.wandaufbau
     )
 
     # Simplified mass law: R = 20*log10(m*f) - 47
@@ -294,7 +342,7 @@ async def berechne_schallschutz(
     rw_estimated = 20 * (gesamtmasse_kg_m2 ** 0.5)  # Simplified
 
     # Requirements
-    required_rw = 55 if gebaudetyp == "mehrfamilienhaus" else 52
+    required_rw = 55 if request.gebaudetyp == "mehrfamilienhaus" else 52
 
     return {
         "rw_estimated": round(rw_estimated, 1),
@@ -306,13 +354,7 @@ async def berechne_schallschutz(
     }
 
 @router.post("/heizlast-berechnung")
-async def berechne_heizlast(
-    bgf_m2: float,
-    uwert_wand: float,
-    uwert_dach: float,
-    uwert_fenster: float,
-    bundesland: str = "wien"
-):
+async def berechne_heizlast(request: HeizlastRequest):
     """
     🔥 **Heizlast-Berechnung**
 
@@ -321,6 +363,11 @@ async def berechne_heizlast(
     - Ventilation losses
     - Climate zone factors
     """
+    bgf_m2 = request.bgf_m2
+    uwert_wand = request.uwert_wand
+    uwert_dach = request.uwert_dach
+    uwert_fenster = request.uwert_fenster
+    bundesland = request.bundesland
     # Climate factors by Bundesland (simplified)
     klima_faktoren = {
         "wien": 1.0,

@@ -3,7 +3,7 @@
 Complete API for Austrian construction tendering
 """
 from fastapi import APIRouter, HTTPException, BackgroundTasks, Depends, status
-from pydantic import BaseModel, Field, validator
+from pydantic import BaseModel, Field, field_validator, ConfigDict
 from typing import List, Dict, Optional, Any
 from datetime import datetime
 from enum import Enum
@@ -80,8 +80,7 @@ class LVPositionModel(BaseModel):
     stlb_code: Optional[str] = Field(None, description="StLB-BAU code")
     version: str = Field("1.0", description="Version number")
 
-    class Config:
-        schema_extra = {
+    model_config = ConfigDict(json_schema_extra={
             "example": {
                 "oz": "01.001",
                 "kurztext": "Erdarbeiten Aushub",
@@ -92,7 +91,7 @@ class LVPositionModel(BaseModel):
                 "gewerk": "01",
                 "kostengruppe": 300,
             }
-        }
+        })
 
 
 class LVGenerateRequest(BaseModel):
@@ -103,8 +102,7 @@ class LVGenerateRequest(BaseModel):
     bundesland: Bundesland = Field(Bundesland.NIEDEROESTERREICH, description="Austrian Bundesland")
     apply_regional_factors: bool = Field(True, description="Apply regional cost factors")
 
-    class Config:
-        schema_extra = {
+    model_config = ConfigDict(json_schema_extra={
             "example": {
                 "projekt_typ": "einfamilienhaus",
                 "bgf_m2": 150,
@@ -112,7 +110,7 @@ class LVGenerateRequest(BaseModel):
                 "bundesland": "tirol",
                 "apply_regional_factors": True
             }
-        }
+        })
 
 
 class LVGenerateResponse(BaseModel):
@@ -168,7 +166,7 @@ class BidSubmission(BaseModel):
 
 class BidComparisonRequest(BaseModel):
     """Request to compare bids"""
-    angebote: List[BidSubmission] = Field(..., min_items=1)
+    angebote: List[BidSubmission] = Field(..., min_length=1)
     lv_positionen: List[LVPositionModel]
 
 

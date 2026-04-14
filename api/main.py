@@ -8,6 +8,7 @@ from fastapi.middleware.gzip import GZipMiddleware
 from fastapi.responses import JSONResponse
 from fastapi.openapi.utils import get_openapi
 from prometheus_fastapi_instrumentator import Instrumentator
+from contextlib import asynccontextmanager
 import time
 from typing import Optional
 import sys
@@ -28,6 +29,7 @@ from api.routers import (
     tendering
 )
 from api.middleware import RateLimitMiddleware, LoggingMiddleware
+from api.middleware.auth import router as auth_router
 from api.database import engine, Base
 from api.models import User
 from orion_logging import setup_default_logging, get_logger
@@ -39,8 +41,21 @@ logger = get_logger(__name__)
 # Create database tables
 Base.metadata.create_all(bind=engine)
 
+
+@asynccontextmanager
+async def lifespan(application: FastAPI):
+    logger.info("🚀 ORION Architekt-AT API starting up...")
+    logger.info("✅ Database initialized")
+    logger.info("✅ All routers loaded")
+    logger.info("🌐 API ready at http://0.0.0.0:8000")
+    logger.info("📚 Documentation at http://0.0.0.0:8000/docs")
+    yield
+    logger.info("🛑 ORION Architekt-AT API shutting down...")
+
+
 # Initialize FastAPI app
 app = FastAPI(
+    lifespan=lifespan,
     title="ORION Architekt-AT API",
     description="""
     🏗️ **Comprehensive Austrian Building Regulations API**
@@ -134,12 +149,12 @@ async def health_check():
 @app.get("/health/ready", tags=["health"])
 async def readiness_check():
     """Readiness check for kubernetes/docker"""
+    from api.database import get_db
+    from sqlalchemy import text
+    db_gen = get_db()
+    db = next(db_gen)
     try:
-        # Check database connection
-        from api.database import get_db
-        db = next(get_db())
-        db.execute("SELECT 1")
-
+        db.execute(text("SELECT 1"))
         return {
             "status": "ready",
             "database": "connected",
@@ -148,6 +163,11 @@ async def readiness_check():
     except Exception as e:
         logger.error(f"Readiness check failed: {e}")
         raise HTTPException(status_code=503, detail="Service not ready")
+    finally:
+        try:
+            next(db_gen)
+        except StopIteration:
+            pass
 
 @app.get("/health/live", tags=["health"])
 async def liveness_check():
@@ -216,20 +236,6 @@ async def general_exception_handler(request: Request, exc: Exception):
         status_code=500,
         content={"error": "Internal server error", "detail": str(exc)}
     )
-
-# Startup event
-@app.on_event("startup")
-async def startup_event():
-    logger.info("🚀 ORION Architekt-AT API starting up...")
-    logger.info("✅ Database initialized")
-    logger.info("✅ All routers loaded")
-    logger.info("🌐 API ready at http://0.0.0.0:8000")
-    logger.info("📚 Documentation at http://0.0.0.0:8000/docs")
-
-# Shutdown event
-@app.on_event("shutdown")
-async def shutdown_event():
-    logger.info("🛑 ORION Architekt-AT API shutting down...")
 
 if __name__ == "__main__":
     import uvicorn

@@ -138,7 +138,7 @@ class PredictiveCostAnalytics:
 ```
 
 **Beispiel-Output:**
-```text
+```
 Predicted Cost: EUR 4,830,000
 Confidence: Medium (87%)
 Range: EUR 4,105,500 - 5,554,500

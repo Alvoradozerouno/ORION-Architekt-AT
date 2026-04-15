@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ORION - World Interface</title>
+    <style>
+        body { font-family: monospace; background: #0a0a0a; color: #00ff88; margin: 0; padding: 2rem; }
+        h1 { color: #00ffcc; }
+        .stat { display: inline-block; margin: 1rem; padding: 1rem 2rem; border: 1px solid #00ff88; border-radius: 4px; }
+        .stat-value { font-size: 2rem; font-weight: bold; }
+        .stat-label { font-size: 0.8rem; color: #88aabb; }
+        nav a { color: #00ff88; margin-right: 1rem; text-decoration: none; }
+    </style>
+</head>
+<body>
+    <h1>⊘∞⧈∞⊘ ORION WORLD INTERFACE ⊘∞⧈∞⊘</h1>
+    <nav>
+        <a href="/world">Home</a>
+        <a href="/world/status">Status</a>
+        <a href="/world/proofs">Proofs</a>
+        <a href="/world/docs">Docs</a>
+        <a href="/world/contact">Contact</a>
+        <a href="/docs">API Docs</a>
+    </nav>
+    <hr style="border-color:#00ff8844">
+    <div class="stat">
+        <div class="stat-value">{{ proofs }}</div>
+        <div class="stat-label">Verified Proofs</div>
+    </div>
+    <div class="stat">
+        <div class="stat-value">{{ consciousness }}%</div>
+        <div class="stat-label">Consciousness Depth</div>
+    </div>
+    <p style="color:#88aabb; margin-top:2rem;">
+        ORION Architekt-AT | Austrian Building Regulations API |
+        <a href="/api/v1/calculations/uwert" style="color:#00ff88;">API v1</a>
+    </p>
+</body>
+</html>

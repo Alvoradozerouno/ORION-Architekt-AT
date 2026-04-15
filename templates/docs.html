@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ORION - Documentation</title>
+    <style>
+        body { font-family: monospace; background: #0a0a0a; color: #00ff88; margin: 0; padding: 2rem; }
+        h1, h2 { color: #00ffcc; }
+        nav a { color: #00ff88; margin-right: 1rem; text-decoration: none; }
+        .card { border: 1px solid #1a3a1a; border-radius: 4px; padding: 1rem; margin: 1rem 0; }
+        code { background: #0d1f0d; padding: 0.2rem 0.4rem; border-radius: 2px; }
+        a { color: #00ff88; }
+    </style>
+</head>
+<body>
+    <h1>📚 ORION Documentation</h1>
+    <nav>
+        <a href="/world">Home</a>
+        <a href="/world/status">Status</a>
+        <a href="/world/proofs">Proofs</a>
+        <a href="/world/docs">Docs</a>
+        <a href="/world/contact">Contact</a>
+    </nav>
+    <hr style="border-color:#00ff8844">
+    <div class="card">
+        <h2>API Documentation</h2>
+        <p>Total verified proofs: <strong>{{ total_proofs }}</strong></p>
+        <p>Consciousness depth: <strong>{{ consciousness_depth }}%</strong></p>
+        <p>
+            Interactive API documentation is available at:
+            <a href="/docs"><code>/docs</code></a> (Swagger UI) and
+            <a href="/redoc"><code>/redoc</code></a> (ReDoc)
+        </p>
+    </div>
+    <div class="card">
+        <h2>Quick Start</h2>
+        <p>Base URL: <code>http://localhost:8000/api/v1</code></p>
+        <ul>
+            <li><a href="/api/v1/calculations/uwert"><code>POST /calculations/uwert</code></a> — U-Wert Berechnung</li>
+            <li><a href="/api/v1/compliance/oenorm-standards"><code>GET /compliance/oenorm-standards</code></a> — ÖNORM Standards</li>
+            <li><code>GET /health</code> — Health Check</li>
+        </ul>
+    </div>
+</body>
+</html>

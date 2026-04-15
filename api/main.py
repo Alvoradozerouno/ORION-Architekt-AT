@@ -28,7 +28,7 @@ from api.routers import (
     collaboration,
     tendering
 )
-from api.middleware import RateLimitMiddleware, LoggingMiddleware
+from api.middleware import RateLimitMiddleware, LoggingMiddleware, SecurityHeadersMiddleware
 from api.middleware.auth import router as auth_router
 from api.database import engine, Base
 from api.models import User
@@ -110,16 +110,27 @@ app = FastAPI(
 )
 
 # Middleware
+_cors_origins_raw = os.getenv("CORS_ALLOWED_ORIGINS", "*")
+_cors_origins = (
+    ["*"]
+    if _cors_origins_raw == "*"
+    else [o.strip() for o in _cors_origins_raw.split(",") if o.strip()]
+)
+# `allow_credentials=True` is incompatible with allow_origins=["*"] per CORS spec.
+# Use credentials only when specific origins are configured.
+_allow_credentials = _cors_origins != ["*"]
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # In production, specify exact origins
-    allow_credentials=True,
+    allow_origins=_cors_origins,
+    allow_credentials=_allow_credentials,
     allow_methods=["*"],
     allow_headers=["*"],
 )
 app.add_middleware(GZipMiddleware, minimum_size=1000)
 app.add_middleware(LoggingMiddleware)
 app.add_middleware(RateLimitMiddleware)
+app.add_middleware(SecurityHeadersMiddleware)
 
 # Prometheus metrics
 Instrumentator().instrument(app).expose(app)

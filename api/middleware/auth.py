@@ -17,6 +17,13 @@ security = HTTPBearer()
 router = APIRouter()
 
 SECRET_KEY = os.getenv("JWT_SECRET_KEY", "")
+if not SECRET_KEY:
+    import secrets
+    SECRET_KEY = secrets.token_hex(32)
+    logger.warning(
+        "JWT_SECRET_KEY not set - using a randomly generated key. "
+        "Tokens will be invalidated on restart. Set JWT_SECRET_KEY in environment for production."
+    )
 ALGORITHM = os.getenv("JWT_ALGORITHM", "HS256")
 ACCESS_TOKEN_EXPIRE_MINUTES = int(os.getenv("JWT_ACCESS_TOKEN_EXPIRE_MINUTES", "60"))
 

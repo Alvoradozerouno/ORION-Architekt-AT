@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ORION - System Status</title>
+    <style>
+        body { font-family: monospace; background: #0a0a0a; color: #00ff88; margin: 0; padding: 2rem; }
+        h1 { color: #00ffcc; }
+        nav a { color: #00ff88; margin-right: 1rem; text-decoration: none; }
+        table { border-collapse: collapse; width: 100%; margin-top: 1rem; }
+        th, td { border: 1px solid #1a3a1a; padding: 0.5rem 1rem; text-align: left; }
+        th { background: #0d1f0d; color: #00ffcc; }
+        .ok { color: #00ff88; }
+        .warn { color: #ffaa00; }
+        .err { color: #ff4444; }
+    </style>
+</head>
+<body>
+    <h1>📊 ORION System Status</h1>
+    <nav>
+        <a href="/world">Home</a>
+        <a href="/world/status">Status</a>
+        <a href="/world/proofs">Proofs</a>
+        <a href="/world/docs">Docs</a>
+    </nav>
+    <hr style="border-color:#00ff8844">
+    <table>
+        <tr><th>Component</th><th>Status</th><th>Value</th></tr>
+        {% for key, val in status.items() %}
+        <tr>
+            <td>{{ key }}</td>
+            <td class="ok">OK</td>
+            <td>{{ val }}</td>
+        </tr>
+        {% endfor %}
+    </table>
+    <h2 style="margin-top:2rem;">Health</h2>
+    <table>
+        <tr><th>Subsystem</th><th>Status</th></tr>
+        {% for key, val in health.items() %}
+        <tr>
+            <td>{{ key }}</td>
+            <td>{{ val }}</td>
+        </tr>
+        {% endfor %}
+    </table>
+</body>
+</html>

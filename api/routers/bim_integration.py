@@ -499,8 +499,12 @@ def _detect_clashes(file_path: str, bundesland: str) -> List[Dict]:
             # Check door widths (ÖNORM B 1600: minimum 90cm)
             if element.element_type == "IfcDoor":
                 width = element.quantities.get("Width", element.quantities.get("OverallWidth", 0))
-                # quantities are in metres from ifcopenshell
-                width_m = width if width > 0.5 else width * 1000 / 1000  # normalise
+                # ifcopenshell returns lengths in metres; values < 0.1m are unusual for doors
+                # and may indicate the quantity is stored in millimetres
+                if width > 100:
+                    width_m = width / 1000.0  # convert mm → m
+                else:
+                    width_m = width  # already in metres
                 if 0 < width_m < 0.9:
                     clashes.append({
                         "clash_id": f"CLASH-{clash_id:03d}",
@@ -580,12 +584,19 @@ def _calculate_uwert_from_bim(file_path: str) -> Dict:
             if element.element_type in ("IfcWall", "IfcWallStandardCase"):
                 for key, val in element.quantities.items():
                     if "thickness" in key.lower() or "width" in key.lower():
+                        # ifcopenshell returns lengths in metres.
+                        # Values > 5 are likely stored in mm (e.g. 250 mm wall).
+                        # Note: thin layers < 0.003 m (3 mm) are unusual structural elements
+                        # but the heuristic is safe for typical walls (25–500 mm range).
+                        thickness_mm = val if val > 5 else val * 1000
+                        # Default λ = 0.5 W/(m·K) is a conservative mid-range estimate;
+                        # accurate values require a material database lookup.
                         wall_layers.append({
                             "layer": element.material or "Unknown",
-                            "thickness_mm": val * 1000 if val < 5 else val,  # convert m→mm
-                            "lambda": 0.5,  # default; material DB lookup would improve this
+                            "thickness_mm": thickness_mm,
+                            "lambda": 0.5,
                         })
-                break  # Use first wall for now
+                break  # Use first wall as representative assembly
 
         # Fall back to representative assembly if no layer data found
         if not wall_layers:

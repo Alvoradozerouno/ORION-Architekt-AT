@@ -386,7 +386,6 @@ class TestCompliance:
             }
         )
         assert response.status_code in [200, 422]
-        assert response.status_code in [200, 422]
 
 
 # ============================================================================

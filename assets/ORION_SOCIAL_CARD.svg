@@ -1,0 +1,105 @@
+<svg width="1200" height="630" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="socialBg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#0d47a1;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#1976d2;stop-opacity:1" />
+    </linearGradient>
+    <pattern id="dotPattern" x="0" y="0" width="20" height="20" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="rgba(255,255,255,0.1)"/>
+    </pattern>
+  </defs>
+
+  <!-- Background -->
+  <rect width="1200" height="630" fill="url(#socialBg)"/>
+  <rect width="1200" height="630" fill="url(#dotPattern)"/>
+
+  <!-- Austrian Flag Stripe -->
+  <rect x="0" y="0" width="1200" height="15" fill="#ed1c24"/>
+  <rect x="0" y="0" width="1200" height="5" fill="#ffffff"/>
+  <rect x="0" y="10" width="1200" height="5" fill="#ffffff"/>
+
+  <!-- Main Content Container -->
+  <g transform="translate(100, 150)">
+    <!-- Logo Circle -->
+    <circle cx="100" cy="100" r="90" fill="rgba(255,255,255,0.15)" stroke="#ffffff" stroke-width="4"/>
+    <text x="100" y="90" font-family="'Arial Black', sans-serif" font-size="48" font-weight="bold" fill="#ffffff" text-anchor="middle">
+      🏗️
+    </text>
+    <text x="100" y="130" font-family="'Arial Black', sans-serif" font-size="28" font-weight="bold" fill="#ffffff" text-anchor="middle">
+      ORION
+    </text>
+
+    <!-- Main Title -->
+    <text x="250" y="70" font-family="'Arial Black', sans-serif" font-size="64" font-weight="bold" fill="#ffffff">
+      ORION Architekt AT
+    </text>
+
+    <!-- Subtitle -->
+    <text x="250" y="120" font-family="Arial, sans-serif" font-size="28" fill="#bbdefb">
+      Vollständiges Bau-Engineering-Tool
+    </text>
+    <text x="250" y="155" font-family="Arial, sans-serif" font-size="24" fill="#90caf9">
+      für alle 9 österreichischen Bundesländer
+    </text>
+  </g>
+
+  <!-- Feature Grid -->
+  <g transform="translate(100, 380)">
+    <!-- Row 1 -->
+    <g>
+      <rect x="0" y="0" width="230" height="60" rx="8" fill="rgba(255,255,255,0.1)" stroke="#ffffff" stroke-width="2"/>
+      <text x="115" y="38" font-family="Arial, sans-serif" font-size="20" font-weight="bold" fill="#ffffff" text-anchor="middle">
+        📋 OIB-RL 1-6
+      </text>
+    </g>
+    <g transform="translate(250, 0)">
+      <rect x="0" y="0" width="230" height="60" rx="8" fill="rgba(255,255,255,0.1)" stroke="#ffffff" stroke-width="2"/>
+      <text x="115" y="38" font-family="Arial, sans-serif" font-size="20" font-weight="bold" fill="#ffffff" text-anchor="middle">
+        📐 ÖNORM Standards
+      </text>
+    </g>
+    <g transform="translate(500, 0)">
+      <rect x="0" y="0" width="230" height="60" rx="8" fill="rgba(255,255,255,0.1)" stroke="#ffffff" stroke-width="2"/>
+      <text x="115" y="38" font-family="Arial, sans-serif" font-size="20" font-weight="bold" fill="#ffffff" text-anchor="middle">
+        🏛️ Eurocode EC2-EC8
+      </text>
+    </g>
+    <g transform="translate(750, 0)">
+      <rect x="0" y="0" width="250" height="60" rx="8" fill="rgba(255,255,255,0.1)" stroke="#ffffff" stroke-width="2"/>
+      <text x="125" y="38" font-family="Arial, sans-serif" font-size="20" font-weight="bold" fill="#ffffff" text-anchor="middle">
+        🇦🇹 9 Bundesländer
+      </text>
+    </g>
+
+    <!-- Row 2 -->
+    <g transform="translate(0, 75)">
+      <rect x="0" y="0" width="230" height="60" rx="8" fill="rgba(255,255,255,0.1)" stroke="#ffffff" stroke-width="2"/>
+      <text x="115" y="38" font-family="Arial, sans-serif" font-size="20" font-weight="bold" fill="#ffffff" text-anchor="middle">
+        🔥 Brandschutz
+      </text>
+    </g>
+    <g transform="translate(250, 75)">
+      <rect x="0" y="0" width="230" height="60" rx="8" fill="rgba(255,255,255,0.1)" stroke="#ffffff" stroke-width="2"/>
+      <text x="115" y="38" font-family="Arial, sans-serif" font-size="20" font-weight="bold" fill="#ffffff" text-anchor="middle">
+        ⚡ Energieausweis
+      </text>
+    </g>
+    <g transform="translate(500, 75)">
+      <rect x="0" y="0" width="230" height="60" rx="8" fill="rgba(255,255,255,0.1)" stroke="#ffffff" stroke-width="2"/>
+      <text x="115" y="38" font-family="Arial, sans-serif" font-size="20" font-weight="bold" fill="#ffffff" text-anchor="middle">
+        ♿ Barrierefreiheit
+      </text>
+    </g>
+    <g transform="translate(750, 75)">
+      <rect x="0" y="0" width="250" height="60" rx="8" fill="rgba(255,255,255,0.1)" stroke="#ffffff" stroke-width="2"/>
+      <text x="125" y="38" font-family="Arial, sans-serif" font-size="20" font-weight="bold" fill="#ffffff" text-anchor="middle">
+        🏗️ 20 Funktionen
+      </text>
+    </g>
+  </g>
+
+  <!-- Footer -->
+  <text x="600" y="600" font-family="Arial, sans-serif" font-size="16" fill="#ffffff" text-anchor="middle" opacity="0.8">
+    St. Johann in Tirol • Production Ready • Elisabeth Steurer &amp; Gerhard Hirschmann
+  </text>
+</svg>

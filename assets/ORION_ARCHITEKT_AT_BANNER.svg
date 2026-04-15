@@ -1,0 +1,76 @@
+<svg width="1200" height="400" xmlns="http://www.w3.org/2000/svg">
+  <!-- Background Gradient -->
+  <defs>
+    <linearGradient id="bgGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#1a237e;stop-opacity:1" />
+      <stop offset="50%" style="stop-color:#283593;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#3949ab;stop-opacity:1" />
+    </linearGradient>
+    <linearGradient id="textGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" style="stop-color:#ffffff;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#bbdefb;stop-opacity:1" />
+    </linearGradient>
+  </defs>
+
+  <!-- Background -->
+  <rect width="1200" height="400" fill="url(#bgGrad)"/>
+
+  <!-- Grid Pattern -->
+  <pattern id="grid" width="40" height="40" patternUnits="userSpaceOnUse">
+    <path d="M 40 0 L 0 0 0 40" fill="none" stroke="rgba(255,255,255,0.1)" stroke-width="1"/>
+  </pattern>
+  <rect width="1200" height="400" fill="url(#grid)"/>
+
+  <!-- Austrian Flag Colors Accent -->
+  <rect x="0" y="0" width="8" height="400" fill="#ed1c24"/>
+  <rect x="0" y="0" width="8" height="133" fill="#ffffff"/>
+  <rect x="0" y="266" width="8" height="134" fill="#ffffff"/>
+
+  <!-- Main Title -->
+  <text x="600" y="140" font-family="'Arial Black', sans-serif" font-size="72" font-weight="bold" fill="url(#textGrad)" text-anchor="middle">
+    ORION ARCHITEKT AT
+  </text>
+
+  <!-- Subtitle -->
+  <text x="600" y="190" font-family="Arial, sans-serif" font-size="24" fill="#ffffff" text-anchor="middle" opacity="0.9">
+    Österreichisches Bau-Engineering für alle 9 Bundesländer
+  </text>
+
+  <!-- Feature Pills -->
+  <g transform="translate(200, 250)">
+    <!-- OIB-RL -->
+    <rect x="0" y="0" width="120" height="40" rx="20" fill="rgba(255,255,255,0.15)" stroke="#ffffff" stroke-width="2"/>
+    <text x="60" y="27" font-family="Arial, sans-serif" font-size="16" font-weight="bold" fill="#ffffff" text-anchor="middle">
+      OIB-RL 1-6
+    </text>
+
+    <!-- ÖNORM -->
+    <rect x="140" y="0" width="120" height="40" rx="20" fill="rgba(255,255,255,0.15)" stroke="#ffffff" stroke-width="2"/>
+    <text x="200" y="27" font-family="Arial, sans-serif" font-size="16" font-weight="bold" fill="#ffffff" text-anchor="middle">
+      ÖNORM
+    </text>
+
+    <!-- 9 States -->
+    <rect x="280" y="0" width="140" height="40" rx="20" fill="rgba(255,255,255,0.15)" stroke="#ffffff" stroke-width="2"/>
+    <text x="350" y="27" font-family="Arial, sans-serif" font-size="16" font-weight="bold" fill="#ffffff" text-anchor="middle">
+      9 Bundesländer
+    </text>
+
+    <!-- 20 Functions -->
+    <rect x="440" y="0" width="140" height="40" rx="20" fill="rgba(255,255,255,0.15)" stroke="#ffffff" stroke-width="2"/>
+    <text x="510" y="27" font-family="Arial, sans-serif" font-size="16" font-weight="bold" fill="#ffffff" text-anchor="middle">
+      20 Funktionen
+    </text>
+
+    <!-- Eurocode -->
+    <rect x="600" y="0" width="140" height="40" rx="20" fill="rgba(255,255,255,0.15)" stroke="#ffffff" stroke-width="2"/>
+    <text x="670" y="27" font-family="Arial, sans-serif" font-size="16" font-weight="bold" fill="#ffffff" text-anchor="middle">
+      Eurocode EC
+    </text>
+  </g>
+
+  <!-- Footer -->
+  <text x="600" y="350" font-family="Arial, sans-serif" font-size="14" fill="#ffffff" text-anchor="middle" opacity="0.7">
+    St. Johann in Tirol  •  Elisabeth Steurer &amp; Gerhard Hirschmann  •  Production Ready
+  </text>
+</svg>

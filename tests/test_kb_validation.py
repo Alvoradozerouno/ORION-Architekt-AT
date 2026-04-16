@@ -3,26 +3,27 @@ Test Suite for orion_kb_validation module
 Tests knowledge base validation, RIS integration, OIB monitoring, etc.
 """
 
-import pytest
-from datetime import datetime, timezone
-import sys
 import os
+import sys
+from datetime import datetime, timezone
+
+import pytest
 
 # Add parent directory to path
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from orion_kb_validation import (
-    validate_knowledge_base,
-    check_all_standards,
-    check_oib_updates,
-    check_oenorm_updates,
-    check_ris_updates,
-    check_naturgefahren,
-    is_standard_current,
-    get_standard_version,
-    check_data_freshness,
-    export_validation_report,
     STANDARD_VERSIONS,
+    check_all_standards,
+    check_data_freshness,
+    check_naturgefahren,
+    check_oenorm_updates,
+    check_oib_updates,
+    check_ris_updates,
+    export_validation_report,
+    get_standard_version,
+    is_standard_current,
+    validate_knowledge_base,
 )
 
 

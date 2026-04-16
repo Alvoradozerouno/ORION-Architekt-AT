@@ -26,14 +26,14 @@ Lizenz: Apache 2.0
 ═══════════════════════════════════════════════════════════════════════════
 """
 
-from typing import List, Optional, Dict, Any
-from datetime import datetime, timezone
 import json
+from datetime import datetime, timezone
+from typing import Any, Dict, List, Optional
 
 try:
     import strawberry
-    from strawberry.types import Info
     from strawberry.schema.config import StrawberryConfig
+    from strawberry.types import Info
 
     GRAPHQL_AVAILABLE = True
 except ImportError:
@@ -63,22 +63,22 @@ except ImportError:
 
 # Import from existing modules
 try:
-    from orion_oenorm_a2063 import (
-        generiere_beispiel_lv_einfamilienhaus,
-        berechne_regionale_anpassung,
-        vergleiche_angebote_mehrkriteriell,
-        Bundesland,
-    )
-    from iso_19650_bim import (
-        erstelle_eir_template_oesterreich,
-        erstelle_air_template,
-        InformationDeliveryMilestone,
-    )
+    from eidas_signature import DigitalSignature as EidasSignature
     from eidas_signature import (
+        SignatureStatus,
         signiere_oenorm_lv,
         verifiziere_signatur,
-        DigitalSignature as EidasSignature,
-        SignatureStatus,
+    )
+    from iso_19650_bim import (
+        InformationDeliveryMilestone,
+        erstelle_air_template,
+        erstelle_eir_template_oesterreich,
+    )
+    from orion_oenorm_a2063 import (
+        Bundesland,
+        berechne_regionale_anpassung,
+        generiere_beispiel_lv_einfamilienhaus,
+        vergleiche_angebote_mehrkriteriell,
     )
 
     MODULES_AVAILABLE = True

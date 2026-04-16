@@ -16,10 +16,10 @@ Standards:
 - ÖNORM requirements (Verifiable engineering calculations)
 """
 
-from enum import Enum
 from dataclasses import dataclass
-from typing import Optional, Any, Dict
 from datetime import datetime, timezone
+from enum import Enum
+from typing import Any, Dict, Optional
 
 
 class KnowledgeType(Enum):

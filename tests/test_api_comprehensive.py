@@ -11,12 +11,13 @@ Status: PRODUCTION
 Coverage Target: 80%+
 """
 
-import pytest
-import sys
-import os
-from fastapi.testclient import TestClient
-from typing import Dict, Any
 import json
+import os
+import sys
+from typing import Any, Dict
+
+import pytest
+from fastapi.testclient import TestClient
 
 # Add parent directory to path
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
@@ -24,11 +25,11 @@ sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 # Import app
 from api.main import app
 from api.validation import (
-    Bundesland,
     BuildingType,
+    Bundesland,
+    sanitize_string,
     validate_api_key,
     validate_jwt_format,
-    sanitize_string,
 )
 
 # Create test client

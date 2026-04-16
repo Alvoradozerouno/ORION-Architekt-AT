@@ -3,8 +3,9 @@ Setup script for ORION Architekt-AT
 Backwards compatibility with older Python packaging tools
 """
 
-from setuptools import setup, find_packages
 from pathlib import Path
+
+from setuptools import find_packages, setup
 
 # Read README
 this_directory = Path(__file__).parent

@@ -13,20 +13,20 @@ Author: ORION Architekt AT Team
 Date: 2026-04-09
 """
 
-from typing import Dict, List, Any
-from datetime import datetime
 import sys
+from datetime import datetime
+from typing import Any, Dict, List
 
 # Import all AI modules
-from ai_quantity_takeoff import automatic_quantity_takeoff_workflow, IFCElement, IFCElementType
-from live_cost_database import (
-    calculate_live_price,
-    get_current_price_index,
-    generate_price_trend_report,
-    MaterialCategory,
-    BAUPREISINDEX_2026,
-)
+from ai_quantity_takeoff import IFCElement, IFCElementType, automatic_quantity_takeoff_workflow
 from ai_tender_evaluation import BidDocument, ai_evaluate_bid
+from live_cost_database import (
+    BAUPREISINDEX_2026,
+    MaterialCategory,
+    calculate_live_price,
+    generate_price_trend_report,
+    get_current_price_index,
+)
 
 
 def print_separator(title: str = ""):

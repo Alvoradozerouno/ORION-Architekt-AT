@@ -19,12 +19,12 @@ Date: 2026-04-09
 Standards: ETABS API v1, SAP2000 OAPI, STAAD OpenSTAAD
 """
 
-from dataclasses import dataclass, field
-from typing import List, Dict, Optional, Any, Tuple
-from enum import Enum
-from datetime import datetime
 import json
 import math
+from dataclasses import dataclass, field
+from datetime import datetime
+from enum import Enum
+from typing import Any, Dict, List, Optional, Tuple
 
 # ============================================================================
 # Import from structural_engineering_integration
@@ -32,14 +32,14 @@ import math
 
 try:
     from structural_engineering_integration import (
-        StructuralNode,
-        StructuralMember,
-        CrossSection,
-        Material,
-        LoadCase,
-        StructuralElement,
         ConcreteGrade,
+        CrossSection,
+        LoadCase,
+        Material,
         SteelGrade,
+        StructuralElement,
+        StructuralMember,
+        StructuralNode,
     )
 except ImportError:
     # Fallback if not available
@@ -691,7 +691,7 @@ if __name__ == "__main__":
     print("=" * 80)
 
     # Import test data
-    from structural_engineering_integration import extract_structural_model_from_ifc, LoadCase
+    from structural_engineering_integration import LoadCase, extract_structural_model_from_ifc
 
     # Extract model
     model = extract_structural_model_from_ifc("test_building.ifc")

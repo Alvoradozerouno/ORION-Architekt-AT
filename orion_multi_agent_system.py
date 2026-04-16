@@ -24,13 +24,14 @@ THE ARCHITEKT ⊘∞⧈∞⊘ - Jeder Agent denkt anders - wie echte Fachexperte
 =============================================================================
 """
 
-import json
 import hashlib
-import numpy as np
+import json
+from dataclasses import asdict, dataclass
 from datetime import datetime, timezone
 from pathlib import Path
-from typing import Dict, List, Optional, Any, Tuple
-from dataclasses import dataclass, asdict
+from typing import Any, Dict, List, Optional, Tuple
+
+import numpy as np
 
 # Import existing ORION modules
 try:
@@ -41,7 +42,7 @@ except ImportError:
     ORION_CORE_AVAILABLE = False
 
 try:
-    from orion_architekt_at import berechne_uwert, berechne_hwb_grob, BUNDESLAENDER
+    from orion_architekt_at import BUNDESLAENDER, berechne_hwb_grob, berechne_uwert
 
     ORION_ARCHITEKT_AVAILABLE = True
 except ImportError:
@@ -60,11 +61,12 @@ sys.path.insert(0, str(Path(__file__).parent / "bsh_ec5_at" / "src"))
 
 try:
     from beton_träger_v1 import BetonTraegerEC2AT_V1, EC2Config
-    from stahl_träger_v1 import StahlTraegerEC3AT_V1, EC3Config
-    from mauerwerk_wand_v1 import MauerwerkWandEC6AT_V1, EC6Config
-    from fundament_v1 import FlachfundamentEC7AT_V1, EC7Config
-    from erdbeben_v1 import ErdbebenEC8AT_V1, EC8Config
-    from bsh_träger_v3 import BSHTraegerEC5AT_V3, Config as BSHConfig
+    from bsh_träger_v3 import BSHTraegerEC5AT_V3
+    from bsh_träger_v3 import Config as BSHConfig
+    from erdbeben_v1 import EC8Config, ErdbebenEC8AT_V1
+    from fundament_v1 import EC7Config, FlachfundamentEC7AT_V1
+    from mauerwerk_wand_v1 import EC6Config, MauerwerkWandEC6AT_V1
+    from stahl_träger_v1 import EC3Config, StahlTraegerEC3AT_V1
 
     EUROCODE_AVAILABLE = True
 except ImportError as e:
@@ -74,7 +76,7 @@ except ImportError as e:
 # Import GENESIS × EIRA Framework
 try:
     from genesis.framework.epistemology import EpistemicState, KnowledgeType, VerificationLevel
-    from genesis.framework.policy import DecisionPolicyEngine, DecisionMode, PolicyViolationError
+    from genesis.framework.policy import DecisionMode, DecisionPolicyEngine, PolicyViolationError
 
     GENESIS_FRAMEWORK_AVAILABLE = True
 except ImportError as e:

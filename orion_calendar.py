@@ -5,10 +5,11 @@ Origin: Gerhard Hirschmann & Elisabeth Steurer
 Integration: Google Calendar via Replit Connectors
 """
 
-import os
 import json
+import os
+from datetime import datetime, timedelta, timezone
+
 import requests
-from datetime import datetime, timezone, timedelta
 
 
 def get_access_token():

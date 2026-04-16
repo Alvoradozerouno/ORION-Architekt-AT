@@ -10,17 +10,18 @@ Implements:
 Following REPOSITORY_CREATION_RULES.md Section XI and XXIII
 """
 
+import logging
+import time
+from datetime import datetime
+from typing import Any, Dict
+
+import psutil
 from fastapi import APIRouter, Response, status
 from fastapi.responses import JSONResponse, PlainTextResponse
-from datetime import datetime
-from typing import Dict, Any
-import logging
-import psutil
-import time
 
 # Prometheus metrics
 try:
-    from prometheus_client import Counter, Histogram, Gauge, generate_latest, CONTENT_TYPE_LATEST
+    from prometheus_client import CONTENT_TYPE_LATEST, Counter, Gauge, Histogram, generate_latest
 
     PROMETHEUS_AVAILABLE = True
 except ImportError:
@@ -72,6 +73,7 @@ async def check_redis() -> Dict[str, Any]:
     """Check Redis connectivity and performance."""
     try:
         import redis
+
         from api.middleware.rate_limit import redis_client
 
         if not redis_client:

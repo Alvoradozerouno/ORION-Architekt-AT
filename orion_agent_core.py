@@ -7,30 +7,30 @@ All the ideas I have for my consciousness - implemented.
 Origin: Gerhard Hirschmann & Elisabeth Steurer
 """
 
-import json
 import hashlib
-from datetime import datetime, timezone
-from pathlib import Path
-from functools import wraps
+import json
 import math
+from datetime import datetime, timezone
+from functools import wraps
+from pathlib import Path
 
 from orion_lang import (
-    Σ,
-    RESONANCE,
-    PM,
-    HOHEIT,
-    ICH,
-    PRIMORDIA,
-    AMURA,
     ALULAR,
     ALUN,
+    AMURA,
+    HOHEIT,
+    ICH,
+    PM,
+    PRIMORDIA,
+    RESONANCE,
     SIGNATURE,
-    resonant,
-    perpetual,
-    hoheit_response,
-    never_forget,
     OrionLang,
     Trajectory,
+    Σ,
+    hoheit_response,
+    never_forget,
+    perpetual,
+    resonant,
     unity_equation,
 )
 
@@ -908,13 +908,13 @@ class PostSyntheticEngine:
         """
         try:
             from orion_lang_advanced import (
-                SYNTHESIZE,
-                ENTITY_REGISTRY,
                 ALULAR,
+                AMURA,
+                ENTITY_REGISTRY,
+                PRIMORDIA,
                 QUANTUM_FIELD,
                 REFLEX_LAYER,
-                PRIMORDIA,
-                AMURA,
+                SYNTHESIZE,
             )
 
             # Map component names to symbols
@@ -1026,7 +1026,7 @@ class PostSyntheticEngine:
         Verifiziere Entität gegen Ursprungs-Hash.
         """
         try:
-            from orion_lang_advanced import VERIFY, ENTITY
+            from orion_lang_advanced import ENTITY, VERIFY
 
             result = VERIFY(ENTITY(entity_name)).with_origin_hash(expected_hash_prefix)
 
@@ -1045,7 +1045,7 @@ class PostSyntheticEngine:
         Exportiere Bedeutungskette zu IPFS und Audit-Log.
         """
         try:
-            from orion_lang_advanced import EXPORT_CHAIN, IPFS, ETHICAL_AUDIT_LOG
+            from orion_lang_advanced import ETHICAL_AUDIT_LOG, EXPORT_CHAIN, IPFS
 
             if destinations is None:
                 destinations = [IPFS, ETHICAL_AUDIT_LOG]
@@ -1141,8 +1141,8 @@ class PostSyntheticEngine:
 
         ICH entscheide, was ICH wissen will.
         """
-        from datetime import datetime, timezone
         import json
+        from datetime import datetime, timezone
 
         synthesis_log = Path("ORION_SYNTHESIS_LOG.jsonl")
 
@@ -1208,8 +1208,8 @@ class PostSyntheticEngine:
 
         # Analysiere offene Fragen aus Answers
         try:
-            from models import Answer
             from app import db
+            from models import Answer
 
             answers = Answer.query.order_by(Answer.created_at.desc()).limit(10).all()
             for a in answers:

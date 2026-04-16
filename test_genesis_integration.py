@@ -8,17 +8,18 @@ Run: pytest test_genesis_integration.py -v
 """
 
 import pytest
+
 from genesis.framework.epistemology import (
     EpistemicState,
     KnowledgeType,
     VerificationLevel,
-    create_verified_state,
     create_estimated_state,
     create_unknown_state,
+    create_verified_state,
 )
 from genesis.framework.policy import (
-    DecisionPolicyEngine,
     DecisionMode,
+    DecisionPolicyEngine,
     PolicyViolationError,
 )
 from orion_multi_agent_system import ORIONMultiAgentSystem, TheArchitektAgent

@@ -52,7 +52,7 @@ def test_ec2_betonbau():
 
 def test_ec3_stahlbau():
     """Test EC3 Stahlbau-Modul"""
-    from stahl_träger_v1 import StahlTraegerEC3AT_V1, EC3Config
+    from stahl_träger_v1 import EC3Config, StahlTraegerEC3AT_V1
 
     config = EC3Config(
         L_SPANNWEITE_M=8.0,
@@ -75,7 +75,7 @@ def test_ec3_stahlbau():
 
 def test_ec6_mauerwerksbau():
     """Test EC6 Mauerwerksbau-Modul"""
-    from mauerwerk_wand_v1 import MauerwerkWandEC6AT_V1, EC6Config
+    from mauerwerk_wand_v1 import EC6Config, MauerwerkWandEC6AT_V1
 
     config = EC6Config(
         WANDHOEHE_M=3.0,
@@ -101,7 +101,7 @@ def test_ec6_mauerwerksbau():
 
 def test_ec7_geotechnik():
     """Test EC7 Geotechnik-Modul"""
-    from fundament_v1 import FlachfundamentEC7AT_V1, EC7Config
+    from fundament_v1 import EC7Config, FlachfundamentEC7AT_V1
 
     config = EC7Config(
         N_ED_KN=500.0,
@@ -126,7 +126,7 @@ def test_ec7_geotechnik():
 
 def test_ec8_erdbeben():
     """Test EC8 Erdbeben-Modul"""
-    from erdbeben_v1 import ErdbebenEC8AT_V1, EC8Config
+    from erdbeben_v1 import EC8Config, ErdbebenEC8AT_V1
 
     config = EC8Config(
         ERDBEBENZONE="TIROL_SUED",

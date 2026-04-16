@@ -6,17 +6,19 @@ Tests the cryptographic audit trail system adapted from GENESIS DUAL-SYSTEM.
 Run with: pytest api/safety/tests/test_audit_trail.py -v
 """
 
-import pytest
-import json
 import hashlib
-from pathlib import Path
+import json
 from datetime import datetime
+from pathlib import Path
+
+import pytest
+
 from api.safety.audit_trail import (
     AuditEntry,
     AuditTrail,
-    create_compliance_trail,
-    create_calculation_trail,
     create_bim_trail,
+    create_calculation_trail,
+    create_compliance_trail,
 )
 
 

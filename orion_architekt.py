@@ -26,8 +26,8 @@ HINWEIS: Orientierungshilfe, ersetzt KEINE Beratung durch befugte Planer.
 Erstellt & Eigentum von Elisabeth Steurer & Gerhard Hirschmann
 """
 
-import json
 import hashlib
+import json
 import uuid
 from datetime import datetime, timezone
 

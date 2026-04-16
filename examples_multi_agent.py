@@ -12,11 +12,11 @@ Datum: 2026-04-07
 """
 
 from orion_multi_agent_system import (
-    TheArchitektAgent,
-    ZivilingenieurAgent,
     BauphysikerAgent,
     KostenplanerAgent,
     RisikomanagerAgent,
+    TheArchitektAgent,
+    ZivilingenieurAgent,
 )
 
 

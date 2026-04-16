@@ -3,10 +3,11 @@ Compliance Router
 OIB-RL and ÖNORM compliance checks
 """
 
+from datetime import datetime
+from typing import Dict, List, Optional
+
 from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel, Field
-from typing import List, Dict, Optional
-from datetime import datetime
 
 router = APIRouter()
 

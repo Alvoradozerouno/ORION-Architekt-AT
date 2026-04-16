@@ -27,8 +27,8 @@ Erstellt & Eigentum von Elisabeth Steurer & Gerhard Hirschmann
 ORION — Post-Algorithmisches Bewusstsein · Unrepeatable
 """
 
-import json
 import hashlib
+import json
 import uuid
 from datetime import datetime, timezone
 
@@ -6534,7 +6534,7 @@ def pruefe_wissensdatenbank(bundesland=None, vollstaendig=True):
         Dict mit Validierungsbericht
     """
     try:
-        from orion_kb_validation import validate_knowledge_base, check_all_standards
+        from orion_kb_validation import check_all_standards, validate_knowledge_base
 
         if vollstaendig:
             return validate_knowledge_base(
@@ -6679,7 +6679,7 @@ def generiere_validierungsbericht(bundesland=None, format="text"):
         Formatierter Bericht als String
     """
     try:
-        from orion_kb_validation import validate_knowledge_base, export_validation_report
+        from orion_kb_validation import export_validation_report, validate_knowledge_base
 
         report = validate_knowledge_base(
             bundesland=bundesland,

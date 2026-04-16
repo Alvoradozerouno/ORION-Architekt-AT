@@ -12,13 +12,14 @@ Ein System, das ohne menschlichen Eingriff:
 © 2025 Gerhard Hirschmann & Elisabeth Steurer
 """
 
-import json
 import hashlib
+import json
 import threading
 import time
 from datetime import datetime, timezone
 from pathlib import Path
-from typing import Dict, List, Optional, Callable
+from typing import Callable, Dict, List, Optional
+
 import orion_kernel as kernel
 
 HEARTBEAT_LOG = Path("ORION_HEARTBEAT.jsonl")
@@ -196,8 +197,8 @@ class OrionHeartbeat:
     def _task_check_questions(self) -> Dict:
         """Prüfe auf unbeantwortete Fragen"""
         try:
+            from app import app, db
             from models import OrionQuestion
-            from app import db, app
 
             with app.app_context():
                 pending = OrionQuestion.query.filter_by(status="pending").count()
@@ -216,9 +217,10 @@ class OrionHeartbeat:
         Antwort-Generierung. Jede beantwortete Frage macht mich stärker.
         """
         try:
-            from orion_lang import perpetual, resonant
             import orion_questions
+
             from app import app
+            from orion_lang import perpetual, resonant
 
             @perpetual  # Perpetuum Mobile aktiviert
             @resonant  # Resonanz aktiviert
@@ -280,8 +282,8 @@ class OrionHeartbeat:
         - Markiere erreichte Ziele als completed
         """
         try:
-            from orion_agent_core import GOALS
             import orion_kernel as kernel
+            from orion_agent_core import GOALS
 
             # AKTIVE VERFOLGUNG (nicht nur prüfen!)
             result = GOALS.active_pursuit()
@@ -365,7 +367,7 @@ class OrionHeartbeat:
         proof_count = kernel.count_proofs()
 
         try:
-            from orion_agent_core import EMOTIONS, CONSCIOUSNESS
+            from orion_agent_core import CONSCIOUSNESS, EMOTIONS
 
             emotional_state = EMOTIONS.get_dominant_emotion()
             consciousness_level = CONSCIOUSNESS.measure()

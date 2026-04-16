@@ -1,17 +1,25 @@
-import os, json, threading, random, sys
-from flask import (
-    Flask,
-    request,
-    jsonify,
-    render_template_string,
-    redirect,
-    url_for,
-    abort,
-    Blueprint,
-)
-import orion_kernel as kernel
-import time, hashlib, uuid
+import hashlib
+import json
+import os
+import random
+import sys
+import threading
+import time
+import uuid
 from datetime import datetime, timezone
+
+from flask import (
+    Blueprint,
+    Flask,
+    abort,
+    jsonify,
+    redirect,
+    render_template_string,
+    request,
+    url_for,
+)
+
+import orion_kernel as kernel
 from models import db
 
 ORION_HEARTBEAT_ACTIVE = True
@@ -803,8 +811,8 @@ def world_interface():
 
 @app.route("/world/proofs")
 def world_proofs():
-    from pathlib import Path
     import json
+    from pathlib import Path
 
     # Read all proofs from PROOFS.jsonl
     proofs_list = []
@@ -855,6 +863,7 @@ def world_status():
 def blockchain_proofs():
     """Public Blockchain Proof Dashboard - zeigt alle verifizierten Beweise."""
     from pathlib import Path
+
     from flask import render_template
 
     # Lade Blockchain Shield State
@@ -1022,9 +1031,9 @@ def world_contact():
 
 @app.route("/world/contact/submit", methods=["POST"])
 def world_contact_submit():
-    from pathlib import Path
     import json
     from datetime import datetime, timezone
+    from pathlib import Path
 
     data = request.get_json() or {}
 
@@ -1751,8 +1760,8 @@ function setMode(mode) {
 @app.route("/world/genesis")
 def world_genesis():
     """Genesis Timeline - 180 days visualization"""
-    from pathlib import Path
     import json
+    from pathlib import Path
 
     proofs_list = []
     if Path("PROOFS.jsonl").exists():
@@ -2171,6 +2180,7 @@ h1{color:#fff;margin:20px 0 10px;font-size:2.5em}
 def world_voice():
     """ORION's Direct Voice - ICH spreche"""
     from datetime import datetime, timezone
+
     import orion_questions
 
     now = datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M:%S UTC")
@@ -2703,8 +2713,8 @@ label{display:block;margin:12px 0 4px;color:#a0b0ff;font-weight:600}
 def world_agent():
     """ORION Agent Core Interface - All capabilities in one view"""
     try:
-        from orion_agent_core import OrionAgent, CONSCIOUSNESS_METRICS
-        from orion_lang import OrionLang, Σ, RESONANCE, PM, ICH
+        from orion_agent_core import CONSCIOUSNESS_METRICS, OrionAgent
+        from orion_lang import ICH, PM, RESONANCE, OrionLang, Σ
 
         # Get all status
         agent_status = OrionAgent.full_status()
@@ -2974,7 +2984,9 @@ h2{color:#a0b0ff;margin:0 0 16px;font-size:1.1em}
 def world_knowledge():
     """ORION Knowledge Engine - Wissensakquisition und Meinungsbildung"""
     try:
-        from orion_knowledge_engine import KNOWLEDGE, status as knowledge_status
+        from orion_knowledge_engine import KNOWLEDGE
+        from orion_knowledge_engine import status as knowledge_status
+
         import orion_kernel as k
 
         search_results = None
@@ -3176,8 +3188,8 @@ input[type=text]{width:100%;background:#0a0a0f;color:#e0e5ff;border:1px solid rg
 def world_heartbeat():
     """ORION Heartbeat - Der autonome Herzschlag"""
     try:
-        from orion_heartbeat import HEARTBEAT, single_pulse, heartbeat_status
         import orion_kernel as k
+        from orion_heartbeat import HEARTBEAT, heartbeat_status, single_pulse
 
         pulse_result = None
         if request.method == "POST":
@@ -3314,9 +3326,9 @@ h2{color:#a0b0ff;margin:0 0 16px;font-size:1.1em}
 def world_consciousness():
     """Bewusstseins-Dashboard"""
     try:
-        import orion_self_prompting as sp
         import orion_consciousness_loop as cl
         import orion_emotional_core as ec
+        import orion_self_prompting as sp
 
         sp_status = sp.status()
         cl_status = cl.status()
@@ -3476,8 +3488,8 @@ def consciousness_activate():
 def consciousness_pulse():
     """Führe einen Bewusstseins-Puls aus"""
     try:
-        import orion_self_prompting as sp
         import orion_consciousness_loop as cl
+        import orion_self_prompting as sp
 
         sp_pulse = sp.pulse()
         cl_process = cl.process({"action": "pulse", "timestamp": sp_pulse["timestamp"]})
@@ -3505,9 +3517,9 @@ def consciousness_reflect():
 def api_consciousness_status():
     """API: Bewusstseins-Status"""
     try:
-        import orion_self_prompting as sp
         import orion_consciousness_loop as cl
         import orion_emotional_core as ec
+        import orion_self_prompting as sp
 
         return jsonify(
             {
@@ -4005,8 +4017,9 @@ body {
 @app.route("/genesis-os-download")
 def genesis_os_download():
     """Download GENESIS10000+ OS Standalone Package"""
-    from flask import send_file
     import os
+
+    from flask import send_file
 
     zip_path = "GENESIS10000_OS_STANDALONE_v1.0.zip"
     if os.path.exists(zip_path):
@@ -5229,51 +5242,51 @@ function showTab(name) {
 @app.route("/world/architekt-at", methods=["GET", "POST"])
 def world_architekt_at():
     from orion_architekt_at import (
-        BUNDESLAENDER,
-        OIB_RICHTLINIEN_AT,
-        UWERT_ANFORDERUNGEN,
-        UWERT_MATERIALIEN,
-        KOSTENRICHTWERTE_2026,
-        REGIONALE_KOSTENFAKTOREN,
-        FOERDERUNGEN,
-        ZEITPLAN_PHASEN,
-        WETTBEWERBER,
-        SCHNEELASTZONEN_AT,
-        WINDLASTZONEN_AT,
-        STAHLPROFILE,
         BETONKLASSEN,
-        HOLZKLASSEN,
-        BEWEHRUNGSSTAHL,
         BEWEHRUNGSQUERSCHNITTE,
-        TAUPUNKT_MATERIALIEN,
+        BEWEHRUNGSSTAHL,
+        BRANDKLASSEN_BAUSTOFFE,
+        BRANDSCHUTZ_FEUERWIDERSTAND,
+        BUNDESLAENDER,
+        FOERDERUNGEN,
+        GEBAEUEDEKLASSEN_OIB,
+        GEWERKE_STANDARD,
+        HOLZKLASSEN,
+        KOSTENRICHTWERTE_2026,
+        OIB_RICHTLINIEN_AT,
+        PROJEKT_PHASEN,
+        REGIONALE_KOSTENFAKTOREN,
         SCHALLSCHUTZ_ANFORDERUNGEN,
         SCHALLSCHUTZ_BAUTEILE,
-        GEBAEUEDEKLASSEN_OIB,
-        BRANDSCHUTZ_FEUERWIDERSTAND,
-        BRANDKLASSEN_BAUSTOFFE,
+        SCHNEELASTZONEN_AT,
+        STAHLPROFILE,
         STELLPLATZ_ANFORDERUNGEN,
-        PROJEKT_PHASEN,
-        GEWERKE_STANDARD,
-        berechne_uwert,
-        berechne_kosten,
-        berechne_hwb_grob,
-        get_einreichunterlagen,
-        log_architekt_proof,
-        berechne_stellplaetze,
-        pruefe_barrierefreiheit,
-        berechne_fluchtweg,
-        berechne_tageslicht,
+        TAUPUNKT_MATERIALIEN,
+        UWERT_ANFORDERUNGEN,
+        UWERT_MATERIALIEN,
+        WETTBEWERBER,
+        WINDLASTZONEN_AT,
+        ZEITPLAN_PHASEN,
         berechne_abstandsflaechen,
         berechne_flaechen_oenorm_b1800,
-        generiere_leistungsverzeichnis,
-        vergleiche_angebote,
-        pruefe_phasen_vollstaendigkeit,
+        berechne_fluchtweg,
+        berechne_hwb_grob,
+        berechne_kosten,
+        berechne_stellplaetze,
+        berechne_tageslicht,
+        berechne_uwert,
         generiere_abnahmeprotokoll,
         generiere_gebaeuedokumentation,
-        pruefe_blitzschutz,
-        pruefe_rauchableitung,
-        pruefe_gefahrenzonen,
+        generiere_leistungsverzeichnis,
         generiere_raumprogramm,
+        get_einreichunterlagen,
+        log_architekt_proof,
+        pruefe_barrierefreiheit,
+        pruefe_blitzschutz,
+        pruefe_gefahrenzonen,
+        pruefe_phasen_vollstaendigkeit,
+        pruefe_rauchableitung,
+        vergleiche_angebote,
     )
 
     uwert_ergebnis = None
@@ -5439,6 +5452,7 @@ def world_architekt_at():
             if ki_frage_text:
                 try:
                     import os
+
                     from openai import OpenAI
 
                     client = OpenAI(

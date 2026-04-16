@@ -3,12 +3,13 @@ UNIQUE FEATURE: Real-time Collaboration
 Multi-user project collaboration with live updates
 """
 
-from fastapi import APIRouter, HTTPException, WebSocket, WebSocketDisconnect, Depends
-from pydantic import BaseModel, Field
-from typing import List, Dict, Optional, Set
-from datetime import datetime
-import json
 import asyncio
+import json
+from datetime import datetime
+from typing import Dict, List, Optional, Set
+
+from fastapi import APIRouter, Depends, HTTPException, WebSocket, WebSocketDisconnect
+from pydantic import BaseModel, Field
 
 router = APIRouter()
 

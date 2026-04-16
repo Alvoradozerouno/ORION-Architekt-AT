@@ -30,7 +30,7 @@ import math
 from dataclasses import dataclass
 from datetime import datetime
 from enum import Enum
-from typing import List, Tuple, Dict, Any
+from typing import Any, Dict, List, Tuple
 
 # Austrian standard steel profiles (IPE)
 IPE_PROFILE_DATABASE = {

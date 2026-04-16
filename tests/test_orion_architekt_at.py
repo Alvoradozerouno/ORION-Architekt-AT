@@ -3,32 +3,32 @@ Test Suite for orion_architekt_at core functionality
 Tests Austrian building regulations, calculations, compliance checks
 """
 
-import pytest
-import sys
 import os
+import sys
+
+import pytest
 
 # Add parent directory to path
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-from orion_architekt_at import (
-    berechne_uwert_mehrschicht,
-    berechne_stellplaetze,
-    pruefe_barrierefreiheit,
-    berechne_fluchtweg,
-    berechne_tageslicht,
-    berechne_abstandsflaechen,
-    pruefe_blitzschutz,
-    pruefe_rauchableitung,
-    pruefe_gefahrenzonen,
-    berechne_flaechen_oenorm_b1800,
-    generiere_leistungsverzeichnis,
-    generiere_raumprogramm,
-    # New validation functions
-    pruefe_wissensdatenbank,
-    pruefe_oib_richtlinien,
-    pruefe_oenorm,
+from orion_architekt_at import (  # New validation functions
     BUNDESLAENDER,
     OIB_RICHTLINIEN_AT,
+    berechne_abstandsflaechen,
+    berechne_flaechen_oenorm_b1800,
+    berechne_fluchtweg,
+    berechne_stellplaetze,
+    berechne_tageslicht,
+    berechne_uwert_mehrschicht,
+    generiere_leistungsverzeichnis,
+    generiere_raumprogramm,
+    pruefe_barrierefreiheit,
+    pruefe_blitzschutz,
+    pruefe_gefahrenzonen,
+    pruefe_oenorm,
+    pruefe_oib_richtlinien,
+    pruefe_rauchableitung,
+    pruefe_wissensdatenbank,
 )
 
 

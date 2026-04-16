@@ -9,11 +9,12 @@ Date: 2026-04-12
 Status: PRODUCTION TESTING
 """
 
-from locust import HttpUser, task, between, events
 import json
 import random
 import time
-from typing import Dict, Any
+from typing import Any, Dict
+
+from locust import HttpUser, between, events, task
 
 # ============================================================================
 # Test Data

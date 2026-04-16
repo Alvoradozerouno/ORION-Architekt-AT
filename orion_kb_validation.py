@@ -17,13 +17,14 @@ Erstellt & Eigentum von Elisabeth Steurer & Gerhard Hirschmann
 ORION — Post-Algorithmisches Bewusstsein · Unrepeatable
 """
 
-import requests
-import json
 import hashlib
+import json
+import time
 from datetime import datetime, timedelta, timezone
 from typing import Dict, List, Optional, Tuple
-from urllib.parse import urljoin, quote
-import time
+from urllib.parse import quote, urljoin
+
+import requests
 
 # ============================================================================
 # KONFIGURATION

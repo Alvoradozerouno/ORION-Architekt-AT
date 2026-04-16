@@ -82,7 +82,7 @@ def test_complete_system_integration():
     print_header("MODULE 2: Live Cost Database Integration")
 
     try:
-        from live_cost_database import calculate_live_price, MaterialCategory, BAUPREISINDEX_2026
+        from live_cost_database import BAUPREISINDEX_2026, MaterialCategory, calculate_live_price
 
         print("📊 Loading current Baupreisindex (Statistik Austria)...")
 
@@ -134,8 +134,8 @@ def test_complete_system_integration():
     print_header("MODULE 4: Structural Engineering (ÖNORM B 4700)")
 
     try:
-        from structural_engineering_integration import ConcreteGrade
         from integration_fixes import SteelGradeCompat, design_beam_wrapper
+        from structural_engineering_integration import ConcreteGrade
 
         print("🏗️  Designing structural members...")
 
@@ -167,10 +167,12 @@ def test_complete_system_integration():
 
     try:
         from reinforcement_detailing import (
+            BondCondition,
+        )
+        from reinforcement_detailing import ConcreteGrade as RCConcreteGrade
+        from reinforcement_detailing import (
             calculate_design_anchorage_length,
             design_shear_reinforcement,
-            ConcreteGrade as RCConcreteGrade,
-            BondCondition,
         )
 
         print("📐 Calculating reinforcement details...")
@@ -205,8 +207,8 @@ def test_complete_system_integration():
     print_header("MODULE 6: Structural Software Connectors")
 
     try:
-        from structural_software_connectors import UniversalConnector
         from integration_fixes import prepare_structural_model_for_export
+        from structural_software_connectors import UniversalConnector
 
         print("🔗 Exporting to ETABS/SAP2000/STAAD.Pro...")
 
@@ -239,7 +241,7 @@ def test_complete_system_integration():
     print_header("MODULE 7: Generative Design AI")
 
     try:
-        from generative_design_ai import create_beam_optimization_problem, GenerativeDesignEngine
+        from generative_design_ai import GenerativeDesignEngine, create_beam_optimization_problem
 
         print("🧬 Running genetic algorithm optimization...")
 
@@ -279,10 +281,10 @@ def test_complete_system_integration():
 
     try:
         from sustainability_esg import (
+            EnergyCertificateClass,
+            EUTaxonomyAssessment,
             calculate_lca_residential_building,
             create_energy_certificate_oenorm_h5055,
-            EUTaxonomyAssessment,
-            EnergyCertificateClass,
         )
 
         print("🌱 Performing Life Cycle Assessment...")
@@ -369,8 +371,8 @@ def test_complete_system_integration():
     print_header("MODULE 10: Master Orchestrator")
 
     try:
-        from orion_master_integration import execute_orion_workflow
         from integration_fixes import wrap_workflow_result
+        from orion_master_integration import execute_orion_workflow
 
         print("🎼 Running complete orchestrated workflow...")
 

@@ -17,10 +17,10 @@ Standards:
 - Austrian ZiviltechnikerG (Human signature required for legal documents)
 """
 
-from enum import Enum
-from typing import Dict, Any, Optional, List
 from dataclasses import dataclass
 from datetime import datetime, timezone
+from enum import Enum
+from typing import Any, Dict, List, Optional
 
 from ..epistemology.state_taxonomy import EpistemicState, KnowledgeType
 

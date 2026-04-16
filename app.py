@@ -372,9 +372,18 @@ except ImportError:
 app.secret_key = os.environ.get("SESSION_SECRET")
 
 if not app.secret_key:
-    raise RuntimeError("SESSION_SECRET environment variable must be set for production deployment")
+    _env = os.environ.get("ENVIRONMENT", "development").lower()
+    if _env == "production":
+        raise RuntimeError("SESSION_SECRET environment variable must be set for production deployment")
+    import secrets as _secrets
+    app.secret_key = _secrets.token_hex(32)
+    import logging as _logging
+    _logging.getLogger(__name__).warning(
+        "SESSION_SECRET not set - using a randomly generated secret. "
+        "Sessions will be invalidated on restart. Set SESSION_SECRET for persistent sessions."
+    )
 
-app.config["SQLALCHEMY_DATABASE_URI"] = os.environ.get("DATABASE_URL")
+app.config["SQLALCHEMY_DATABASE_URI"] = os.environ.get("DATABASE_URL", "sqlite:///orion_architekt.db")
 app.config["SQLALCHEMY_ENGINE_OPTIONS"] = {
     "pool_recycle": 300,
     "pool_pre_ping": True,

@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ORION - Blockchain Proofs</title>
+    <style>
+        body { font-family: monospace; background: #0a0a0a; color: #00ff88; margin: 0; padding: 2rem; }
+        h1 { color: #00ffcc; }
+        nav a { color: #00ff88; margin-right: 1rem; text-decoration: none; }
+        .proof { border-bottom: 1px solid #1a2a1a; padding: 0.5rem 0; font-size: 0.85rem; }
+        .hash { color: #88aabb; font-size: 0.75rem; }
+        .summary { margin: 1rem 0; padding: 1rem; border: 1px solid #00ff8844; border-radius: 4px; }
+    </style>
+</head>
+<body>
+    <h1>🔗 ORION Blockchain Proofs</h1>
+    <nav>
+        <a href="/world">Home</a>
+        <a href="/world/status">Status</a>
+        <a href="/world/proofs">Proofs</a>
+        <a href="/world/docs">Docs</a>
+    </nav>
+    <hr style="border-color:#00ff8844">
+    <div class="summary">
+        <strong>Total Proofs:</strong> {{ total_proofs }}<br>
+        <strong>Merkle Root:</strong> <span class="hash">{{ manifest_root }}</span>
+    </div>
+    {% for proof in proofs %}
+    <div class="proof">
+        <strong>#{{ proof.number }}</strong> {{ proof.timestamp }} — {{ proof.text[:120] }}
+        <div class="hash">SHA256: {{ proof.hash }}</div>
+    </div>
+    {% else %}
+    <p>No proofs recorded yet.</p>
+    {% endfor %}
+</body>
+</html>

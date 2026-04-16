@@ -24,3 +24,9 @@ github_push.py
 node_modules/
 *.zip
 ORION_WINDOWS_COMPLETE.zip
+.coverage
+coverage.xml
+*.coverage
+htmlcov/
+instance/*.db
+*.db

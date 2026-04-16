@@ -28,7 +28,7 @@ from api.routers import (
     collaboration,
     tendering
 )
-from api.middleware import RateLimitMiddleware, LoggingMiddleware
+from api.middleware import RateLimitMiddleware, LoggingMiddleware, SecurityHeadersMiddleware
 from api.middleware.auth import router as auth_router
 from api.database import engine, Base
 from api.models import User
@@ -120,6 +120,7 @@ app.add_middleware(
 app.add_middleware(GZipMiddleware, minimum_size=1000)
 app.add_middleware(LoggingMiddleware)
 app.add_middleware(RateLimitMiddleware)
+app.add_middleware(SecurityHeadersMiddleware)
 
 # Prometheus metrics
 Instrumentator().instrument(app).expose(app)

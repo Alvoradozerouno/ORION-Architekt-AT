@@ -43,8 +43,12 @@ OIBL_RICHTLINIEN = {
             "Fundamentierung und Gründung",
             "Schneelast-Nachweis (Tirol: erhöhte Schneelasten je nach Seehöhe!)",
         ],
-        "dokumente": ["Statisches Gutachten", "Tragwerksplanung", "Prüfstatik (bei größeren Bauvorhaben)"],
-        "tirol_besonderheit": "Tirol hat erhöhte Schneelasten (Zone 2-4) und liegt in Erdbebenzone 3-4. Besondere Beachtung erforderlich!"
+        "dokumente": [
+            "Statisches Gutachten",
+            "Tragwerksplanung",
+            "Prüfstatik (bei größeren Bauvorhaben)",
+        ],
+        "tirol_besonderheit": "Tirol hat erhöhte Schneelasten (Zone 2-4) und liegt in Erdbebenzone 3-4. Besondere Beachtung erforderlich!",
     },
     "OIB-RL 2": {
         "titel": "Brandschutz",
@@ -59,7 +63,7 @@ OIBL_RICHTLINIEN = {
             "Löschwasserversorgung",
         ],
         "dokumente": ["Brandschutzkonzept", "Brandschutzplan", "Fluchtwegeplan"],
-        "tirol_besonderheit": "Bei Gebäuden in alpiner Lage: Zufahrt für Feuerwehr prüfen!"
+        "tirol_besonderheit": "Bei Gebäuden in alpiner Lage: Zufahrt für Feuerwehr prüfen!",
     },
     "OIB-RL 3": {
         "titel": "Hygiene, Gesundheit und Umweltschutz",
@@ -73,7 +77,7 @@ OIBL_RICHTLINIEN = {
             "Raumhöhe (≥ 2,50 m bei Aufenthaltsräumen)",
         ],
         "dokumente": ["Kanalanschlussbescheid", "Bodengutachten (bei Verdacht auf Kontamination)"],
-        "tirol_besonderheit": "Radonvorsorgegebiet in Teilen Tirols — Radonschutzmaßnahmen im Keller!"
+        "tirol_besonderheit": "Radonvorsorgegebiet in Teilen Tirols — Radonschutzmaßnahmen im Keller!",
     },
     "OIB-RL 4": {
         "titel": "Nutzungssicherheit und Barrierefreiheit",
@@ -87,7 +91,7 @@ OIBL_RICHTLINIEN = {
             "Aufzug ab 3 Obergeschossen (bei Wohngebäuden)",
         ],
         "dokumente": ["Barrierefreiheitskonzept (bei öffentlichen Gebäuden)", "Treppenberechnung"],
-        "tirol_besonderheit": "Bei Tourismusbetrieben in Tirol besondere Barrierefreiheits-Anforderungen!"
+        "tirol_besonderheit": "Bei Tourismusbetrieben in Tirol besondere Barrierefreiheits-Anforderungen!",
     },
     "OIB-RL 5": {
         "titel": "Schallschutz",
@@ -99,7 +103,7 @@ OIBL_RICHTLINIEN = {
             "Haustechnische Anlagen (Schallpegel ≤ 30 dB(A) in Schlafräumen)",
         ],
         "dokumente": ["Bauphysikalisches Gutachten — Schallschutz", "Schallschutznachweis"],
-        "tirol_besonderheit": "Nähe zu Autobahn/Bundesstraße beachten — erhöhte Schallschutzanforderungen!"
+        "tirol_besonderheit": "Nähe zu Autobahn/Bundesstraße beachten — erhöhte Schallschutzanforderungen!",
     },
     "OIB-RL 6": {
         "titel": "Energieeinsparung und Wärmeschutz",
@@ -113,7 +117,7 @@ OIBL_RICHTLINIEN = {
             "Erneuerbare Energiequellen (Tirol: 1. Tiroler Erneuerbaren Ausbaugesetz!)",
         ],
         "dokumente": ["Energieausweis", "U-Wert-Berechnungen", "Wärmebrückendetails"],
-        "tirol_besonderheit": "Seit 15.11.2024: 1. Tiroler Erneuerbaren Ausbaugesetz — PV-Anlagen-Anforderungen!"
+        "tirol_besonderheit": "Seit 15.11.2024: 1. Tiroler Erneuerbaren Ausbaugesetz — PV-Anlagen-Anforderungen!",
     },
 }
 
@@ -134,7 +138,7 @@ EINREICHPLAN_CHECKLISTE = {
             {"text": "Kanal-, Wasser-, Stromanschlüsse", "pflicht": True},
             {"text": "Baumbestand (falls vorhanden)", "pflicht": False},
             {"text": "Bebauungsplan-Festlegungen", "pflicht": False},
-        ]
+        ],
     },
     "grundrisse": {
         "titel": "Grundrisse aller Geschosse",
@@ -152,7 +156,7 @@ EINREICHPLAN_CHECKLISTE = {
             {"text": "Durchgangslichte (DL)", "pflicht": True},
             {"text": "Treppen (Auftritt, Steigung, Handlauf)", "pflicht": True},
             {"text": "Farbige Darstellung (Bestand/Abbruch/Neu)", "pflicht": True},
-        ]
+        ],
     },
     "schnitte": {
         "titel": "Schnitte",
@@ -167,7 +171,7 @@ EINREICHPLAN_CHECKLISTE = {
             {"text": "Baurechtliche Höhe", "pflicht": True},
             {"text": "Höhendreiecke FBOK in Metern", "pflicht": True},
             {"text": "Geländeverlauf", "pflicht": True},
-        ]
+        ],
     },
     "ansichten": {
         "titel": "Ansichten (alle Fassaden)",
@@ -180,7 +184,7 @@ EINREICHPLAN_CHECKLISTE = {
             {"text": "Anschlüsse an Nachbargebäude", "pflicht": False},
             {"text": "Dachform und Dachneigung", "pflicht": True},
             {"text": "Geländeverlauf", "pflicht": True},
-        ]
+        ],
     },
     "baubeschreibung": {
         "titel": "Baubeschreibung",
@@ -194,7 +198,7 @@ EINREICHPLAN_CHECKLISTE = {
             {"text": "Angaben zur elektronischen Kommunikation (§37 TBV 2016)", "pflicht": True},
             {"text": "KFZ-Abstellplätze", "pflicht": True},
             {"text": "OIB-Richtlinien Nachweise (RL 1-6)", "pflicht": True},
-        ]
+        ],
     },
     "nachweise": {
         "titel": "Nachweise & Beilagen",
@@ -210,7 +214,7 @@ EINREICHPLAN_CHECKLISTE = {
             {"text": "Stellplatzverpflichtung", "pflicht": False},
             {"text": "Anrainerverzeichnis", "pflicht": True},
             {"text": "Bebauungsplan (falls vorhanden)", "pflicht": False},
-        ]
+        ],
     },
 }
 
@@ -328,23 +332,30 @@ UWERTE_RICHTWERTE = {
 def get_checkliste():
     return EINREICHPLAN_CHECKLISTE
 
+
 def get_oib_richtlinien():
     return OIBL_RICHTLINIEN
+
 
 def get_abkuerzungen():
     return OENORM_ABKUERZUNGEN
 
+
 def get_massstaebe():
     return MASSSTAEBE
+
 
 def get_farbcodes():
     return FARBCODE_MATERIALIEN
 
+
 def get_tirol_info():
     return TIROL_SPEZIFISCH
 
+
 def get_uwerte():
     return UWERTE_RICHTWERTE
+
 
 def generate_baubeschreibung_template(projekt_daten=None):
     d = projekt_daten or {}

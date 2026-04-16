@@ -41,7 +41,6 @@ from dataclasses import dataclass, asdict
 from typing import List, Optional, Dict, Any
 from datetime import datetime
 
-
 # =============================================================================
 # ÖSTERREICHISCHE ERDBEBENZONEN (ÖNORM B 1998-1)
 # =============================================================================
@@ -137,7 +136,9 @@ class EC8Config:
     MASSE_PRO_GESCHOSS_T: float = 200.0  # Tonnen
 
     # Sonstige
-    WICHTIGKEITSFAKTOR: float = 1.0  # γI (EN 1998-1 Table 4.3: 1.0=normal, 1.2=wichtig, 1.4=kritisch)
+    WICHTIGKEITSFAKTOR: float = (
+        1.0  # γI (EN 1998-1 Table 4.3: 1.0=normal, 1.2=wichtig, 1.4=kritisch)
+    )
     PROJEKT: str = "Erdbeben-Bemessung - Vorbemessung"
 
     def __post_init__(self):
@@ -321,9 +322,7 @@ class ErdbebenEC8AT_V1:
             EC8Result
         """
         # 1. Eigenperiode
-        T_s = self.calculate_fundamental_period(
-            self.config.GESAMTHOEHE_M, self.config.BAUWERKSTYP
-        )
+        T_s = self.calculate_fundamental_period(self.config.GESAMTHOEHE_M, self.config.BAUWERKSTYP)
 
         # 2. Spektrale Beschleunigung
         Sd_ms2 = self.calculate_response_spectrum(
@@ -367,9 +366,9 @@ class ErdbebenEC8AT_V1:
             "erdbebenzone": self.config.ERDBEBENZONE,
             "masse_t": self.config.GESAMTMASSE_T,
         }
-        audit_hash = hashlib.sha256(
-            json.dumps(audit_data, sort_keys=True).encode()
-        ).hexdigest()[:16]
+        audit_hash = hashlib.sha256(json.dumps(audit_data, sort_keys=True).encode()).hexdigest()[
+            :16
+        ]
 
         report = f"""
 {'=' * 80}

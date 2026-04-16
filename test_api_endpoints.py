@@ -23,6 +23,7 @@ sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 # Import app
 try:
     from app import app
+
     client = TestClient(app)
     APP_AVAILABLE = True
 except ImportError:
@@ -34,6 +35,7 @@ except ImportError:
 # AUTHENTICATION TESTS
 # ============================================================================
 
+
 class TestAuthentication:
     """Test authentication endpoints"""
 
@@ -43,8 +45,7 @@ class TestAuthentication:
             pytest.skip("App not available")
 
         response = client.post(
-            "/api/auth/login",
-            json={"username": "admin", "password": "admin123"}
+            "/api/auth/login", json={"username": "admin", "password": "admin123"}
         )
         assert response.status_code in [200, 401]  # Depends on if user exists
 
@@ -53,10 +54,7 @@ class TestAuthentication:
         if not APP_AVAILABLE:
             pytest.skip("App not available")
 
-        response = client.post(
-            "/api/auth/login",
-            json={"username": "invalid", "password": "wrong"}
-        )
+        response = client.post("/api/auth/login", json={"username": "invalid", "password": "wrong"})
         assert response.status_code == 401
 
     def test_login_missing_fields(self):
@@ -64,10 +62,7 @@ class TestAuthentication:
         if not APP_AVAILABLE:
             pytest.skip("App not available")
 
-        response = client.post(
-            "/api/auth/login",
-            json={"username": "admin"}
-        )
+        response = client.post("/api/auth/login", json={"username": "admin"})
         assert response.status_code == 422
 
     def test_register_user(self):
@@ -77,11 +72,7 @@ class TestAuthentication:
 
         response = client.post(
             "/api/auth/register",
-            json={
-                "username": "testuser",
-                "email": "test@example.com",
-                "password": "Test123!"
-            }
+            json={"username": "testuser", "email": "test@example.com", "password": "Test123!"},
         )
         assert response.status_code in [200, 201, 400, 409]  # User might exist
 
@@ -92,8 +83,7 @@ class TestAuthentication:
 
         # First login
         login_response = client.post(
-            "/api/auth/login",
-            json={"username": "admin", "password": "admin123"}
+            "/api/auth/login", json={"username": "admin", "password": "admin123"}
         )
 
         if login_response.status_code == 200:
@@ -101,16 +91,14 @@ class TestAuthentication:
             refresh_token = data.get("refresh_token")
 
             if refresh_token:
-                response = client.post(
-                    "/api/auth/refresh",
-                    json={"refresh_token": refresh_token}
-                )
+                response = client.post("/api/auth/refresh", json={"refresh_token": refresh_token})
                 assert response.status_code in [200, 401]
 
 
 # ============================================================================
 # PROJECT MANAGEMENT TESTS
 # ============================================================================
+
 
 class TestProjects:
     """Test project management endpoints"""
@@ -127,8 +115,8 @@ class TestProjects:
                 "location": "Wien",
                 "bundesland": "wien",
                 "gross_floor_area": 1500.0,
-                "building_type": "residential"
-            }
+                "building_type": "residential",
+            },
         )
         assert response.status_code in [200, 201, 401, 422]
 
@@ -154,8 +142,7 @@ class TestProjects:
             pytest.skip("App not available")
 
         response = client.put(
-            "/api/v1/projects/test-project-id",
-            json={"name": "Updated Project Name"}
+            "/api/v1/projects/test-project-id", json={"name": "Updated Project Name"}
         )
         assert response.status_code in [200, 404, 401, 422]
 
@@ -172,6 +159,7 @@ class TestProjects:
 # LOAD CALCULATION TESTS
 # ============================================================================
 
+
 class TestLoadCalculation:
     """Test load calculation endpoints"""
 
@@ -182,12 +170,7 @@ class TestLoadCalculation:
 
         response = client.post(
             "/api/v1/loads/calculate",
-            json={
-                "bundesland": "wien",
-                "seehöhe": 200,
-                "fläche": 100.0,
-                "nutzung": "wohnen"
-            }
+            json={"bundesland": "wien", "seehöhe": 200, "fläche": 100.0, "nutzung": "wohnen"},
         )
         assert response.status_code in [200, 422]
 
@@ -197,12 +180,7 @@ class TestLoadCalculation:
             pytest.skip("App not available")
 
         response = client.post(
-            "/api/v1/loads/snow",
-            json={
-                "bundesland": "salzburg",
-                "seehöhe": 800,
-                "zone": 3
-            }
+            "/api/v1/loads/snow", json={"bundesland": "salzburg", "seehöhe": 800, "zone": 3}
         )
         assert response.status_code in [200, 422]
 
@@ -217,8 +195,8 @@ class TestLoadCalculation:
                 "bundesland": "tirol",
                 "seehöhe": 600,
                 "gebäudehöhe": 15.0,
-                "geländekategorie": "II"
-            }
+                "geländekategorie": "II",
+            },
         )
         assert response.status_code in [200, 422]
 
@@ -226,6 +204,7 @@ class TestLoadCalculation:
 # ============================================================================
 # STRUCTURAL DESIGN TESTS
 # ============================================================================
+
 
 class TestStructuralDesign:
     """Test structural design endpoints"""
@@ -242,8 +221,8 @@ class TestStructuralDesign:
                 "width": 0.3,
                 "height": 0.6,
                 "concrete_grade": "C30/37",
-                "steel_grade": "BSt 500S"
-            }
+                "steel_grade": "BSt 500S",
+            },
         )
         assert response.status_code in [200, 422]
 
@@ -259,8 +238,8 @@ class TestStructuralDesign:
                 "width": 0.4,
                 "height": 0.4,
                 "length": 3.0,
-                "concrete_grade": "C30/37"
-            }
+                "concrete_grade": "C30/37",
+            },
         )
         assert response.status_code in [200, 422]
 
@@ -271,12 +250,7 @@ class TestStructuralDesign:
 
         response = client.post(
             "/api/v1/structural/slab",
-            json={
-                "thickness": 0.2,
-                "span": 6.0,
-                "load": 5.0,
-                "concrete_grade": "C25/30"
-            }
+            json={"thickness": 0.2, "span": 6.0, "load": 5.0, "concrete_grade": "C25/30"},
         )
         assert response.status_code in [200, 422]
 
@@ -284,6 +258,7 @@ class TestStructuralDesign:
 # ============================================================================
 # COST ESTIMATION TESTS
 # ============================================================================
+
 
 class TestCostEstimation:
     """Test cost estimation endpoints"""
@@ -299,8 +274,8 @@ class TestCostEstimation:
                 "project_type": "residential",
                 "gross_floor_area_m2": 1500.0,
                 "bundesland": "wien",
-                "construction_quality": "standard"
-            }
+                "construction_quality": "standard",
+            },
         )
         assert response.status_code in [200, 422]
 
@@ -310,11 +285,7 @@ class TestCostEstimation:
             pytest.skip("App not available")
 
         response = client.post(
-            "/api/v1/cost/breakdown",
-            json={
-                "total_cost": 4800000.0,
-                "project_type": "residential"
-            }
+            "/api/v1/cost/breakdown", json={"total_cost": 4800000.0, "project_type": "residential"}
         )
         assert response.status_code in [200, 422]
 
@@ -331,6 +302,7 @@ class TestCostEstimation:
 # COMPLIANCE TESTS
 # ============================================================================
 
+
 class TestCompliance:
     """Test compliance checking endpoints"""
 
@@ -346,8 +318,8 @@ class TestCompliance:
                 "building_type": "residential",
                 "floors": 4,
                 "units": 20,
-                "u_value_wall": 0.28
-            }
+                "u_value_wall": 0.28,
+            },
         )
         assert response.status_code in [200, 422]
 
@@ -358,11 +330,7 @@ class TestCompliance:
 
         response = client.post(
             "/api/v1/compliance/oib",
-            json={
-                "directive": "OIB-RL-6",
-                "u_value": 0.28,
-                "building_type": "residential"
-            }
+            json={"directive": "OIB-RL-6", "u_value": 0.28, "building_type": "residential"},
         )
         assert response.status_code in [200, 422]
 
@@ -373,12 +341,7 @@ class TestCompliance:
 
         response = client.post(
             "/api/v1/compliance/accessibility",
-            json={
-                "bundesland": "wien",
-                "floors": 4,
-                "has_elevator": False,
-                "has_ramps": True
-            }
+            json={"bundesland": "wien", "floors": 4, "has_elevator": False, "has_ramps": True},
         )
         assert response.status_code in [200, 422]
 
@@ -386,6 +349,7 @@ class TestCompliance:
 # ============================================================================
 # SUSTAINABILITY TESTS
 # ============================================================================
+
 
 class TestSustainability:
     """Test sustainability endpoints"""
@@ -397,11 +361,7 @@ class TestSustainability:
 
         response = client.post(
             "/api/v1/sustainability/lca",
-            json={
-                "concrete_volume": 500.0,
-                "steel_weight": 50000.0,
-                "area": 1500.0
-            }
+            json={"concrete_volume": 500.0, "steel_weight": 50000.0, "area": 1500.0},
         )
         assert response.status_code in [200, 422]
 
@@ -417,8 +377,8 @@ class TestSustainability:
                 "u_value_wall": 0.18,
                 "u_value_roof": 0.15,
                 "u_value_floor": 0.20,
-                "heating_system": "fernwärme"
-            }
+                "heating_system": "fernwärme",
+            },
         )
         assert response.status_code in [200, 422]
 
@@ -432,8 +392,8 @@ class TestSustainability:
             json={
                 "project_type": "residential",
                 "energy_class": "A+",
-                "renewable_energy_percent": 75
-            }
+                "renewable_energy_percent": 75,
+            },
         )
         assert response.status_code in [200, 422]
 
@@ -441,6 +401,7 @@ class TestSustainability:
 # ============================================================================
 # BIM/IFC TESTS
 # ============================================================================
+
 
 class TestBIM:
     """Test BIM/IFC endpoints"""
@@ -451,12 +412,15 @@ class TestBIM:
             pytest.skip("App not available")
 
         # Mock IFC file
-        files = {"file": ("test.ifc", b"ISO-10303-21;HEADER;ENDSEC;DATA;ENDSEC;END-ISO-10303-21;", "application/x-step")}
+        files = {
+            "file": (
+                "test.ifc",
+                b"ISO-10303-21;HEADER;ENDSEC;DATA;ENDSEC;END-ISO-10303-21;",
+                "application/x-step",
+            )
+        }
 
-        response = client.post(
-            "/api/v1/bim/upload",
-            files=files
-        )
+        response = client.post("/api/v1/bim/upload", files=files)
         assert response.status_code in [200, 201, 400, 422, 415]
 
     def test_validate_ifc(self):
@@ -464,10 +428,7 @@ class TestBIM:
         if not APP_AVAILABLE:
             pytest.skip("App not available")
 
-        response = client.post(
-            "/api/v1/bim/validate",
-            json={"ifc_file_id": "test-file-id"}
-        )
+        response = client.post("/api/v1/bim/validate", json={"ifc_file_id": "test-file-id"})
         assert response.status_code in [200, 404, 422]
 
     def test_extract_quantities(self):
@@ -475,16 +436,14 @@ class TestBIM:
         if not APP_AVAILABLE:
             pytest.skip("App not available")
 
-        response = client.post(
-            "/api/v1/bim/quantities",
-            json={"ifc_file_id": "test-file-id"}
-        )
+        response = client.post("/api/v1/bim/quantities", json={"ifc_file_id": "test-file-id"})
         assert response.status_code in [200, 404, 422]
 
 
 # ============================================================================
 # ADVANCED AI TESTS
 # ============================================================================
+
 
 class TestAdvancedAI:
     """Test advanced AI endpoints"""
@@ -500,8 +459,8 @@ class TestAdvancedAI:
                 "project_type": "residential",
                 "gfa": 1500.0,
                 "bundesland": "wien",
-                "quality": "standard"
-            }
+                "quality": "standard",
+            },
         )
         assert response.status_code in [200, 422]
 
@@ -512,11 +471,7 @@ class TestAdvancedAI:
 
         response = client.post(
             "/api/v1/ai/compliance-suggestions",
-            json={
-                "issues": [
-                    {"rule": "OIB-RL-6", "current": 0.28, "required": 0.20}
-                ]
-            }
+            json={"issues": [{"rule": "OIB-RL-6", "current": 0.28, "required": 0.20}]},
         )
         assert response.status_code in [200, 422]
 
@@ -532,6 +487,7 @@ class TestAdvancedAI:
 # ============================================================================
 # HEALTH & MONITORING TESTS
 # ============================================================================
+
 
 class TestHealth:
     """Test health and monitoring endpoints"""
@@ -567,6 +523,7 @@ class TestHealth:
 # ERROR HANDLING TESTS
 # ============================================================================
 
+
 class TestErrorHandling:
     """Test error handling"""
 
@@ -592,8 +549,7 @@ class TestErrorHandling:
             pytest.skip("App not available")
 
         response = client.post(
-            "/api/v1/loads/calculate",
-            json={"invalid": "data"}  # Missing required fields
+            "/api/v1/loads/calculate", json={"invalid": "data"}  # Missing required fields
         )
         assert response.status_code == 422
 
@@ -610,8 +566,8 @@ class TestErrorHandling:
                 "width": 0.0,  # Invalid
                 "height": 0.0,  # Invalid
                 "concrete_grade": "INVALID",
-                "steel_grade": "INVALID"
-            }
+                "steel_grade": "INVALID",
+            },
         )
         assert response.status_code in [400, 422, 500]
 
@@ -619,6 +575,7 @@ class TestErrorHandling:
 # ============================================================================
 # RATE LIMITING TESTS
 # ============================================================================
+
 
 class TestRateLimiting:
     """Test rate limiting"""
@@ -641,6 +598,7 @@ class TestRateLimiting:
 # ============================================================================
 # PAGINATION TESTS
 # ============================================================================
+
 
 class TestPagination:
     """Test pagination"""

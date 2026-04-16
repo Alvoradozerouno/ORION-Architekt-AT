@@ -34,15 +34,18 @@ try:
     import strawberry
     from strawberry.types import Info
     from strawberry.schema.config import StrawberryConfig
+
     GRAPHQL_AVAILABLE = True
 except ImportError:
     GRAPHQL_AVAILABLE = False
+
     # Fallback type definitions for when strawberry is not installed
     def _passthrough(cls):
         return cls
 
     class Info:
         """Fallback Info type"""
+
         def __init__(self):
             self.context = {}
 
@@ -57,25 +60,27 @@ except ImportError:
         def __init__(self, **kwargs):
             pass
 
+
 # Import from existing modules
 try:
     from orion_oenorm_a2063 import (
         generiere_beispiel_lv_einfamilienhaus,
         berechne_regionale_anpassung,
         vergleiche_angebote_mehrkriteriell,
-        Bundesland
+        Bundesland,
     )
     from iso_19650_bim import (
         erstelle_eir_template_oesterreich,
         erstelle_air_template,
-        InformationDeliveryMilestone
+        InformationDeliveryMilestone,
     )
     from eidas_signature import (
         signiere_oenorm_lv,
         verifiziere_signatur,
         DigitalSignature as EidasSignature,
-        SignatureStatus
+        SignatureStatus,
     )
+
     MODULES_AVAILABLE = True
 except ImportError:
     MODULES_AVAILABLE = False
@@ -85,9 +90,11 @@ except ImportError:
 # GraphQL Types - Austrian Tendering Domain
 # ═══════════════════════════════════════════════════════════════════════════
 
+
 @strawberry.type
 class Position:
     """Single position in Bill of Quantities (LV)"""
+
     oz: str
     bezeichnung: str
     einheit: str
@@ -108,6 +115,7 @@ class Position:
 @strawberry.type
 class Leistungsverzeichnis:
     """Bill of Quantities per ÖNORM A 2063"""
+
     dokument_id: str
     projekt_name: str
     projekt_ort: str
@@ -140,6 +148,7 @@ class Leistungsverzeichnis:
 @strawberry.type
 class BidPosition:
     """Bid position with price from bidder"""
+
     oz: str
     bezeichnung: str
     menge: float
@@ -151,6 +160,7 @@ class BidPosition:
 @strawberry.type
 class Bidder:
     """Company submitting bid"""
+
     firma: str
     uid_nummer: str
     ansprechpartner: str
@@ -163,6 +173,7 @@ class Bidder:
 @strawberry.type
 class Angebot:
     """Bid submitted by company"""
+
     angebot_id: str
     lv_id: str
     bidder: Bidder
@@ -199,6 +210,7 @@ class Angebot:
 @strawberry.type
 class BidComparison:
     """Multi-criteria bid comparison result"""
+
     lv_id: str
     anzahl_angebote: int
     niedrigstes_angebot: float
@@ -212,6 +224,7 @@ class BidComparison:
 @strawberry.type
 class DigitalSignatureInfo:
     """eIDAS digital signature information"""
+
     signature_id: str
     document_hash: str
     signer_name: str
@@ -225,6 +238,7 @@ class DigitalSignatureInfo:
 @strawberry.type
 class ISO19650Info:
     """ISO 19650 BIM information"""
+
     eir_id: Optional[str] = None
     air_id: Optional[str] = None
     bep_id: Optional[str] = None
@@ -237,6 +251,7 @@ class ISO19650Info:
 @strawberry.type
 class ProjectMetadata:
     """Project metadata combining all standards"""
+
     projekt_id: str
     projekt_name: str
     auftraggeber: str
@@ -262,9 +277,11 @@ class ProjectMetadata:
 # GraphQL Input Types
 # ═══════════════════════════════════════════════════════════════════════════
 
+
 @strawberry.input
 class LVGenerateInput:
     """Input for LV generation"""
+
     projekt_name: str
     projekt_ort: str
     auftraggeber: str
@@ -278,6 +295,7 @@ class LVGenerateInput:
 @strawberry.input
 class BidSubmitInput:
     """Input for bid submission"""
+
     lv_id: str
     firma: str
     uid_nummer: str
@@ -293,6 +311,7 @@ class BidSubmitInput:
 @strawberry.input
 class SignLVInput:
     """Input for signing LV with eIDAS"""
+
     lv_id: str
     signer_name: str
     signer_email: str
@@ -302,6 +321,7 @@ class SignLVInput:
 @strawberry.input
 class BidFilter:
     """Filter for bid queries"""
+
     lv_id: Optional[str] = None
     max_angebotssumme: Optional[float] = None
     min_gewaehrleistung_jahre: Optional[int] = None
@@ -311,6 +331,7 @@ class BidFilter:
 # ═══════════════════════════════════════════════════════════════════════════
 # GraphQL Queries
 # ═══════════════════════════════════════════════════════════════════════════
+
 
 @strawberry.type
 class Query:
@@ -327,16 +348,12 @@ class Query:
             auftraggeber="Example Client",
             erstellt_am=datetime.now(timezone.utc).isoformat(),
             version="1.0",
-            standard="ÖNORM A 2063-1:2024"
+            standard="ÖNORM A 2063-1:2024",
         )
 
     @strawberry.field
     def all_lvs(
-        self,
-        info: Info,
-        limit: int = 10,
-        offset: int = 0,
-        bundesland: Optional[str] = None
+        self, info: Info, limit: int = 10, offset: int = 0, bundesland: Optional[str] = None
     ) -> List[Leistungsverzeichnis]:
         """Get all LVs with pagination and filtering"""
         # In production: fetch from database with filters
@@ -344,10 +361,7 @@ class Query:
 
     @strawberry.field
     def angebote_for_lv(
-        self,
-        info: Info,
-        lv_id: str,
-        filter: Optional[BidFilter] = None
+        self, info: Info, lv_id: str, filter: Optional[BidFilter] = None
     ) -> List[Angebot]:
         """Get all bids for a specific LV"""
         # In production: fetch from database
@@ -355,11 +369,7 @@ class Query:
 
     @strawberry.field
     def compare_bids(
-        self,
-        info: Info,
-        lv_id: str,
-        preis_gewicht: float = 0.6,
-        qualitaet_gewicht: float = 0.4
+        self, info: Info, lv_id: str, preis_gewicht: float = 0.6, qualitaet_gewicht: float = 0.4
     ) -> Optional[BidComparison]:
         """Compare all bids for LV using multi-criteria evaluation"""
         # In production: run actual comparison
@@ -371,36 +381,23 @@ class Query:
             durchschnitt=0.0,
             empfehlung="",
             gewinner_firma="",
-            ranking=[]
+            ranking=[],
         )
 
     @strawberry.field
-    def verify_signature(
-        self,
-        info: Info,
-        lv_id: str
-    ) -> Optional[DigitalSignatureInfo]:
+    def verify_signature(self, info: Info, lv_id: str) -> Optional[DigitalSignatureInfo]:
         """Verify eIDAS signature on LV"""
         # In production: verify actual signature
         return None
 
     @strawberry.field
-    def project_by_id(
-        self,
-        info: Info,
-        projekt_id: str
-    ) -> Optional[ProjectMetadata]:
+    def project_by_id(self, info: Info, projekt_id: str) -> Optional[ProjectMetadata]:
         """Get complete project metadata"""
         # In production: fetch from database
         return None
 
     @strawberry.field
-    def search_positionen(
-        self,
-        info: Info,
-        lv_id: str,
-        search_term: str
-    ) -> List[Position]:
+    def search_positionen(self, info: Info, lv_id: str, search_term: str) -> List[Position]:
         """Search positions in LV by description"""
         # In production: full-text search
         return []
@@ -409,9 +406,15 @@ class Query:
     def bundeslaender(self) -> List[str]:
         """Get list of Austrian federal states"""
         return [
-            "Wien", "Niederösterreich", "Oberösterreich",
-            "Steiermark", "Kärnten", "Salzburg",
-            "Tirol", "Vorarlberg", "Burgenland"
+            "Wien",
+            "Niederösterreich",
+            "Oberösterreich",
+            "Steiermark",
+            "Kärnten",
+            "Salzburg",
+            "Tirol",
+            "Vorarlberg",
+            "Burgenland",
         ]
 
     @strawberry.field
@@ -427,7 +430,7 @@ class Query:
             "Spenglerarbeiten",
             "Installationsarbeiten",
             "Elektroarbeiten",
-            "Malerarbeiten"
+            "Malerarbeiten",
         ]
 
 
@@ -435,16 +438,13 @@ class Query:
 # GraphQL Mutations
 # ═══════════════════════════════════════════════════════════════════════════
 
+
 @strawberry.type
 class Mutation:
     """GraphQL root mutation type"""
 
     @strawberry.mutation
-    def generate_lv(
-        self,
-        info: Info,
-        input: LVGenerateInput
-    ) -> Leistungsverzeichnis:
+    def generate_lv(self, info: Info, input: LVGenerateInput) -> Leistungsverzeichnis:
         """Generate new LV per ÖNORM A 2063"""
 
         if not MODULES_AVAILABLE:
@@ -452,8 +452,7 @@ class Mutation:
 
         # Generate positions
         positionen = generiere_beispiel_lv_einfamilienhaus(
-            bgf_m2=input.bgf_m2,
-            geschosse=input.geschosse
+            bgf_m2=input.bgf_m2, geschosse=input.geschosse
         )
 
         # Apply regional factors
@@ -475,9 +474,9 @@ class Mutation:
                 einheitspreis_basis=p.einheitspreis_basis,
                 gesamtpreis_basis=p.gesamtpreis_basis,
                 leistungsgruppe=p.leistungsgruppe,
-                kurzbeschreibung=getattr(p, 'kurzbeschreibung', None),
-                abfall_kg=getattr(p, 'abfall_kg', None),
-                regional_faktor=getattr(p, 'regional_faktor', None)
+                kurzbeschreibung=getattr(p, "kurzbeschreibung", None),
+                abfall_kg=getattr(p, "abfall_kg", None),
+                regional_faktor=getattr(p, "regional_faktor", None),
             )
             for p in positionen
         ]
@@ -495,15 +494,11 @@ class Mutation:
             standard="ÖNORM A 2063-1:2024",
             bgf_m2=input.bgf_m2,
             geschosse=input.geschosse,
-            bundesland=input.bundesland
+            bundesland=input.bundesland,
         )
 
     @strawberry.mutation
-    def submit_bid(
-        self,
-        info: Info,
-        input: BidSubmitInput
-    ) -> Angebot:
+    def submit_bid(self, info: Info, input: BidSubmitInput) -> Angebot:
         """Submit bid for LV"""
 
         bidder = Bidder(
@@ -511,7 +506,7 @@ class Mutation:
             uid_nummer=input.uid_nummer,
             ansprechpartner=input.ansprechpartner,
             email=input.email,
-            telefon=input.telefon
+            telefon=input.telefon,
         )
 
         angebot_id = f"BID-{datetime.now().strftime('%Y%m%d-%H%M%S')}"
@@ -524,15 +519,11 @@ class Mutation:
             angebotssumme=input.angebotssumme,
             ausfuehrungszeit_tage=input.ausfuehrungszeit_tage,
             gewaehrleistung_jahre=input.gewaehrleistung_jahre,
-            zahlungskonditionen=input.zahlungskonditionen
+            zahlungskonditionen=input.zahlungskonditionen,
         )
 
     @strawberry.mutation
-    def sign_lv_eidas(
-        self,
-        info: Info,
-        input: SignLVInput
-    ) -> DigitalSignatureInfo:
+    def sign_lv_eidas(self, info: Info, input: SignLVInput) -> DigitalSignatureInfo:
         """Sign LV with eIDAS qualified signature"""
 
         if not MODULES_AVAILABLE:
@@ -547,7 +538,7 @@ class Mutation:
             projekt_name="Project",
             verantwortlicher=input.signer_name,
             email=input.signer_email,
-            firma=input.organization
+            firma=input.organization,
         )
 
         sig_data = signatur["digital_signature"]
@@ -560,16 +551,12 @@ class Mutation:
             signature_type=sig_data["metadata"]["signature_type"],
             timestamp=sig_data["metadata"]["timestamp"],
             status="valid",
-            valid=True
+            valid=True,
         )
 
     @strawberry.mutation
     def create_iso_19650_eir(
-        self,
-        info: Info,
-        projekt_name: str,
-        auftraggeber: str,
-        projekt_typ: str = "Neubau"
+        self, info: Info, projekt_name: str, auftraggeber: str, projekt_typ: str = "Neubau"
     ) -> ISO19650Info:
         """Create ISO 19650 EIR template"""
 
@@ -577,16 +564,14 @@ class Mutation:
             raise Exception("ISO 19650 module not available")
 
         eir = erstelle_eir_template_oesterreich(
-            projekt_name=projekt_name,
-            auftraggeber=auftraggeber,
-            projekt_typ=projekt_typ
+            projekt_name=projekt_name, auftraggeber=auftraggeber, projekt_typ=projekt_typ
         )
 
         return ISO19650Info(
             eir_id=eir.project_id,
             appointing_party=eir.appointing_party,
             current_milestone="M1",
-            loin_level="LOD 200"
+            loin_level="LOD 200",
         )
 
 
@@ -594,16 +579,13 @@ class Mutation:
 # GraphQL Subscriptions (Real-time updates)
 # ═══════════════════════════════════════════════════════════════════════════
 
+
 @strawberry.type
 class Subscription:
     """GraphQL subscription type for real-time updates"""
 
     @strawberry.subscription
-    async def bid_submitted(
-        self,
-        info: Info,
-        lv_id: str
-    ) -> Angebot:
+    async def bid_submitted(self, info: Info, lv_id: str) -> Angebot:
         """Subscribe to new bids for specific LV"""
         # In production: use WebSocket or async queue
         # This is a placeholder showing the structure
@@ -615,21 +597,17 @@ class Subscription:
                 uid_nummer="ATU12345678",
                 ansprechpartner="Test",
                 email="test@example.com",
-                telefon="+43 1 12345"
+                telefon="+43 1 12345",
             ),
             eingereicht_am=datetime.now(timezone.utc).isoformat(),
             angebotssumme=100000.0,
             ausfuehrungszeit_tage=180,
             gewaehrleistung_jahre=5,
-            zahlungskonditionen="30 Tage netto"
+            zahlungskonditionen="30 Tage netto",
         )
 
     @strawberry.subscription
-    async def lv_status_changed(
-        self,
-        info: Info,
-        projekt_id: str
-    ) -> Leistungsverzeichnis:
+    async def lv_status_changed(self, info: Info, projekt_id: str) -> Leistungsverzeichnis:
         """Subscribe to LV status changes"""
         # Placeholder
         yield Leistungsverzeichnis(
@@ -639,7 +617,7 @@ class Subscription:
             auftraggeber="Test",
             erstellt_am=datetime.now(timezone.utc).isoformat(),
             version="1.0",
-            standard="ÖNORM A 2063-1:2024"
+            standard="ÖNORM A 2063-1:2024",
         )
 
 
@@ -654,7 +632,7 @@ if GRAPHQL_AVAILABLE:
         subscription=Subscription,
         config=StrawberryConfig(
             auto_camel_case=False  # Keep snake_case for Austrian naming conventions
-        )
+        ),
     )
 else:
     schema = None
@@ -663,6 +641,7 @@ else:
 # ═══════════════════════════════════════════════════════════════════════════
 # FastAPI Integration
 # ═══════════════════════════════════════════════════════════════════════════
+
 
 def get_graphql_app():
     """
@@ -674,9 +653,12 @@ def get_graphql_app():
         app.include_router(graphql_app, prefix="/graphql")
     """
     if not GRAPHQL_AVAILABLE:
-        raise ImportError("strawberry-graphql not installed. Install with: pip install 'strawberry-graphql[fastapi]'")
+        raise ImportError(
+            "strawberry-graphql not installed. Install with: pip install 'strawberry-graphql[fastapi]'"
+        )
 
     from strawberry.fastapi import GraphQLRouter
+
     return GraphQLRouter(schema)
 
 
@@ -705,7 +687,6 @@ EXAMPLE_QUERIES = {
             }
         }
     """,
-
     "generate_lv": """
         mutation GenerateLV($input: LVGenerateInput!) {
             generate_lv(input: $input) {
@@ -717,7 +698,6 @@ EXAMPLE_QUERIES = {
             }
         }
     """,
-
     "compare_bids": """
         query CompareBids($lvId: String!) {
             compare_bids(lv_id: $lvId) {
@@ -730,7 +710,6 @@ EXAMPLE_QUERIES = {
             }
         }
     """,
-
     "sign_lv": """
         mutation SignLV($input: SignLVInput!) {
             sign_lv_eidas(input: $input) {
@@ -743,7 +722,6 @@ EXAMPLE_QUERIES = {
             }
         }
     """,
-
     "nested_query": """
         query ComplexProjectQuery($projektId: String!) {
             project_by_id(projekt_id: $projektId) {
@@ -771,7 +749,6 @@ EXAMPLE_QUERIES = {
             }
         }
     """,
-
     "subscribe_bids": """
         subscription BidUpdates($lvId: String!) {
             bid_submitted(lv_id: $lvId) {
@@ -785,7 +762,7 @@ EXAMPLE_QUERIES = {
                 gesamt_punkte
             }
         }
-    """
+    """,
 }
 
 

@@ -25,14 +25,16 @@ logger = logging.getLogger(__name__)
 
 class PredictionConfidence(str, Enum):
     """Confidence levels for AI predictions"""
-    HIGH = "high"      # > 95%
+
+    HIGH = "high"  # > 95%
     MEDIUM = "medium"  # 80-95%
-    LOW = "low"        # < 80%
+    LOW = "low"  # < 80%
 
 
 @dataclass
 class CostPrediction:
     """Predictive cost analytics result"""
+
     predicted_cost_eur: float
     confidence: PredictionConfidence
     confidence_score: float  # 0-1
@@ -47,6 +49,7 @@ class CostPrediction:
 @dataclass
 class ComplianceSuggestion:
     """AI-powered compliance suggestion"""
+
     rule_id: str
     rule_name: str
     severity: str  # "critical", "warning", "info"
@@ -60,6 +63,7 @@ class ComplianceSuggestion:
 @dataclass
 class ClashResolution:
     """Automated BIM clash resolution"""
+
     clash_id: str
     clash_type: str
     affected_elements: List[str]
@@ -73,6 +77,7 @@ class ClashResolution:
 @dataclass
 class DigitalTwinMetrics:
     """Digital twin real-time metrics"""
+
     building_id: str
     timestamp: str
     energy_consumption_kwh: float
@@ -100,7 +105,7 @@ class PredictiveCostAnalytics:
             "inflation_rate": 0.032,  # 3.2% for Austria 2026
             "material_volatility": 0.15,
             "labor_shortage_factor": 1.12,
-            "supply_chain_risk": 0.08
+            "supply_chain_risk": 0.08,
         }
 
     def predict_project_cost(
@@ -109,7 +114,7 @@ class PredictiveCostAnalytics:
         gross_floor_area_m2: float,
         bundesland: str,
         construction_quality: str = "standard",
-        construction_year: int = 2026
+        construction_year: int = 2026,
     ) -> CostPrediction:
         """
         Predict total project cost with confidence intervals
@@ -122,7 +127,7 @@ class PredictiveCostAnalytics:
             "office": 3200,
             "industrial": 2400,
             "retail": 3500,
-            "mixed_use": 3100
+            "mixed_use": 3100,
         }
 
         base_cost_per_m2 = base_costs.get(project_type.lower(), 3000)
@@ -137,18 +142,13 @@ class PredictiveCostAnalytics:
             "salzburg": 1.12,
             "oberösterreich": 1.08,
             "tirol": 1.14,
-            "vorarlberg": 1.13
+            "vorarlberg": 1.13,
         }
 
         regional_factor = regional_factors.get(bundesland.lower(), 1.05)
 
         # Quality factors
-        quality_factors = {
-            "basic": 0.85,
-            "standard": 1.0,
-            "premium": 1.35,
-            "luxury": 1.75
-        }
+        quality_factors = {"basic": 0.85, "standard": 1.0, "premium": 1.35, "luxury": 1.75}
 
         quality_factor = quality_factors.get(construction_quality.lower(), 1.0)
 
@@ -156,7 +156,9 @@ class PredictiveCostAnalytics:
         base_prediction = base_cost_per_m2 * gross_floor_area_m2 * regional_factor * quality_factor
 
         # Apply market trends
-        inflation_adjustment = (1 + self.market_factors["inflation_rate"]) ** (construction_year - 2026)
+        inflation_adjustment = (1 + self.market_factors["inflation_rate"]) ** (
+            construction_year - 2026
+        )
         predicted_cost = base_prediction * inflation_adjustment
 
         # Calculate confidence interval (using statistical methods)
@@ -182,7 +184,7 @@ class PredictiveCostAnalytics:
             f"Base rate: EUR {base_cost_per_m2}/m²",
             f"Regional factor: {regional_factor} ({bundesland})",
             f"Quality factor: {quality_factor} ({construction_quality})",
-            f"Market volatility: {volatility*100:.1f}%"
+            f"Market volatility: {volatility*100:.1f}%",
         ]
 
         # Market trend analysis
@@ -204,7 +206,7 @@ class PredictiveCostAnalytics:
         recommended_actions = [
             "Lock in material prices early (3-6 months advance)",
             "Consider value engineering options",
-            f"Budget contingency: {confidence_range/predicted_cost*100:.1f}%"
+            f"Budget contingency: {confidence_range/predicted_cost*100:.1f}%",
         ]
 
         if construction_quality == "premium":
@@ -219,7 +221,7 @@ class PredictiveCostAnalytics:
             key_factors=key_factors,
             market_trend=market_trend,
             risk_factors=risk_factors,
-            recommended_actions=recommended_actions
+            recommended_actions=recommended_actions,
         )
 
 
@@ -235,8 +237,7 @@ class AIComplianceChecker:
     """
 
     def check_compliance_with_suggestions(
-        self,
-        project_data: Dict[str, Any]
+        self, project_data: Dict[str, Any]
     ) -> List[ComplianceSuggestion]:
         """
         Check compliance and provide AI-powered suggestions
@@ -249,16 +250,18 @@ class AIComplianceChecker:
             required_u_value = 0.20  # OIB-RL 6 requirement
 
             if u_value > required_u_value:
-                suggestions.append(ComplianceSuggestion(
-                    rule_id="OIB-RL6-UWERT",
-                    rule_name="Wärmedurchgangskoeffizient Außenwand",
-                    severity="critical",
-                    current_value=f"{u_value:.3f} W/(m²K)",
-                    required_value=f"≤ {required_u_value:.3f} W/(m²K)",
-                    suggestion="Empfehlung: 20cm Mineralwolle-Dämmung (λ=0.035) für Compliance",
-                    auto_fix_available=True,
-                    estimated_cost_impact=45.50  # EUR/m²
-                ))
+                suggestions.append(
+                    ComplianceSuggestion(
+                        rule_id="OIB-RL6-UWERT",
+                        rule_name="Wärmedurchgangskoeffizient Außenwand",
+                        severity="critical",
+                        current_value=f"{u_value:.3f} W/(m²K)",
+                        required_value=f"≤ {required_u_value:.3f} W/(m²K)",
+                        suggestion="Empfehlung: 20cm Mineralwolle-Dämmung (λ=0.035) für Compliance",
+                        auto_fix_available=True,
+                        estimated_cost_impact=45.50,  # EUR/m²
+                    )
+                )
 
         # Example: Stellplatz compliance
         if "wohneinheiten" in project_data and "stellplaetze" in project_data:
@@ -271,16 +274,18 @@ class AIComplianceChecker:
 
             if parking < required_parking:
                 shortage = required_parking - parking
-                suggestions.append(ComplianceSuggestion(
-                    rule_id="STELLPLATZ-BL",
-                    rule_name=f"Stellplatznachweis {bundesland.title()}",
-                    severity="critical",
-                    current_value=f"{parking} Stellplätze",
-                    required_value=f"{required_parking:.0f} Stellplätze",
-                    suggestion=f"Fehlende {shortage:.0f} Stellplätze. Optionen: (1) Tiefgarage ergänzen, (2) Ablöse zahlen",
-                    auto_fix_available=False,
-                    estimated_cost_impact=shortage * 25000  # EUR per parking space
-                ))
+                suggestions.append(
+                    ComplianceSuggestion(
+                        rule_id="STELLPLATZ-BL",
+                        rule_name=f"Stellplatznachweis {bundesland.title()}",
+                        severity="critical",
+                        current_value=f"{parking} Stellplätze",
+                        required_value=f"{required_parking:.0f} Stellplätze",
+                        suggestion=f"Fehlende {shortage:.0f} Stellplätze. Optionen: (1) Tiefgarage ergänzen, (2) Ablöse zahlen",
+                        auto_fix_available=False,
+                        estimated_cost_impact=shortage * 25000,  # EUR per parking space
+                    )
+                )
 
         # Example: Barrierefreiheit
         if "geschosse" in project_data:
@@ -292,16 +297,18 @@ class AIComplianceChecker:
             elevator_required = floors >= 3 if bundesland.lower() == "wien" else floors >= 4
 
             if elevator_required and not has_elevator:
-                suggestions.append(ComplianceSuggestion(
-                    rule_id="OENORM-B1600-AUFZUG",
-                    rule_name="Aufzugspflicht (Barrierefreiheit)",
-                    severity="critical",
-                    current_value="Kein Aufzug",
-                    required_value=f"Aufzug erforderlich ab {3 if bundesland.lower()=='wien' else 4} Geschossen",
-                    suggestion="Personenaufzug (630kg, 8 Personen) erforderlich. Schachtmaße: min. 1.40×1.40m",
-                    auto_fix_available=True,
-                    estimated_cost_impact=55000  # Base cost for elevator
-                ))
+                suggestions.append(
+                    ComplianceSuggestion(
+                        rule_id="OENORM-B1600-AUFZUG",
+                        rule_name="Aufzugspflicht (Barrierefreiheit)",
+                        severity="critical",
+                        current_value="Kein Aufzug",
+                        required_value=f"Aufzug erforderlich ab {3 if bundesland.lower()=='wien' else 4} Geschossen",
+                        suggestion="Personenaufzug (630kg, 8 Personen) erforderlich. Schachtmaße: min. 1.40×1.40m",
+                        auto_fix_available=True,
+                        estimated_cost_impact=55000,  # Base cost for elevator
+                    )
+                )
 
         return suggestions
 
@@ -317,10 +324,7 @@ class AutomatedClashResolver:
     - Conflict prioritization
     """
 
-    def detect_and_resolve_clashes(
-        self,
-        bim_model: Dict[str, Any]
-    ) -> List[ClashResolution]:
+    def detect_and_resolve_clashes(self, bim_model: Dict[str, Any]) -> List[ClashResolution]:
         """
         Detect clashes and suggest/apply automated resolutions
         """
@@ -337,7 +341,7 @@ class AutomatedClashResolver:
             resolution_strategy="Route duct 300mm below beam (clearance: 50mm)",
             auto_fix_applied=False,
             manual_review_required=True,
-            resolution_confidence=0.87
+            resolution_confidence=0.87,
         )
 
         resolutions.append(clash_example)
@@ -357,10 +361,7 @@ class DigitalTwinIntegration:
     - Structural health monitoring
     """
 
-    def get_real_time_metrics(
-        self,
-        building_id: str
-    ) -> DigitalTwinMetrics:
+    def get_real_time_metrics(self, building_id: str) -> DigitalTwinMetrics:
         """
         Get real-time metrics from digital twin
 
@@ -378,7 +379,7 @@ class DigitalTwinIntegration:
                 {
                     "type": "HVAC",
                     "priority": "medium",
-                    "message": "Filter replacement due in 14 days"
+                    "message": "Filter replacement due in 14 days",
                 }
             ],
             predicted_failures=[
@@ -386,9 +387,9 @@ class DigitalTwinIntegration:
                     "component": "Elevator-1",
                     "probability": 0.12,
                     "time_to_failure_days": 180,
-                    "recommended_action": "Schedule preventive maintenance"
+                    "recommended_action": "Schedule preventive maintenance",
                 }
-            ]
+            ],
         )
 
 
@@ -402,10 +403,7 @@ class QuantumOptimization:
     - Large-scale scheduling
     """
 
-    def optimize_quantum_ready(
-        self,
-        problem_space: Dict[str, Any]
-    ) -> Dict[str, Any]:
+    def optimize_quantum_ready(self, problem_space: Dict[str, Any]) -> Dict[str, Any]:
         """
         Quantum-ready optimization (classical simulation)
 
@@ -421,7 +419,7 @@ class QuantumOptimization:
             "algorithm": "QAOA-inspired (classical)",
             "optimization_quality": 0.94,
             "quantum_ready": True,
-            "message": "System ready for quantum acceleration when available"
+            "message": "System ready for quantum acceleration when available",
         }
 
 
@@ -436,7 +434,7 @@ if __name__ == "__main__":
         project_type="residential",
         gross_floor_area_m2=1500,
         bundesland="wien",
-        construction_quality="standard"
+        construction_quality="standard",
     )
     print(f"✓ Predicted Cost: EUR {prediction.predicted_cost_eur:,.2f}")
     print(f"  Confidence: {prediction.confidence.value} ({prediction.confidence_score*100:.1f}%)")
@@ -446,14 +444,16 @@ if __name__ == "__main__":
     # Test 2: AI Compliance Checker
     print("\nTest 2: AI Compliance Checker")
     checker = AIComplianceChecker()
-    suggestions = checker.check_compliance_with_suggestions({
-        "u_value": 0.28,
-        "wohneinheiten": 20,
-        "stellplaetze": 15,
-        "geschosse": 4,
-        "aufzug": False,
-        "bundesland": "wien"
-    })
+    suggestions = checker.check_compliance_with_suggestions(
+        {
+            "u_value": 0.28,
+            "wohneinheiten": 20,
+            "stellplaetze": 15,
+            "geschosse": 4,
+            "aufzug": False,
+            "bundesland": "wien",
+        }
+    )
     print(f"✓ Compliance Issues Found: {len(suggestions)}")
     for sugg in suggestions:
         print(f"  - {sugg.rule_name} ({sugg.severity})")

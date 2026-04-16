@@ -34,13 +34,14 @@ from enum import Enum
 import json
 import hashlib
 
-
 # ═══════════════════════════════════════════════════════════════════════════
 # IFC/BIM Integration
 # ═══════════════════════════════════════════════════════════════════════════
 
+
 class IFCElementType(str, Enum):
     """IFC Element types mapping to ÖNORM trades"""
+
     WALL = "IfcWall"
     SLAB = "IfcSlab"
     ROOF = "IfcRoof"
@@ -56,6 +57,7 @@ class IFCElementType(str, Enum):
 
 class ONORMTradeMapping(str, Enum):
     """ÖNORM A 2063 Leistungsgruppen"""
+
     ERDARBEITEN = "01_Erdarbeiten"
     MAURERARBEITEN = "02_Maurerarbeiten"
     STAHLBETONARBEITEN = "03_Stahlbetonarbeiten"
@@ -72,9 +74,11 @@ class ONORMTradeMapping(str, Enum):
 # Data Classes
 # ═══════════════════════════════════════════════════════════════════════════
 
+
 @dataclass
 class IFCElement:
     """Extracted element from IFC model"""
+
     element_id: str
     element_type: str  # IfcWall, IfcSlab, etc.
     name: str
@@ -103,6 +107,7 @@ class IFCElement:
 @dataclass
 class QuantityTakeoffResult:
     """Result of AI quantity takeoff"""
+
     project_id: str
     project_name: str
     extracted_at: str
@@ -138,13 +143,14 @@ class QuantityTakeoffResult:
             "confidence_score": self.confidence_score,
             "elements": len(self.elements),
             "quantities_by_trade": self.quantities_by_trade,
-            "lv_positions": len(self.lv_positions)
+            "lv_positions": len(self.lv_positions),
         }
 
 
 # ═══════════════════════════════════════════════════════════════════════════
 # IFC Parsing Functions
 # ═══════════════════════════════════════════════════════════════════════════
+
 
 def parse_ifc_file(ifc_file_path: str) -> QuantityTakeoffResult:
     """
@@ -185,7 +191,7 @@ def parse_ifc_file(ifc_file_path: str) -> QuantityTakeoffResult:
         total_elements=len(elements),
         total_volume_m3=total_volume,
         total_area_m2=total_area,
-        confidence_score=0.95  # High confidence for IFC
+        confidence_score=0.95,  # High confidence for IFC
     )
 
 
@@ -208,7 +214,7 @@ def _simulate_ifc_extraction(ifc_path: str) -> List[IFCElement]:
             thickness_m=0.38,
             height_m=3.0,
             material="Ziegel + WDVS",
-            oenorm_trade=ONORMTradeMapping.MAURERARBEITEN.value
+            oenorm_trade=ONORMTradeMapping.MAURERARBEITEN.value,
         ),
         IFCElement(
             element_id="Slab_001",
@@ -219,7 +225,7 @@ def _simulate_ifc_extraction(ifc_path: str) -> List[IFCElement]:
             volume_m3=37.5,
             thickness_m=0.25,
             material="Stahlbeton C30/37",
-            oenorm_trade=ONORMTradeMapping.STAHLBETONARBEITEN.value
+            oenorm_trade=ONORMTradeMapping.STAHLBETONARBEITEN.value,
         ),
         IFCElement(
             element_id="Roof_001",
@@ -228,7 +234,7 @@ def _simulate_ifc_extraction(ifc_path: str) -> List[IFCElement]:
             description="Satteldach, Ziegel",
             area_m2=180.0,
             material="Tondachziegel",
-            oenorm_trade=ONORMTradeMapping.DACHDECKERARBEITEN.value
+            oenorm_trade=ONORMTradeMapping.DACHDECKERARBEITEN.value,
         ),
         IFCElement(
             element_id="Window_001",
@@ -238,8 +244,8 @@ def _simulate_ifc_extraction(ifc_path: str) -> List[IFCElement]:
             area_m2=25.0,
             material="Kunststoff",
             oenorm_trade=ONORMTradeMapping.FENSTER_TUEREN.value,
-            properties={"count": 12}
-        )
+            properties={"count": 12},
+        ),
     ]
 
     return elements
@@ -254,12 +260,7 @@ def _aggregate_quantities_by_trade(elements: List[IFCElement]) -> Dict[str, Dict
         trade = element.oenorm_trade or "UNKNOWN"
 
         if trade not in aggregated:
-            aggregated[trade] = {
-                "volume_m3": 0.0,
-                "area_m2": 0.0,
-                "length_m": 0.0,
-                "count": 0
-            }
+            aggregated[trade] = {"volume_m3": 0.0, "area_m2": 0.0, "length_m": 0.0, "count": 0}
 
         if element.volume_m3:
             aggregated[trade]["volume_m3"] += element.volume_m3
@@ -287,57 +288,65 @@ def _generate_lv_from_quantities(quantities: Dict[str, Dict[str, float]]) -> Lis
         # Maurerarbeiten
         if trade == ONORMTradeMapping.MAURERARBEITEN.value:
             if quantities_dict["area_m2"] > 0:
-                lv_positions.append({
-                    "oz": f"02.{position_nr:03d}",
-                    "bezeichnung": "Außenwand, wärmegedämmt",
-                    "einheit": "m2",
-                    "menge": round(quantities_dict["area_m2"], 2),
-                    "leistungsgruppe": "Maurerarbeiten",
-                    "quelle": "IFC BIM Model",
-                    "ai_extracted": True
-                })
+                lv_positions.append(
+                    {
+                        "oz": f"02.{position_nr:03d}",
+                        "bezeichnung": "Außenwand, wärmegedämmt",
+                        "einheit": "m2",
+                        "menge": round(quantities_dict["area_m2"], 2),
+                        "leistungsgruppe": "Maurerarbeiten",
+                        "quelle": "IFC BIM Model",
+                        "ai_extracted": True,
+                    }
+                )
                 position_nr += 1
 
         # Stahlbetonarbeiten
         elif trade == ONORMTradeMapping.STAHLBETONARBEITEN.value:
             if quantities_dict["volume_m3"] > 0:
-                lv_positions.append({
-                    "oz": f"03.{position_nr:03d}",
-                    "bezeichnung": "Stahlbeton C30/37",
-                    "einheit": "m3",
-                    "menge": round(quantities_dict["volume_m3"], 2),
-                    "leistungsgruppe": "Stahlbetonarbeiten",
-                    "quelle": "IFC BIM Model",
-                    "ai_extracted": True
-                })
+                lv_positions.append(
+                    {
+                        "oz": f"03.{position_nr:03d}",
+                        "bezeichnung": "Stahlbeton C30/37",
+                        "einheit": "m3",
+                        "menge": round(quantities_dict["volume_m3"], 2),
+                        "leistungsgruppe": "Stahlbetonarbeiten",
+                        "quelle": "IFC BIM Model",
+                        "ai_extracted": True,
+                    }
+                )
                 position_nr += 1
 
         # Dachdeckerarbeiten
         elif trade == ONORMTradeMapping.DACHDECKERARBEITEN.value:
             if quantities_dict["area_m2"] > 0:
-                lv_positions.append({
-                    "oz": f"05.{position_nr:03d}",
-                    "bezeichnung": "Dacheindeckung Tondachziegel",
-                    "einheit": "m2",
-                    "menge": round(quantities_dict["area_m2"], 2),
-                    "leistungsgruppe": "Dachdeckerarbeiten",
-                    "quelle": "IFC BIM Model",
-                    "ai_extracted": True
-                })
+                lv_positions.append(
+                    {
+                        "oz": f"05.{position_nr:03d}",
+                        "bezeichnung": "Dacheindeckung Tondachziegel",
+                        "einheit": "m2",
+                        "menge": round(quantities_dict["area_m2"], 2),
+                        "leistungsgruppe": "Dachdeckerarbeiten",
+                        "quelle": "IFC BIM Model",
+                        "ai_extracted": True,
+                    }
+                )
                 position_nr += 1
 
         # Fenster/Türen
         elif trade == ONORMTradeMapping.FENSTER_TUEREN.value:
             if quantities_dict["area_m2"] > 0:
-                lv_positions.append({
-                    "oz": f"07.{position_nr:03d}",
-                    "bezeichnung": "Kunststofffenster 3-fach verglast",
-                    "einheit": "m2",
-                    "menge": round(quantities_dict["area_m2"], 2),
-                    "leistungsgruppe": "Fenster und Türen",
-                    "quelle": "IFC BIM Model",
-                    "ai_extracted": True
-                })
+                lv_positions.append(
+                    {
+                        "oz": f"07.{position_nr:03d}",
+                        "bezeichnung": "Kunststofffenster 3-fach verglast",
+                        "einheit": "m2",
+                        "menge": round(quantities_dict["area_m2"], 2),
+                        "leistungsgruppe": "Fenster und Türen",
+                        "quelle": "IFC BIM Model",
+                        "ai_extracted": True,
+                    }
+                )
                 position_nr += 1
 
     return lv_positions
@@ -346,6 +355,7 @@ def _generate_lv_from_quantities(quantities: Dict[str, Dict[str, float]]) -> Lis
 # ═══════════════════════════════════════════════════════════════════════════
 # Integration with existing ÖNORM module
 # ═══════════════════════════════════════════════════════════════════════════
+
 
 def convert_to_oenorm_lv_positions(takeoff_result: QuantityTakeoffResult) -> List[Any]:
     """
@@ -368,8 +378,7 @@ def convert_to_oenorm_lv_positions(takeoff_result: QuantityTakeoffResult) -> Lis
 
 
 def enrich_with_cost_data(
-    lv_positions: List[Dict[str, Any]],
-    bundesland: str = "wien"
+    lv_positions: List[Dict[str, Any]], bundesland: str = "wien"
 ) -> List[Dict[str, Any]]:
     """
     Enrich AI-extracted positions with cost data
@@ -385,7 +394,7 @@ def enrich_with_cost_data(
         "Maurerarbeiten": 120.0,  # EUR/m2
         "Stahlbetonarbeiten": 450.0,  # EUR/m3
         "Dachdeckerarbeiten": 85.0,  # EUR/m2
-        "Fenster und Türen": 550.0  # EUR/m2
+        "Fenster und Türen": 550.0,  # EUR/m2
     }
 
     for pos in lv_positions:
@@ -401,6 +410,7 @@ def enrich_with_cost_data(
 # ═══════════════════════════════════════════════════════════════════════════
 # AI/ML Placeholder Functions
 # ═══════════════════════════════════════════════════════════════════════════
+
 
 def ai_classify_element(element: IFCElement) -> str:
     """
@@ -443,7 +453,7 @@ def ai_extract_from_pdf(pdf_path: str) -> QuantityTakeoffResult:
         elements=[],
         quantities_by_trade={},
         lv_positions=[],
-        confidence_score=0.75  # Lower confidence for PDF vs IFC
+        confidence_score=0.75,  # Lower confidence for PDF vs IFC
     )
 
 
@@ -451,10 +461,9 @@ def ai_extract_from_pdf(pdf_path: str) -> QuantityTakeoffResult:
 # Main Workflow
 # ═══════════════════════════════════════════════════════════════════════════
 
+
 def automatic_quantity_takeoff_workflow(
-    source_file: str,
-    project_name: str,
-    bundesland: str = "wien"
+    source_file: str, project_name: str, bundesland: str = "wien"
 ) -> Dict[str, Any]:
     """
     Complete AI Quantity Takeoff workflow
@@ -471,10 +480,7 @@ def automatic_quantity_takeoff_workflow(
     takeoff.project_name = project_name
 
     # Step 2: Enrich with costs
-    enriched_positions = enrich_with_cost_data(
-        takeoff.lv_positions,
-        bundesland=bundesland
-    )
+    enriched_positions = enrich_with_cost_data(takeoff.lv_positions, bundesland=bundesland)
 
     # Step 3: Calculate totals
     total_cost = sum(p["gesamtpreis_basis"] for p in enriched_positions)
@@ -491,10 +497,10 @@ def automatic_quantity_takeoff_workflow(
             "total_area_m2": takeoff.total_area_m2,
             "lv_positions": len(enriched_positions),
             "estimated_cost_eur": total_cost,
-            "confidence_score": takeoff.confidence_score
+            "confidence_score": takeoff.confidence_score,
         },
         "lv_positions": enriched_positions,
-        "quantities_by_trade": takeoff.quantities_by_trade
+        "quantities_by_trade": takeoff.quantities_by_trade,
     }
 
 
@@ -507,9 +513,7 @@ if __name__ == "__main__":
     # Test: Automatic workflow
     print("Test: IFC-basierte automatische Mengenermittlung...")
     result = automatic_quantity_takeoff_workflow(
-        source_file="example_project.ifc",
-        project_name="Einfamilienhaus Wien",
-        bundesland="wien"
+        source_file="example_project.ifc", project_name="Einfamilienhaus Wien", bundesland="wien"
     )
 
     if result["success"]:
@@ -523,7 +527,7 @@ if __name__ == "__main__":
         print()
 
         print("Generierte LV-Positionen:")
-        for pos in result['lv_positions']:
+        for pos in result["lv_positions"]:
             print(f"  {pos['oz']} - {pos['bezeichnung']}: {pos['menge']:.2f} {pos['einheit']}")
             print(f"      Preis: EUR {pos['gesamtpreis_basis']:,.2f}")
         print()

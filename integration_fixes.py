@@ -15,10 +15,10 @@ from dataclasses import dataclass
 from typing import Dict, Any
 import math
 
-
 # ==============================================================================
 # FIX 1: Automatic Load Calculation Wrapper
 # ==============================================================================
+
 
 def calculate_building_loads(
     building_usage: str,
@@ -27,7 +27,7 @@ def calculate_building_loads(
     altitude_m: float = 500.0,
     building_height_m: float = 15.0,
     building_width_m: float = 20.0,
-    roof_angle_deg: float = 15.0
+    roof_angle_deg: float = 15.0,
 ):
     """
     Wrapper function for calculate_building_loads
@@ -42,7 +42,7 @@ def calculate_building_loads(
         calculate_live_load,
         calculate_snow_load,
         calculate_wind_load,
-        generate_load_combinations
+        generate_load_combinations,
     )
 
     # Convert usage string to enum
@@ -50,7 +50,7 @@ def calculate_building_loads(
         "residential": BuildingUsage.RESIDENTIAL,
         "office": BuildingUsage.OFFICE,
         "assembly": BuildingUsage.ASSEMBLY,
-        "storage": BuildingUsage.STORAGE_LIGHT
+        "storage": BuildingUsage.STORAGE_LIGHT,
     }
     usage = usage_map.get(building_usage.lower(), BuildingUsage.OFFICE)
 
@@ -66,7 +66,7 @@ def calculate_building_loads(
         building_width_m=building_width_m,
         building_length_m=building_length_m,
         roof_angle_deg=roof_angle_deg,
-        usage_category=usage
+        usage_category=usage,
     )
 
     # Calculate loads
@@ -86,7 +86,7 @@ def calculate_building_loads(
         dead_load_kN=dead_slab.total_load_kN,
         live_load_kN=live.total_load_kN,
         snow_load_kN=snow.total_load_kN,
-        wind_load_kN=wind.total_load_kN
+        wind_load_kN=wind.total_load_kN,
     )
 
     # Find governing
@@ -108,13 +108,14 @@ def calculate_building_loads(
         snow_load_total_kn=snow.total_load_kN,
         wind_load_total_kn=wind.total_load_kN,
         governing_combination=governing.combination_id,
-        governing_total_kn=governing.total_combined_kN
+        governing_total_kn=governing.total_combined_kN,
     )
 
 
 # ==============================================================================
 # FIX 2: Structural Engineering SteelGrade Compatibility
 # ==============================================================================
+
 
 class SteelGradeCompat:
     """Compatibility layer for SteelGrade enum"""
@@ -126,9 +127,9 @@ class SteelGradeCompat:
 
         # Handle different naming conventions
         name_map = {
-            'BST_500S': 'BSt_500S',
-            'BST_500M': 'BSt_500M',
-            'BST_500A': 'BSt_500A',
+            "BST_500S": "BSt_500S",
+            "BST_500M": "BSt_500M",
+            "BST_500A": "BSt_500A",
         }
 
         actual_name = name_map.get(name, name)
@@ -143,11 +144,13 @@ class SteelGradeCompat:
 # Initialize compatibility attributes
 try:
     from structural_engineering_integration import SteelGrade
+
     SteelGradeCompat.BST_500S = SteelGrade.BSt_500S
     SteelGradeCompat.BST_500M = SteelGrade.BSt_500M
     SteelGradeCompat.BST_500A = SteelGrade.BSt_500A
 except ImportError as e:
     import logging
+
     logging.warning(f"SteelGrade compatibility layer failed to initialize: {e}")
     # Graceful degradation - continue without steel grade compatibility
 
@@ -159,9 +162,9 @@ def design_beam_wrapper(
     width: float = None,
     height_mm: float = None,
     height: float = None,
-    concrete_grade = None,
-    steel_grade = None,
-    **kwargs
+    concrete_grade=None,
+    steel_grade=None,
+    **kwargs,
 ):
     """
     Wrapper for design_rectangular_beam_flexure that handles both naming conventions
@@ -173,27 +176,32 @@ def design_beam_wrapper(
         get_steel_properties,
         Material,
         CrossSection,
-        StructuralElement
+        StructuralElement,
     )
 
     # Handle different parameter names
     moment = med if med is not None else (med_knm if med_knm is not None else 120.0)  # kNm
-    w = width if width is not None else (width_mm / 1000 if width_mm is not None else 0.3)  # mm to m
-    h = height if height is not None else (height_mm / 1000 if height_mm is not None else 0.6)  # mm to m
+    w = (
+        width if width is not None else (width_mm / 1000 if width_mm is not None else 0.3)
+    )  # mm to m
+    h = (
+        height if height is not None else (height_mm / 1000 if height_mm is not None else 0.6)
+    )  # mm to m
 
     # Handle string concrete grade
     if isinstance(concrete_grade, str):
         from structural_engineering_integration import ConcreteGrade
+
         grade_map = {
-            'C12/15': ConcreteGrade.C12_15,
-            'C16/20': ConcreteGrade.C16_20,
-            'C20/25': ConcreteGrade.C20_25,
-            'C25/30': ConcreteGrade.C25_30,
-            'C30/37': ConcreteGrade.C30_37,
-            'C35/45': ConcreteGrade.C35_45,
-            'C40/50': ConcreteGrade.C40_50,
-            'C45/55': ConcreteGrade.C45_55,
-            'C50/60': ConcreteGrade.C50_60,
+            "C12/15": ConcreteGrade.C12_15,
+            "C16/20": ConcreteGrade.C16_20,
+            "C20/25": ConcreteGrade.C20_25,
+            "C25/30": ConcreteGrade.C25_30,
+            "C30/37": ConcreteGrade.C30_37,
+            "C35/45": ConcreteGrade.C35_45,
+            "C40/50": ConcreteGrade.C40_50,
+            "C45/55": ConcreteGrade.C45_55,
+            "C50/60": ConcreteGrade.C50_60,
         }
         concrete_grade = grade_map.get(concrete_grade, ConcreteGrade.C30_37)
 
@@ -209,7 +217,7 @@ def design_beam_wrapper(
         fck=concrete_props["fck"],
         fcd=concrete_props["fcd"],
         e_modulus=concrete_props["Ecm"],
-        density=25.0
+        density=25.0,
     )
 
     steel_obj = Material(
@@ -217,7 +225,7 @@ def design_beam_wrapper(
         material_type="Betonstahl",
         steel_grade=steel_grade,
         fyk=steel_props["fyk"],
-        fyd=steel_props["fyd"]
+        fyd=steel_props["fyd"],
     )
 
     # Create CrossSection object
@@ -228,7 +236,7 @@ def design_beam_wrapper(
         height=h,
         length=5.0,  # Default beam length
         concrete=concrete_obj,
-        steel=steel_obj
+        steel=steel_obj,
     )
 
     # Call actual design function
@@ -238,7 +246,7 @@ def design_beam_wrapper(
         height=h,
         concrete_grade=concrete_grade,
         steel_grade=steel_grade,
-        **kwargs
+        **kwargs,
     )
 
     # FIX: Set the cross_section object (was None)
@@ -254,6 +262,7 @@ def design_beam_wrapper(
 # FIX 3: Software Connector Node/Member Data Structure
 # ==============================================================================
 
+
 def prepare_structural_model_for_export(nodes_raw, members_raw, load_cases_raw):
     """
     Convert dict-based nodes/members to proper StructuralNode and StructuralMember objects
@@ -267,21 +276,19 @@ def prepare_structural_model_for_export(nodes_raw, members_raw, load_cases_raw):
         ConcreteGrade,
         SteelGrade,
         get_concrete_properties,
-        get_steel_properties
+        get_steel_properties,
     )
 
     def parse_section_string(section_str):
         """Parse 'B30x60' -> width=0.3m, height=0.6m"""
         import re
-        match = re.match(r'B(\d+)x(\d+)', section_str)
+
+        match = re.match(r"B(\d+)x(\d+)", section_str)
         if match:
             width_cm = float(match.group(1))
             height_cm = float(match.group(2))
-            return {
-                'width': width_cm / 100.0,  # cm to m
-                'height': height_cm / 100.0
-            }
-        return {'width': 0.3, 'height': 0.6}  # Default
+            return {"width": width_cm / 100.0, "height": height_cm / 100.0}  # cm to m
+        return {"width": 0.3, "height": 0.6}  # Default
 
     def create_default_materials():
         """Create default C30/37 concrete and BSt 500S steel"""
@@ -298,7 +305,7 @@ def prepare_structural_model_for_export(nodes_raw, members_raw, load_cases_raw):
             fck=concrete_props["fck"],
             fcd=concrete_props["fcd"],
             e_modulus=concrete_props["Ecm"],
-            density=25.0
+            density=25.0,
         )
 
         steel = Material(
@@ -306,7 +313,7 @@ def prepare_structural_model_for_export(nodes_raw, members_raw, load_cases_raw):
             material_type="Betonstahl",
             steel_grade=steel_grade,
             fyk=steel_props["fyk"],
-            fyd=steel_props["fyd"]
+            fyd=steel_props["fyd"],
         )
 
         return concrete, steel
@@ -317,10 +324,10 @@ def prepare_structural_model_for_export(nodes_raw, members_raw, load_cases_raw):
         if isinstance(n, dict):
             node = StructuralNode(
                 node_id=f"N{n['id']}",
-                x=n['x'],
-                y=n['y'],
-                z=n['z'],
-                restraints={}  # Add missing restraints
+                x=n["x"],
+                y=n["y"],
+                z=n["z"],
+                restraints={},  # Add missing restraints
             )
             nodes.append(node)
         else:
@@ -333,18 +340,18 @@ def prepare_structural_model_for_export(nodes_raw, members_raw, load_cases_raw):
     for m in members_raw:
         if isinstance(m, dict):
             # Parse cross section string
-            section_str = m.get('cross_section', m.get('section', 'B30x60'))
+            section_str = m.get("cross_section", m.get("section", "B30x60"))
             dims = parse_section_string(section_str)
 
             # Create CrossSection object
             cross_section = CrossSection(
                 section_id=section_str,
                 element_type=StructuralElement.BEAM,
-                width=dims['width'],
-                height=dims['height'],
+                width=dims["width"],
+                height=dims["height"],
                 length=5.0,
                 concrete=concrete,
-                steel=steel
+                steel=steel,
             )
 
             # Create StructuralMember
@@ -354,7 +361,7 @@ def prepare_structural_model_for_export(nodes_raw, members_raw, load_cases_raw):
                 start_node=f"N{m['node_i']}",
                 end_node=f"N{m['node_j']}",
                 cross_section=cross_section,
-                loads=[]  # Add missing loads
+                loads=[],  # Add missing loads
             )
             members.append(member)
         else:
@@ -366,6 +373,7 @@ def prepare_structural_model_for_export(nodes_raw, members_raw, load_cases_raw):
 # ==============================================================================
 # FIX 4: WorkflowResult Object Access
 # ==============================================================================
+
 
 class WorkflowResultWrapper:
     """
@@ -383,7 +391,7 @@ class WorkflowResultWrapper:
 
     def __getattr__(self, name):
         """Delegate attribute access to wrapped result"""
-        if name.startswith('_'):
+        if name.startswith("_"):
             return object.__getattribute__(self, name)
         return getattr(self._result, name)
 
@@ -397,17 +405,17 @@ class WorkflowResultWrapper:
 
 def wrap_workflow_result(result):
     """Convert WorkflowResult to dict-like object"""
-    if hasattr(result, '__getitem__'):
+    if hasattr(result, "__getitem__"):
         # Already subscriptable
         return result
 
     # Create dict from result attributes
     result_dict = {
-        'status': getattr(result, 'status', 'Complete'),
-        'stages_completed': getattr(result, 'stages_completed', []),
-        'project_name': getattr(result, 'project_name', ''),
-        'total_cost': getattr(result, 'total_cost_eur', 0.0),
-        'total_co2_kg': getattr(result, 'total_carbon_kg', 0.0),
+        "status": getattr(result, "status", "Complete"),
+        "stages_completed": getattr(result, "stages_completed", []),
+        "project_name": getattr(result, "project_name", ""),
+        "total_cost": getattr(result, "total_cost_eur", 0.0),
+        "total_co2_kg": getattr(result, "total_carbon_kg", 0.0),
     }
 
     return result_dict
@@ -430,7 +438,7 @@ if __name__ == "__main__":
             building_usage="residential",
             gross_floor_area_m2=600.0,
             bundesland="wien",
-            altitude_m=500.0
+            altitude_m=500.0,
         )
         print(f"✓ Dead load: {loads.dead_load_total_kn:.1f} kN")
         print(f"✓ Live load: {loads.live_load_total_kn:.1f} kN")
@@ -459,13 +467,9 @@ if __name__ == "__main__":
             {"id": 1, "x": 0, "y": 0, "z": 0},
             {"id": 2, "x": 6000, "y": 0, "z": 0},
         ]
-        members_raw = [
-            {"id": 1, "node_i": 1, "node_j": 2, "section": "B30x60"}
-        ]
+        members_raw = [{"id": 1, "node_i": 1, "node_j": 2, "section": "B30x60"}]
 
-        nodes, members, loads = prepare_structural_model_for_export(
-            nodes_raw, members_raw, []
-        )
+        nodes, members, loads = prepare_structural_model_for_export(nodes_raw, members_raw, [])
 
         print(f"✓ Nodes: {len(nodes)}")
         print(f"✓ Members: {len(members)}")

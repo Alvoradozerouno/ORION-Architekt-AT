@@ -15,13 +15,14 @@ from typing import List, Optional, Dict, Any, ClassVar
 from enum import Enum
 import re
 
-
 # ============================================================================
 # AUSTRIAN BUILDING CODE CONSTANTS
 # ============================================================================
 
+
 class Bundesland(str, Enum):
     """Austrian federal states (Bundesländer)"""
+
     WIEN = "wien"
     TIROL = "tirol"
     SALZBURG = "salzburg"
@@ -35,6 +36,7 @@ class Bundesland(str, Enum):
 
 class BuildingType(str, Enum):
     """Common building types"""
+
     EINFAMILIENHAUS = "einfamilienhaus"
     MEHRFAMILIENHAUS = "mehrfamilienhaus"
     WOHNGEBAEUDE = "wohngebaeude"
@@ -46,6 +48,7 @@ class BuildingType(str, Enum):
 
 class Raumtyp(str, Enum):
     """Room types for area calculations"""
+
     WOHNUNG = "wohnung"
     BUERO = "buero"
     LAGER = "lager"
@@ -56,6 +59,7 @@ class Raumtyp(str, Enum):
 
 class MaterialKategorie(str, Enum):
     """Material categories"""
+
     TRAGKONSTRUKTION = "Tragkonstruktion"
     MAUERWERK = "Mauerwerk"
     DAEMMUNG = "Dämmung"
@@ -67,6 +71,7 @@ class MaterialKategorie(str, Enum):
 # ============================================================================
 # VALIDATION HELPERS
 # ============================================================================
+
 
 def validate_positive(v: float, field_name: str = "value") -> float:
     """Validate that a number is positive"""
@@ -98,7 +103,7 @@ def sanitize_string(v: str, max_length: int = 1000) -> str:
         raise ValueError(f"Expected string, got {type(v)}")
 
     # Remove null bytes
-    v = v.replace('\x00', '')
+    v = v.replace("\x00", "")
 
     # Limit length
     if len(v) > max_length:
@@ -106,7 +111,7 @@ def sanitize_string(v: str, max_length: int = 1000) -> str:
 
     # Remove potentially dangerous characters
     # Allow: alphanumeric, German special chars, spaces, common punctuation
-    allowed_pattern = r'^[a-zA-ZäöüÄÖÜß0-9\s\.,\-_/\(\)\[\]]+$'
+    allowed_pattern = r"^[a-zA-ZäöüÄÖÜß0-9\s\.,\-_/\(\)\[\]]+$"
     if not re.match(allowed_pattern, v):
         # More permissive for descriptions
         if len(v) > 100:
@@ -119,18 +124,20 @@ def sanitize_string(v: str, max_length: int = 1000) -> str:
 # ENHANCED VALIDATION MODELS
 # ============================================================================
 
+
 class ValidatedSchicht(BaseModel):
     """Layer in construction with validation"""
+
     material: str = Field(..., min_length=1, max_length=200)
     dicke_mm: float = Field(..., gt=0, le=5000, description="Thickness in mm (max 5m)")
     lambda_wert: float = Field(..., gt=0, le=10, description="Thermal conductivity W/mK")
 
-    @field_validator('material')
+    @field_validator("material")
     @classmethod
     def validate_material(cls, v):
         return sanitize_string(v, max_length=200)
 
-    @field_validator('dicke_mm')
+    @field_validator("dicke_mm")
     @classmethod
     def validate_dicke(cls, v):
         if v > 5000:  # 5 meters maximum
@@ -139,7 +146,7 @@ class ValidatedSchicht(BaseModel):
             raise ValueError("Layer thickness too thin: < 1mm")
         return v
 
-    @field_validator('lambda_wert')
+    @field_validator("lambda_wert")
     @classmethod
     def validate_lambda(cls, v):
         if v > 10:  # Unrealistically high
@@ -151,11 +158,12 @@ class ValidatedSchicht(BaseModel):
 
 class ValidatedUWertRequest(BaseModel):
     """U-value calculation request with comprehensive validation"""
+
     schichten: List[ValidatedSchicht] = Field(..., min_length=1, max_length=20)
     innen_uebergang: float = Field(0.13, ge=0.04, le=0.25)
     aussen_uebergang: float = Field(0.04, ge=0.02, le=0.10)
 
-    @field_validator('schichten')
+    @field_validator("schichten")
     @classmethod
     def validate_schichten(cls, v):
         if len(v) < 1:
@@ -175,11 +183,12 @@ class ValidatedUWertRequest(BaseModel):
 
 class ValidatedStellplatzRequest(BaseModel):
     """Parking space calculation with validation"""
+
     bundesland: Bundesland
     wohnungen: int = Field(..., gt=0, le=10000, description="Number of apartments")
     building_type: BuildingType = Field(BuildingType.MEHRFAMILIENHAUS)
 
-    @field_validator('wohnungen')
+    @field_validator("wohnungen")
     @classmethod
     def validate_wohnungen(cls, v):
         if v > 10000:
@@ -191,12 +200,13 @@ class ValidatedStellplatzRequest(BaseModel):
 
 class ValidatedFlaecheRequest(BaseModel):
     """Area calculation with validation"""
+
     raumtyp: Raumtyp
     laenge_m: float = Field(..., gt=0, le=1000)
     breite_m: float = Field(..., gt=0, le=1000)
     hoehe_m: float = Field(..., gt=0, le=100)
 
-    @field_validator('laenge_m', 'breite_m')
+    @field_validator("laenge_m", "breite_m")
     @classmethod
     def validate_dimensions(cls, v):
         if v > 1000:
@@ -205,7 +215,7 @@ class ValidatedFlaecheRequest(BaseModel):
             raise ValueError("Dimension too small: < 0.1m")
         return v
 
-    @field_validator('hoehe_m')
+    @field_validator("hoehe_m")
     @classmethod
     def validate_hoehe(cls, v):
         if v > 100:
@@ -214,7 +224,7 @@ class ValidatedFlaecheRequest(BaseModel):
             raise ValueError("Height too low: < 1.5m (Austrian minimum)")
         return v
 
-    @model_validator(mode='after')
+    @model_validator(mode="after")
     def validate_area(self):
         laenge = self.laenge_m or 0
         breite = self.breite_m or 0
@@ -230,6 +240,7 @@ class ValidatedFlaecheRequest(BaseModel):
 
 class ValidatedBarrierefreiheitRequest(BaseModel):
     """Accessibility check with validation"""
+
     tuer_breite_cm: float = Field(..., ge=50, le=300, description="Door width in cm")
     rampe_vorhanden: bool
     rampe_steigung_prozent: Optional[float] = Field(None, ge=0, le=100)
@@ -237,17 +248,17 @@ class ValidatedBarrierefreiheitRequest(BaseModel):
     geschosse: int = Field(..., ge=1, le=200)
     bundesland: Optional[Bundesland] = Field(Bundesland.WIEN)
 
-    @field_validator('rampe_steigung_prozent')
+    @field_validator("rampe_steigung_prozent")
     @classmethod
     def validate_rampe(cls, v, info):
         values = info.data
-        if values.get('rampe_vorhanden') and v is None:
+        if values.get("rampe_vorhanden") and v is None:
             raise ValueError("Ramp slope required when ramp exists")
         if v is not None and v > 100:
             raise ValueError("Ramp slope percentage unrealistic: > 100%")
         return v
 
-    @field_validator('geschosse')
+    @field_validator("geschosse")
     @classmethod
     def validate_geschosse(cls, v):
         if v > 200:
@@ -257,12 +268,13 @@ class ValidatedBarrierefreiheitRequest(BaseModel):
 
 class ValidatedFluchtwegRequest(BaseModel):
     """Emergency exit check with validation"""
+
     max_entfernung_m: float = Field(..., ge=0, le=200)
     treppenhaus_breite_m: float = Field(..., ge=0.5, le=10)
     geschosse: int = Field(..., ge=1, le=200)
     gebaudetyp: BuildingType = Field(BuildingType.WOHNGEBAEUDE)
 
-    @field_validator('max_entfernung_m')
+    @field_validator("max_entfernung_m")
     @classmethod
     def validate_entfernung(cls, v):
         if v > 200:
@@ -272,10 +284,11 @@ class ValidatedFluchtwegRequest(BaseModel):
 
 class ValidatedSchallschutzRequest(BaseModel):
     """Sound insulation check with validation"""
+
     wandaufbau: List[ValidatedSchicht] = Field(..., min_length=1, max_length=15)
     gebaudetyp: BuildingType = Field(BuildingType.MEHRFAMILIENHAUS)
 
-    @field_validator('wandaufbau')
+    @field_validator("wandaufbau")
     @classmethod
     def validate_wandaufbau(cls, v):
         total_thickness = sum(s.dicke_mm for s in v)
@@ -286,13 +299,14 @@ class ValidatedSchallschutzRequest(BaseModel):
 
 class ValidatedHeizlastRequest(BaseModel):
     """Heating load calculation with validation"""
+
     bgf_m2: float = Field(..., gt=0, le=1000000)
     uwert_wand: float = Field(..., gt=0, le=5)
     uwert_dach: float = Field(..., gt=0, le=5)
     uwert_fenster: float = Field(..., gt=0, le=10)
     bundesland: Bundesland = Field(Bundesland.WIEN)
 
-    @field_validator('bgf_m2')
+    @field_validator("bgf_m2")
     @classmethod
     def validate_bgf(cls, v):
         if v > 1000000:  # 100 hectares
@@ -301,7 +315,7 @@ class ValidatedHeizlastRequest(BaseModel):
             raise ValueError("Building area too small: < 10 m²")
         return v
 
-    @field_validator('uwert_wand', 'uwert_dach', 'uwert_fenster')
+    @field_validator("uwert_wand", "uwert_dach", "uwert_fenster")
     @classmethod
     def validate_uwert(cls, v):
         if v > 5:
@@ -313,6 +327,7 @@ class ValidatedHeizlastRequest(BaseModel):
 
 class ValidatedComplianceRequest(BaseModel):
     """OIB-RL compliance check with validation"""
+
     bundesland: Bundesland
     building_type: BuildingType
     bgf_m2: float = Field(..., gt=0, le=1000000)
@@ -320,7 +335,7 @@ class ValidatedComplianceRequest(BaseModel):
     wohnungen: Optional[int] = Field(None, ge=0, le=10000)
     richtlinien: List[int] = Field(default=[1, 2, 3, 4, 5, 6], min_length=1, max_length=6)
 
-    @field_validator('richtlinien')
+    @field_validator("richtlinien")
     @classmethod
     def validate_richtlinien(cls, v):
         for rl in v:
@@ -328,11 +343,11 @@ class ValidatedComplianceRequest(BaseModel):
                 raise ValueError(f"Invalid OIB-RL number: {rl}. Must be 1-6")
         return v
 
-    @field_validator('wohnungen')
+    @field_validator("wohnungen")
     @classmethod
     def validate_wohnungen_optional(cls, v, info):
         values = info.data
-        building_type = values.get('building_type')
+        building_type = values.get("building_type")
         if building_type in [BuildingType.MEHRFAMILIENHAUS, BuildingType.WOHNGEBAEUDE]:
             if v is None or v < 1:
                 raise ValueError("Number of apartments required for residential buildings")
@@ -343,23 +358,34 @@ class ValidatedComplianceRequest(BaseModel):
 # FILE UPLOAD VALIDATION
 # ============================================================================
 
+
 class ValidatedFileUpload(BaseModel):
     """File upload validation"""
+
     filename: str = Field(..., min_length=1, max_length=255)
     file_size_bytes: int = Field(..., gt=0, le=104857600)  # 100 MB max
     mime_type: str
 
-    ALLOWED_EXTENSIONS: ClassVar[set] = {'.ifc', '.ifcxml', '.pdf', '.dwg', '.dxf', '.rvt', '.jpg', '.png'}
+    ALLOWED_EXTENSIONS: ClassVar[set] = {
+        ".ifc",
+        ".ifcxml",
+        ".pdf",
+        ".dwg",
+        ".dxf",
+        ".rvt",
+        ".jpg",
+        ".png",
+    }
     ALLOWED_MIME_TYPES: ClassVar[set] = {
-        'application/pdf',
-        'image/jpeg',
-        'image/png',
-        'application/octet-stream',  # For IFC files
-        'application/xml',
-        'text/xml'
+        "application/pdf",
+        "image/jpeg",
+        "image/png",
+        "application/octet-stream",  # For IFC files
+        "application/xml",
+        "text/xml",
     }
 
-    @field_validator('filename')
+    @field_validator("filename")
     @classmethod
     def validate_filename(cls, v):
         # Sanitize filename
@@ -367,20 +393,20 @@ class ValidatedFileUpload(BaseModel):
 
         # Check extension
         import os
+
         ext = os.path.splitext(v)[1].lower()
         if ext not in cls.ALLOWED_EXTENSIONS:
             raise ValueError(
-                f"Invalid file extension: {ext}. "
-                f"Allowed: {', '.join(cls.ALLOWED_EXTENSIONS)}"
+                f"Invalid file extension: {ext}. " f"Allowed: {', '.join(cls.ALLOWED_EXTENSIONS)}"
             )
 
         # Prevent path traversal
-        if '..' in v or '/' in v or '\\' in v:
+        if ".." in v or "/" in v or "\\" in v:
             raise ValueError("Invalid filename: path traversal detected")
 
         return v
 
-    @field_validator('file_size_bytes')
+    @field_validator("file_size_bytes")
     @classmethod
     def validate_file_size(cls, v):
         max_size = 104857600  # 100 MB
@@ -390,13 +416,12 @@ class ValidatedFileUpload(BaseModel):
             raise ValueError("File is empty")
         return v
 
-    @field_validator('mime_type')
+    @field_validator("mime_type")
     @classmethod
     def validate_mime_type(cls, v):
         if v not in cls.ALLOWED_MIME_TYPES:
             raise ValueError(
-                f"Invalid MIME type: {v}. "
-                f"Allowed: {', '.join(cls.ALLOWED_MIME_TYPES)}"
+                f"Invalid MIME type: {v}. " f"Allowed: {', '.join(cls.ALLOWED_MIME_TYPES)}"
             )
         return v
 
@@ -405,13 +430,14 @@ class ValidatedFileUpload(BaseModel):
 # API KEY VALIDATION
 # ============================================================================
 
+
 def validate_api_key(api_key: str) -> bool:
     """Validate API key format and structure"""
     if not api_key:
         return False
 
     # API key format: orion_{tier}_{32_char_hex}
-    pattern = r'^orion_(free|premium|enterprise)_[a-f0-9]{32}$'
+    pattern = r"^orion_(free|premium|enterprise)_[a-f0-9]{32}$"
     return bool(re.match(pattern, api_key))
 
 
@@ -421,12 +447,12 @@ def validate_jwt_format(token: str) -> bool:
         return False
 
     # JWT format: header.payload.signature (3 non-empty parts separated by dots)
-    parts = token.split('.')
+    parts = token.split(".")
     if len(parts) != 3:
         return False
 
     # Each part should be non-empty and contain only base64url characters (A-Z, a-z, 0-9, -, _, =)
-    base64url_pattern = re.compile(r'^[A-Za-z0-9\-_=]+$')
+    base64url_pattern = re.compile(r"^[A-Za-z0-9\-_=]+$")
     return all(bool(part) and bool(base64url_pattern.match(part)) for part in parts)
 
 
@@ -436,28 +462,26 @@ def validate_jwt_format(token: str) -> bool:
 
 __all__ = [
     # Enums
-    'Bundesland',
-    'BuildingType',
-    'Raumtyp',
-    'MaterialKategorie',
-
+    "Bundesland",
+    "BuildingType",
+    "Raumtyp",
+    "MaterialKategorie",
     # Validation helpers
-    'validate_positive',
-    'validate_percentage',
-    'validate_bundesland',
-    'sanitize_string',
-    'validate_api_key',
-    'validate_jwt_format',
-
+    "validate_positive",
+    "validate_percentage",
+    "validate_bundesland",
+    "sanitize_string",
+    "validate_api_key",
+    "validate_jwt_format",
     # Validated models
-    'ValidatedSchicht',
-    'ValidatedUWertRequest',
-    'ValidatedStellplatzRequest',
-    'ValidatedFlaecheRequest',
-    'ValidatedBarrierefreiheitRequest',
-    'ValidatedFluchtwegRequest',
-    'ValidatedSchallschutzRequest',
-    'ValidatedHeizlastRequest',
-    'ValidatedComplianceRequest',
-    'ValidatedFileUpload',
+    "ValidatedSchicht",
+    "ValidatedUWertRequest",
+    "ValidatedStellplatzRequest",
+    "ValidatedFlaecheRequest",
+    "ValidatedBarrierefreiheitRequest",
+    "ValidatedFluchtwegRequest",
+    "ValidatedSchallschutzRequest",
+    "ValidatedHeizlastRequest",
+    "ValidatedComplianceRequest",
+    "ValidatedFileUpload",
 ]

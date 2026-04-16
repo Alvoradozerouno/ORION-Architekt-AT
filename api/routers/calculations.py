@@ -5,6 +5,7 @@ U-Wert, Stellplätze, Flächenberechnung, etc.
 from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel, Field, field_validator
 from typing import List, Dict, Optional
+import math
 import re
 import sys
 import os
@@ -318,7 +319,7 @@ async def check_fluchtweg(request: FluchtwegRequest):
         "standard": "OIB-RL 4",
         "mangel": mangel,
         "warnings": warnings,
-        "status": "pass" if len(mangel) == 0 else ("warning" if len(warnings) > 0 else "fail")
+        "status": "pass" if len(mangel) == 0 and len(warnings) == 0 else ("warning" if len(mangel) == 0 else "fail")
     }
 
 @router.post("/schallschutz-berechnung")
@@ -331,15 +332,14 @@ async def berechne_schallschutz(request: SchallschutzRequest):
     - Between apartments: minimum R'w = 55 dB
     """
     # Simplified calculation - real version would use more complex algorithm
-    # Sound reduction index increases with mass
+    # Sound reduction index increases with mass (simplified mass law)
     gesamtmasse_kg_m2 = sum(
         schicht.dicke_mm / 1000 * 2000  # Simplified: assuming 2000 kg/m3 average density
         for schicht in request.wandaufbau
     )
 
-    # Simplified mass law: R = 20*log10(m*f) - 47
-    # Using reference frequency 500 Hz
-    rw_estimated = 20 * (gesamtmasse_kg_m2 ** 0.5)  # Simplified
+    # Simplified mass law: R_w ≈ 20*log10(m*f) - 47 at f=500 Hz
+    rw_estimated = 20 * math.log10(gesamtmasse_kg_m2 * 500) - 47
 
     # Requirements
     required_rw = 55 if request.gebaudetyp == "mehrfamilienhaus" else 52

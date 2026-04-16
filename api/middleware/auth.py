@@ -16,7 +16,10 @@ security = HTTPBearer()
 # Create auth router
 router = APIRouter()
 
-SECRET_KEY = os.getenv("JWT_SECRET_KEY", "")
+import secrets
+
+_raw_secret = os.getenv("JWT_SECRET_KEY", "")
+SECRET_KEY = _raw_secret if _raw_secret else secrets.token_hex(64)
 ALGORITHM = os.getenv("JWT_ALGORITHM", "HS256")
 ACCESS_TOKEN_EXPIRE_MINUTES = int(os.getenv("JWT_ACCESS_TOKEN_EXPIRE_MINUTES", "60"))
 

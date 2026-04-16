@@ -43,6 +43,7 @@ from typing import List, Tuple, Dict, Any
 
 class ValidationStatus(Enum):
     """Validation status for TRL assessment"""
+
     NOT_STARTED = "not_started"
     IMPLEMENTED = "implemented"
     TESTED = "tested"
@@ -53,6 +54,7 @@ class ValidationStatus(Enum):
 @dataclass
 class Config:
     """Configuration for BSH-Träger EC5-AT calculation"""
+
     # System
     SYSTEM_TYP: str = "BSH-Träger"
     LAGERUNG: str = "Einfeldträger"
@@ -72,9 +74,9 @@ class Config:
 
     # Material properties (N/mm²)
     F_M_K: float = 24.0  # Bending strength
-    F_V_K: float = 2.7   # Shear strength
+    F_V_K: float = 2.7  # Shear strength
     E_0_MEAN: float = 11600.0  # Mean E-modulus
-    RHO_MEAN: float = 420.0    # Density kg/m³
+    RHO_MEAN: float = 420.0  # Density kg/m³
 
     # Safety factors
     K_MOD: float = 0.9
@@ -86,12 +88,13 @@ class Config:
     ETA_BENDING_MAX: float = 1.0
     ETA_SHEAR_MAX: float = 1.0
     W_INST_LIMIT_FACTOR: float = 300.0  # L/300
-    W_FIN_LIMIT_FACTOR: float = 200.0   # L/200
+    W_FIN_LIMIT_FACTOR: float = 200.0  # L/200
 
 
 @dataclass
 class IterationResult:
     """Results from one iteration"""
+
     height_mm: float
     area_mm2: float
     I_y_mm4: float
@@ -118,6 +121,7 @@ class IterationResult:
 @dataclass
 class SensitivityResult:
     """Sensitivity analysis result"""
+
     parameter: str
     variation_percent: float
     eta_bending_base: float
@@ -132,6 +136,7 @@ class SensitivityResult:
 @dataclass
 class ValidationReport:
     """Validation report for TRL assessment"""
+
     hara_risks: List[Dict[str, Any]] = field(default_factory=list)
     safety_mechanisms: List[Dict[str, Any]] = field(default_factory=list)
     validation_status: Dict[str, ValidationStatus] = field(default_factory=dict)
@@ -167,32 +172,32 @@ class BSHTraegerEC5AT_V3:
                 "id": "R001",
                 "description": "Unterdimensionierung → Strukturversagen",
                 "asil": "D",
-                "mitigation": "Iteration bis η≤1.0 + Safety Margins"
+                "mitigation": "Iteration bis η≤1.0 + Safety Margins",
             },
             {
                 "id": "R002",
                 "description": "Materialkennwerte ungenau → Überlastung",
                 "asil": "C",
-                "mitigation": "EN 14080 zertifizierte Werte + k_mod"
+                "mitigation": "EN 14080 zertifizierte Werte + k_mod",
             },
             {
                 "id": "R003",
                 "description": "Durchbiegung > L/200 → Gebrauchstauglichkeit",
                 "asil": "B",
-                "mitigation": "SLS Checks (w_fin ≤ L/200)"
+                "mitigation": "SLS Checks (w_fin ≤ L/200)",
             },
             {
                 "id": "R004",
                 "description": "Softwarefehler → Falsche Dimensionierung",
                 "asil": "D",
-                "mitigation": "Determinismus-Check + Unit Tests"
+                "mitigation": "Determinismus-Check + Unit Tests",
             },
             {
                 "id": "R005",
                 "description": "Lastannahmen nicht konservativ",
                 "asil": "C",
-                "mitigation": "EC5 Lastkombinationen + γ-Faktoren"
-            }
+                "mitigation": "EC5 Lastkombinationen + γ-Faktoren",
+            },
         ]
 
         # Safety Mechanisms
@@ -201,26 +206,26 @@ class BSHTraegerEC5AT_V3:
                 "id": "SM001",
                 "name": "Fallback Decision Layer",
                 "description": "Bei Optimierungsfehler: Konservative Standardwerte",
-                "status": ValidationStatus.TESTED
+                "status": ValidationStatus.TESTED,
             },
             {
                 "id": "SM002",
                 "name": "Determinismus Check",
                 "description": "20 identische Runs → identisches Ergebnis",
-                "status": ValidationStatus.VALIDATED
+                "status": ValidationStatus.VALIDATED,
             },
             {
                 "id": "SM003",
                 "name": "Input Validation",
                 "description": "Plausibilitätsprüfung aller Eingabeparameter",
-                "status": ValidationStatus.TESTED
+                "status": ValidationStatus.TESTED,
             },
             {
                 "id": "SM004",
                 "name": "Audit Trail (SHA-256)",
                 "description": "EU AI Act Article 12 konforme Protokollierung",
-                "status": ValidationStatus.IMPLEMENTED
-            }
+                "status": ValidationStatus.IMPLEMENTED,
+            },
         ]
 
         # Validation Status
@@ -232,7 +237,7 @@ class BSHTraegerEC5AT_V3:
             "Diagram_Discretization": ValidationStatus.TESTED,
             "Audit_Trail": ValidationStatus.IMPLEMENTED,
             "Sensitivity_Analysis": ValidationStatus.TESTED,
-            "TÜV_Certification": ValidationStatus.NOT_STARTED
+            "TÜV_Certification": ValidationStatus.NOT_STARTED,
         }
 
         # TÜV Assessment
@@ -241,20 +246,20 @@ class BSHTraegerEC5AT_V3:
             "Schubnachweis (EC5-AT)",
             "Durchbiegungsnachweis (EC5-AT)",
             "Materialkennwerte (EN 14080)",
-            "Lastkombinationen (EC5)"
+            "Lastkombinationen (EC5)",
         ]
 
         report.prototype_components = [
             "Sensitivitätsanalyse",
             "Automatisierte Berichtsgenerierung",
-            "Diagramm-Export"
+            "Diagramm-Export",
         ]
 
         report.missing_components = [
             "Externe TÜV-Zertifizierung",
             "Vollständige FMEA/FTA",
             "Unabhängige Validierung (Third Party)",
-            "Langzeit-Stabilitätstests"
+            "Langzeit-Stabilitätstests",
         ]
 
         return report
@@ -272,13 +277,13 @@ class BSHTraegerEC5AT_V3:
 
     def calculate_bending_moment(self, q_kn_per_m: float, L_m: float) -> float:
         """Calculate maximum bending moment in kNm"""
-        return q_kn_per_m * L_m ** 2 / 8
+        return q_kn_per_m * L_m**2 / 8
 
     def calculate_section_modulus(self, b_mm: float, h_mm: float) -> Tuple[float, float, float]:
         """Calculate A, I_y, W_y in mm², mm⁴, mm³"""
         A = b_mm * h_mm
-        I_y = b_mm * h_mm ** 3 / 12
-        W_y = b_mm * h_mm ** 2 / 6
+        I_y = b_mm * h_mm**3 / 12
+        W_y = b_mm * h_mm**2 / 6
         return A, I_y, W_y
 
     def calculate_bending_stress(self, M_knm: float, W_y_mm3: float) -> float:
@@ -311,17 +316,23 @@ class BSHTraegerEC5AT_V3:
         eta = tau_v / f_v_d
         return eta, eta <= self.config.ETA_SHEAR_MAX
 
-    def calculate_deflection(self, q_kn_per_m: float, L_m: float, I_y_mm4: float, E_n_per_mm2: float) -> float:
+    def calculate_deflection(
+        self, q_kn_per_m: float, L_m: float, I_y_mm4: float, E_n_per_mm2: float
+    ) -> float:
         """Calculate instantaneous deflection in mm"""
         q_N_per_mm = q_kn_per_m * 1000 / 1000
         L_mm = L_m * 1000
-        return 5 * q_N_per_mm * L_mm ** 4 / (384 * E_n_per_mm2 * I_y_mm4)
+        return 5 * q_N_per_mm * L_mm**4 / (384 * E_n_per_mm2 * I_y_mm4)
 
     def calculate_final_deflection(self, w_inst_g: float, w_inst_q: float) -> float:
         """Calculate final deflection considering creep"""
-        return w_inst_g * (1 + self.config.K_DEF) + w_inst_q * (1 + self.config.PSI_2 * self.config.K_DEF)
+        return w_inst_g * (1 + self.config.K_DEF) + w_inst_q * (
+            1 + self.config.PSI_2 * self.config.K_DEF
+        )
 
-    def verify_deflection(self, w_inst: float, w_fin: float, L_m: float) -> Tuple[float, float, bool, bool]:
+    def verify_deflection(
+        self, w_inst: float, w_fin: float, L_m: float
+    ) -> Tuple[float, float, bool, bool]:
         """Verify deflection (returns w_inst_limit, w_fin_limit, inst_ok, fin_ok)"""
         L_mm = L_m * 1000
         w_inst_limit = L_mm / self.config.W_INST_LIMIT_FACTOR
@@ -359,11 +370,17 @@ class BSHTraegerEC5AT_V3:
             eta_shear, shear_ok = self.verify_shear(tau_v, f_v_d)
 
             # Deflection verification (SLS)
-            w_inst_g = self.calculate_deflection(g_total, self.config.L_SPANNWEITE_M, I_y, self.config.E_0_MEAN)
-            w_inst_q = self.calculate_deflection(q_k, self.config.L_SPANNWEITE_M, I_y, self.config.E_0_MEAN)
+            w_inst_g = self.calculate_deflection(
+                g_total, self.config.L_SPANNWEITE_M, I_y, self.config.E_0_MEAN
+            )
+            w_inst_q = self.calculate_deflection(
+                q_k, self.config.L_SPANNWEITE_M, I_y, self.config.E_0_MEAN
+            )
             w_inst_total = w_inst_g + w_inst_q
             w_fin = self.calculate_final_deflection(w_inst_g, w_inst_q)
-            w_inst_limit, w_fin_limit, inst_ok, fin_ok = self.verify_deflection(w_inst_total, w_fin, self.config.L_SPANNWEITE_M)
+            w_inst_limit, w_fin_limit, inst_ok, fin_ok = self.verify_deflection(
+                w_inst_total, w_fin, self.config.L_SPANNWEITE_M
+            )
 
             result = IterationResult(
                 height_mm=h_current,
@@ -386,7 +403,7 @@ class BSHTraegerEC5AT_V3:
                 w_fin_limit_mm=w_fin_limit,
                 uls_ok=bending_ok and shear_ok,
                 sls_ok=inst_ok and fin_ok,
-                overall_ok=bending_ok and shear_ok and inst_ok and fin_ok
+                overall_ok=bending_ok and shear_ok and inst_ok and fin_ok,
             )
 
             iterations.append(result)
@@ -405,52 +422,59 @@ class BSHTraegerEC5AT_V3:
         # Load +10%
         config_load_high = Config(
             GK_FUSSBODEN_KN_PER_M2=self.config.GK_FUSSBODEN_KN_PER_M2 * 1.10,
-            QK_NUTZLAST_KN_PER_M=self.config.QK_NUTZLAST_KN_PER_M * 1.10
+            QK_NUTZLAST_KN_PER_M=self.config.QK_NUTZLAST_KN_PER_M * 1.10,
         )
         iter_load_high = BSHTraegerEC5AT_V3(config_load_high).run_optimization()
         if iter_load_high:
-            sensitivity_results.append(SensitivityResult(
-                parameter="Last +10%",
-                variation_percent=10.0,
-                eta_bending_base=base_result.eta_bending,
-                eta_bending_varied=iter_load_high[-1].eta_bending,
-                eta_shear_base=base_result.eta_shear,
-                eta_shear_varied=iter_load_high[-1].eta_shear,
-                w_fin_base=base_result.w_fin_mm,
-                w_fin_varied=iter_load_high[-1].w_fin_mm,
-                critical=iter_load_high[-1].eta_bending > 1.0
-            ))
+            sensitivity_results.append(
+                SensitivityResult(
+                    parameter="Last +10%",
+                    variation_percent=10.0,
+                    eta_bending_base=base_result.eta_bending,
+                    eta_bending_varied=iter_load_high[-1].eta_bending,
+                    eta_shear_base=base_result.eta_shear,
+                    eta_shear_varied=iter_load_high[-1].eta_shear,
+                    w_fin_base=base_result.w_fin_mm,
+                    w_fin_varied=iter_load_high[-1].w_fin_mm,
+                    critical=iter_load_high[-1].eta_bending > 1.0,
+                )
+            )
 
         # Material -5%
         config_mat_low = Config(F_M_K=self.config.F_M_K * 0.95)
         iter_mat_low = BSHTraegerEC5AT_V3(config_mat_low).run_optimization()
         if iter_mat_low:
-            sensitivity_results.append(SensitivityResult(
-                parameter="Material -5%",
-                variation_percent=-5.0,
-                eta_bending_base=base_result.eta_bending,
-                eta_bending_varied=iter_mat_low[-1].eta_bending,
-                eta_shear_base=base_result.eta_shear,
-                eta_shear_varied=iter_mat_low[-1].eta_shear,
-                w_fin_base=base_result.w_fin_mm,
-                w_fin_varied=iter_mat_low[-1].w_fin_mm,
-                critical=iter_mat_low[-1].eta_bending > 1.0
-            ))
+            sensitivity_results.append(
+                SensitivityResult(
+                    parameter="Material -5%",
+                    variation_percent=-5.0,
+                    eta_bending_base=base_result.eta_bending,
+                    eta_bending_varied=iter_mat_low[-1].eta_bending,
+                    eta_shear_base=base_result.eta_shear,
+                    eta_shear_varied=iter_mat_low[-1].eta_shear,
+                    w_fin_base=base_result.w_fin_mm,
+                    w_fin_varied=iter_mat_low[-1].w_fin_mm,
+                    critical=iter_mat_low[-1].eta_bending > 1.0,
+                )
+            )
 
         return sensitivity_results
 
     def create_verification_hash(self, result: IterationResult) -> str:
         """Create SHA-256 verification hash for result"""
-        hash_input = json.dumps({
-            "L": self.config.L_SPANNWEITE_M,
-            "b": self.config.BREITE_b_MM,
-            "h": result.height_mm,
-            "g_floor": self.config.GK_FUSSBODEN_KN_PER_M2,
-            "q_k": self.config.QK_NUTZLAST_KN_PER_M,
-            "k_mod": self.config.K_MOD,
-            "k_def": self.config.K_DEF,
-            "f_m_k": self.config.F_M_K
-        }, sort_keys=True)
+        hash_input = json.dumps(
+            {
+                "L": self.config.L_SPANNWEITE_M,
+                "b": self.config.BREITE_b_MM,
+                "h": result.height_mm,
+                "g_floor": self.config.GK_FUSSBODEN_KN_PER_M2,
+                "q_k": self.config.QK_NUTZLAST_KN_PER_M,
+                "k_mod": self.config.K_MOD,
+                "k_def": self.config.K_DEF,
+                "f_m_k": self.config.F_M_K,
+            },
+            sort_keys=True,
+        )
         return hashlib.sha256(hash_input.encode()).hexdigest()[:16]
 
     def create_audit_chain_entry(self, result: IterationResult) -> str:
@@ -460,7 +484,9 @@ class BSHTraegerEC5AT_V3:
         self.last_chain_hash = chain_hash
         return chain_hash
 
-    def generate_report(self, iterations: List[IterationResult], sensitivity: List[SensitivityResult]) -> str:
+    def generate_report(
+        self, iterations: List[IterationResult], sensitivity: List[SensitivityResult]
+    ) -> str:
         """Generate technical report"""
         result = iterations[-1]
         verification_hash = self.create_verification_hash(result)
@@ -480,51 +506,59 @@ class BSHTraegerEC5AT_V3:
             "",
             "-" * 80,
             "1. HARA SUMMARY (5 Risiken)",
-            "-" * 80
+            "-" * 80,
         ]
 
         for risk in self.validation_report.hara_risks:
-            lines.extend([
-                f"  {risk['id']}: {risk['description']}",
-                f"         ASIL: {risk['asil']}, Mitigation: {risk['mitigation']}"
-            ])
+            lines.extend(
+                [
+                    f"  {risk['id']}: {risk['description']}",
+                    f"         ASIL: {risk['asil']}, Mitigation: {risk['mitigation']}",
+                ]
+            )
 
-        lines.extend([
-            "",
-            "-" * 80,
-            "2. NACHWEISE GZT + GZG",
-            "-" * 80,
-            f"Biegung: η = {result.eta_bending:.3f} {'✓' if result.eta_bending <= 1.0 else '✗'}",
-            f"Schub:   η = {result.eta_shear:.3f} {'✓' if result.eta_shear <= 1.0 else '✗'}",
-            f"w_inst:  {result.w_inst_mm:.2f} mm ≤ {result.w_inst_limit_mm:.1f} mm {'✓' if result.w_inst_mm <= result.w_inst_limit_mm else '✗'}",
-            f"w_fin:   {result.w_fin_mm:.2f} mm ≤ {result.w_fin_limit_mm:.1f} mm {'✓' if result.w_fin_mm <= result.w_fin_limit_mm else '✗'}",
-            "",
-            "-" * 80,
-            "3. SENSITIVITÄTSANALYSE",
-            "-" * 80
-        ])
+        lines.extend(
+            [
+                "",
+                "-" * 80,
+                "2. NACHWEISE GZT + GZG",
+                "-" * 80,
+                f"Biegung: η = {result.eta_bending:.3f} {'✓' if result.eta_bending <= 1.0 else '✗'}",
+                f"Schub:   η = {result.eta_shear:.3f} {'✓' if result.eta_shear <= 1.0 else '✗'}",
+                f"w_inst:  {result.w_inst_mm:.2f} mm ≤ {result.w_inst_limit_mm:.1f} mm {'✓' if result.w_inst_mm <= result.w_inst_limit_mm else '✗'}",
+                f"w_fin:   {result.w_fin_mm:.2f} mm ≤ {result.w_fin_limit_mm:.1f} mm {'✓' if result.w_fin_mm <= result.w_fin_limit_mm else '✗'}",
+                "",
+                "-" * 80,
+                "3. SENSITIVITÄTSANALYSE",
+                "-" * 80,
+            ]
+        )
 
         for sens in sensitivity:
-            lines.extend([
-                f"  {sens.parameter}:",
-                f"    η_b: {sens.eta_bending_base:.3f} → {sens.eta_bending_varied:.3f}",
-                f"    Critical: {'YES ⚠️' if sens.critical else 'NO ✓'}"
-            ])
+            lines.extend(
+                [
+                    f"  {sens.parameter}:",
+                    f"    η_b: {sens.eta_bending_base:.3f} → {sens.eta_bending_varied:.3f}",
+                    f"    Critical: {'YES ⚠️' if sens.critical else 'NO ✓'}",
+                ]
+            )
 
-        lines.extend([
-            "",
-            "-" * 80,
-            "4. TÜV READINESS ASSESSMENT",
-            "-" * 80,
-            f"Ready Components:      {len(self.validation_report.tuv_ready_components)}",
-            f"Prototype Components:  {len(self.validation_report.prototype_components)}",
-            f"Missing Components:    {len(self.validation_report.missing_components)}",
-            "",
-            "=" * 80,
-            f"VALIDATION STATUS: Siehe validation_report.json",
-            f"Prüf-Hash: {verification_hash}",
-            "=" * 80
-        ])
+        lines.extend(
+            [
+                "",
+                "-" * 80,
+                "4. TÜV READINESS ASSESSMENT",
+                "-" * 80,
+                f"Ready Components:      {len(self.validation_report.tuv_ready_components)}",
+                f"Prototype Components:  {len(self.validation_report.prototype_components)}",
+                f"Missing Components:    {len(self.validation_report.missing_components)}",
+                "",
+                "=" * 80,
+                f"VALIDATION STATUS: Siehe validation_report.json",
+                f"Prüf-Hash: {verification_hash}",
+                "=" * 80,
+            ]
+        )
 
         return "\n".join(lines)
 
@@ -565,23 +599,25 @@ def main():
     print(calc.generate_report(iterations, sensitivity))
 
     # Export validation report
-    reports_dir = os.path.join(os.path.dirname(__file__), '..', 'reports')
+    reports_dir = os.path.join(os.path.dirname(__file__), "..", "reports")
     os.makedirs(reports_dir, exist_ok=True)
-    report_path = os.path.join(reports_dir, 'validation_report.json')
+    report_path = os.path.join(reports_dir, "validation_report.json")
 
-    with open(report_path, 'w', encoding='utf-8') as f:
+    with open(report_path, "w", encoding="utf-8") as f:
         report_dict = {
-            'hara_risks': calc.validation_report.hara_risks,
-            'safety_mechanisms': [
-                {'id': sm['id'], 'name': sm['name'], 'status': sm['status'].value}
+            "hara_risks": calc.validation_report.hara_risks,
+            "safety_mechanisms": [
+                {"id": sm["id"], "name": sm["name"], "status": sm["status"].value}
                 for sm in calc.validation_report.safety_mechanisms
             ],
-            'validation_status': {k: v.value for k, v in calc.validation_report.validation_status.items()},
-            'tuv_assessment': {
-                'ready': calc.validation_report.tuv_ready_components,
-                'prototype': calc.validation_report.prototype_components,
-                'missing': calc.validation_report.missing_components
-            }
+            "validation_status": {
+                k: v.value for k, v in calc.validation_report.validation_status.items()
+            },
+            "tuv_assessment": {
+                "ready": calc.validation_report.tuv_ready_components,
+                "prototype": calc.validation_report.prototype_components,
+                "missing": calc.validation_report.missing_components,
+            },
         }
         json.dump(report_dict, f, indent=2, ensure_ascii=False)
 

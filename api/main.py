@@ -2,6 +2,7 @@
 ORION Architekt-AT FastAPI Main Application
 Production-ready API with all Austrian building regulations endpoints
 """
+
 from fastapi import FastAPI, HTTPException, Depends, status, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.middleware.gzip import GZipMiddleware
@@ -26,7 +27,7 @@ from api.routers import (
     ai_recommendations,
     bim_integration,
     collaboration,
-    tendering
+    tendering,
 )
 from api.middleware import RateLimitMiddleware, LoggingMiddleware, SecurityHeadersMiddleware
 from api.middleware.auth import router as auth_router
@@ -88,14 +89,14 @@ app = FastAPI(
     contact={
         "name": "ORION Architekt-AT Team",
         "url": "https://github.com/Alvoradozerouno/ORION-Architekt-AT",
-        "email": "support@orion-architekt.at"
+        "email": "support@orion-architekt.at",
     },
-    license_info={
-        "name": "MIT License",
-        "url": "https://opensource.org/licenses/MIT"
-    },
+    license_info={"name": "MIT License", "url": "https://opensource.org/licenses/MIT"},
     openapi_tags=[
-        {"name": "calculations", "description": "Building calculations (U-Wert, Stellplätze, etc.)"},
+        {
+            "name": "calculations",
+            "description": "Building calculations (U-Wert, Stellplätze, etc.)",
+        },
         {"name": "compliance", "description": "OIB-RL & ÖNORM compliance checks"},
         {"name": "validation", "description": "Knowledge base validation"},
         {"name": "bundesland", "description": "Bundesland-specific regulations"},
@@ -106,7 +107,7 @@ app = FastAPI(
         {"name": "collaboration", "description": "👥 Real-time collaboration (UNIQUE)"},
         {"name": "auth", "description": "Authentication & authorization"},
         {"name": "health", "description": "Health & monitoring"},
-    ]
+    ],
 )
 
 # Middleware
@@ -137,30 +138,25 @@ app.include_router(bim_integration.router, prefix="/api/v1/bim", tags=["bim"])
 app.include_router(collaboration.router, prefix="/api/v1/collaboration", tags=["collaboration"])
 app.include_router(auth_router, prefix="/auth", tags=["auth"])
 
+
 # Health check endpoints
 @app.get("/health", tags=["health"])
 async def health_check():
     """Health check endpoint for monitoring"""
-    return {
-        "status": "healthy",
-        "version": "3.0.0",
-        "timestamp": time.time()
-    }
+    return {"status": "healthy", "version": "3.0.0", "timestamp": time.time()}
+
 
 @app.get("/health/ready", tags=["health"])
 async def readiness_check():
     """Readiness check for kubernetes/docker"""
     from api.database import get_db
     from sqlalchemy import text
+
     db_gen = get_db()
     db = next(db_gen)
     try:
         db.execute(text("SELECT 1"))
-        return {
-            "status": "ready",
-            "database": "connected",
-            "timestamp": time.time()
-        }
+        return {"status": "ready", "database": "connected", "timestamp": time.time()}
     except Exception as e:
         logger.error(f"Readiness check failed: {e}")
         raise HTTPException(status_code=503, detail="Service not ready")
@@ -170,10 +166,12 @@ async def readiness_check():
         except StopIteration:
             pass
 
+
 @app.get("/health/live", tags=["health"])
 async def liveness_check():
     """Liveness check for kubernetes/docker"""
     return {"status": "alive", "timestamp": time.time()}
+
 
 # Root endpoint
 @app.get("/", tags=["health"])
@@ -191,9 +189,10 @@ async def root():
             "Real-time Multi-user Collaboration",
             "Complete OIB-RL 1-6 Coverage",
             "All 9 Austrian Bundesländer",
-            "Knowledge Base Validation"
-        ]
+            "Knowledge Base Validation",
+        ],
     }
+
 
 # Custom OpenAPI schema
 def custom_openapi():
@@ -219,31 +218,28 @@ def custom_openapi():
     app.openapi_schema = openapi_schema
     return app.openapi_schema
 
+
 app.openapi = custom_openapi
+
 
 # Exception handlers
 @app.exception_handler(HTTPException)
 async def http_exception_handler(request: Request, exc: HTTPException):
     logger.error(f"HTTP error: {exc.status_code} - {exc.detail}")
     return JSONResponse(
-        status_code=exc.status_code,
-        content={"error": exc.detail, "status_code": exc.status_code}
+        status_code=exc.status_code, content={"error": exc.detail, "status_code": exc.status_code}
     )
+
 
 @app.exception_handler(Exception)
 async def general_exception_handler(request: Request, exc: Exception):
     logger.error(f"Unhandled exception: {exc}", exc_info=True)
     return JSONResponse(
-        status_code=500,
-        content={"error": "Internal server error", "detail": str(exc)}
+        status_code=500, content={"error": "Internal server error", "detail": str(exc)}
     )
+
 
 if __name__ == "__main__":
     import uvicorn
-    uvicorn.run(
-        "main:app",
-        host="0.0.0.0",
-        port=8000,
-        reload=True,
-        log_level="info"
-    )
+
+    uvicorn.run("main:app", host="0.0.0.0", port=8000, reload=True, log_level="info")

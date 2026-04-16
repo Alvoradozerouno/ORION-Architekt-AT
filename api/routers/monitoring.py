@@ -21,6 +21,7 @@ import time
 # Prometheus metrics
 try:
     from prometheus_client import Counter, Histogram, Gauge, generate_latest, CONTENT_TYPE_LATEST
+
     PROMETHEUS_AVAILABLE = True
 except ImportError:
     PROMETHEUS_AVAILABLE = False
@@ -32,39 +33,24 @@ logger = logging.getLogger(__name__)
 # Metrics (if Prometheus available)
 if PROMETHEUS_AVAILABLE:
     request_count = Counter(
-        'http_requests_total',
-        'Total HTTP requests',
-        ['method', 'endpoint', 'status']
+        "http_requests_total", "Total HTTP requests", ["method", "endpoint", "status"]
     )
     request_duration = Histogram(
-        'http_request_duration_seconds',
-        'HTTP request latency',
-        ['method', 'endpoint']
+        "http_request_duration_seconds", "HTTP request latency", ["method", "endpoint"]
     )
-    active_connections = Gauge(
-        'active_connections',
-        'Number of active connections'
-    )
+    active_connections = Gauge("active_connections", "Number of active connections")
     database_connections = Gauge(
-        'database_connections_active',
-        'Number of active database connections'
+        "database_connections_active", "Number of active database connections"
     )
-    cache_hits = Counter(
-        'cache_hits_total',
-        'Total cache hits',
-        ['cache_type']
-    )
-    cache_misses = Counter(
-        'cache_misses_total',
-        'Total cache misses',
-        ['cache_type']
-    )
+    cache_hits = Counter("cache_hits_total", "Total cache hits", ["cache_type"])
+    cache_misses = Counter("cache_misses_total", "Total cache misses", ["cache_type"])
 
 
 async def check_database() -> Dict[str, Any]:
     """Check database connectivity and performance."""
     try:
         from models import db
+
         start = time.time()
         result = await db.execute("SELECT 1")
         latency = time.time() - start
@@ -72,21 +58,14 @@ async def check_database() -> Dict[str, Any]:
         return {
             "status": "healthy",
             "latency_ms": round(latency * 1000, 2),
-            "details": "Database connection successful"
+            "details": "Database connection successful",
         }
     except ImportError as e:
         logger.warning(f"Database module not available: {e}")
-        return {
-            "status": "unknown",
-            "details": "Database module not configured"
-        }
+        return {"status": "unknown", "details": "Database module not configured"}
     except Exception as e:
         logger.error(f"Database health check failed: {type(e).__name__}: {e}")
-        return {
-            "status": "unhealthy",
-            "error": str(e),
-            "details": "Database connection failed"
-        }
+        return {"status": "unhealthy", "error": str(e), "details": "Database connection failed"}
 
 
 async def check_redis() -> Dict[str, Any]:
@@ -98,7 +77,7 @@ async def check_redis() -> Dict[str, Any]:
         if not redis_client:
             return {
                 "status": "disabled",
-                "details": "Redis not configured (using in-memory fallback)"
+                "details": "Redis not configured (using in-memory fallback)",
             }
 
         start = time.time()
@@ -112,48 +91,40 @@ async def check_redis() -> Dict[str, Any]:
             "latency_ms": round(latency * 1000, 2),
             "version": info.get("redis_version", "unknown"),
             "uptime_days": round(info.get("uptime_in_seconds", 0) / 86400, 1),
-            "details": "Redis connection successful"
+            "details": "Redis connection successful",
         }
     except ImportError:
-        return {
-            "status": "disabled",
-            "details": "Redis module not available"
-        }
+        return {"status": "disabled", "details": "Redis module not available"}
     except redis.RedisError as e:
         logger.warning(f"Redis health check failed: {e}")
         return {
             "status": "degraded",
             "error": str(e),
-            "details": "Redis connection failed - using in-memory fallback"
+            "details": "Redis connection failed - using in-memory fallback",
         }
     except Exception as e:
         logger.error(f"Unexpected error in Redis health check: {type(e).__name__}: {e}")
-        return {
-            "status": "unknown",
-            "error": str(e)
-        }
+        return {"status": "unknown", "error": str(e)}
 
 
 async def check_ifcopenshell() -> Dict[str, Any]:
     """Check ifcopenshell library availability."""
     try:
         import ifcopenshell
+
         return {
             "status": "healthy",
             "version": ifcopenshell.version,
-            "details": "IFC processing available"
+            "details": "IFC processing available",
         }
     except ImportError:
         return {
             "status": "unavailable",
-            "details": "ifcopenshell not installed - BIM processing disabled"
+            "details": "ifcopenshell not installed - BIM processing disabled",
         }
     except Exception as e:
         logger.warning(f"ifcopenshell check failed: {type(e).__name__}: {e}")
-        return {
-            "status": "unknown",
-            "error": str(e)
-        }
+        return {"status": "unknown", "error": str(e)}
 
 
 async def get_system_metrics() -> Dict[str, Any]:
@@ -161,20 +132,18 @@ async def get_system_metrics() -> Dict[str, Any]:
     try:
         cpu_percent = psutil.cpu_percent(interval=0.1)
         memory = psutil.virtual_memory()
-        disk = psutil.disk_usage('/')
+        disk = psutil.disk_usage("/")
 
         return {
             "cpu_percent": round(cpu_percent, 1),
             "memory_percent": round(memory.percent, 1),
             "memory_available_gb": round(memory.available / (1024**3), 2),
             "disk_percent": round(disk.percent, 1),
-            "disk_free_gb": round(disk.free / (1024**3), 2)
+            "disk_free_gb": round(disk.free / (1024**3), 2),
         }
     except Exception as e:
         logger.warning(f"System metrics collection failed: {e}")
-        return {
-            "error": "System metrics unavailable"
-        }
+        return {"error": "System metrics unavailable"}
 
 
 @router.get(
@@ -202,19 +171,19 @@ async def get_system_metrics() -> Dict[str, Any]:
                         "checks": {
                             "database": {"status": "healthy", "latency_ms": 5.2},
                             "redis": {"status": "healthy", "latency_ms": 1.3},
-                            "ifcopenshell": {"status": "healthy", "version": "0.8.4"}
+                            "ifcopenshell": {"status": "healthy", "version": "0.8.4"},
                         },
                         "system": {
                             "cpu_percent": 15.3,
                             "memory_percent": 45.2,
-                            "disk_percent": 38.5
-                        }
+                            "disk_percent": 38.5,
+                        },
                     }
                 }
-            }
+            },
         },
-        503: {"description": "System is unhealthy or degraded"}
-    }
+        503: {"description": "System is unhealthy or degraded"},
+    },
 )
 async def health_check():
     """Comprehensive health check for all system components."""
@@ -223,7 +192,7 @@ async def health_check():
     checks = {
         "database": await check_database(),
         "redis": await check_redis(),
-        "ifcopenshell": await check_ifcopenshell()
+        "ifcopenshell": await check_ifcopenshell(),
     }
 
     # Get system metrics
@@ -246,16 +215,13 @@ async def health_check():
         "timestamp": datetime.utcnow().isoformat() + "Z",
         "version": "1.0.0",
         "checks": checks,
-        "system": system_metrics
+        "system": system_metrics,
     }
 
     # Return appropriate status code
     status_code = 200 if overall_status == "healthy" else 503
 
-    return JSONResponse(
-        content=response_data,
-        status_code=status_code
-    )
+    return JSONResponse(content=response_data, status_code=status_code)
 
 
 @router.get(
@@ -273,8 +239,8 @@ async def health_check():
     """,
     responses={
         200: {"description": "Application is ready"},
-        503: {"description": "Application is not ready"}
-    }
+        503: {"description": "Application is not ready"},
+    },
 )
 async def readiness_check():
     """Readiness probe for Kubernetes and load balancers."""
@@ -299,9 +265,7 @@ async def readiness_check():
 
     Use for: Kubernetes liveness probes to detect deadlocked processes
     """,
-    responses={
-        200: {"description": "Application is alive"}
-    }
+    responses={200: {"description": "Application is alive"}},
 )
 async def liveness_check():
     """Liveness probe for Kubernetes."""
@@ -326,17 +290,13 @@ async def liveness_check():
     responses={
         200: {
             "description": "Prometheus metrics in text format",
-            "content": {
-                "text/plain": {
-                    "example": """# HELP http_requests_total Total HTTP requests
+            "content": {"text/plain": {"example": """# HELP http_requests_total Total HTTP requests
 # TYPE http_requests_total counter
 http_requests_total{method="GET",endpoint="/api/projects",status="200"} 1523.0
-"""
-                }
-            }
+"""}},
         },
-        503: {"description": "Prometheus not available"}
-    }
+        503: {"description": "Prometheus not available"},
+    },
 )
 async def metrics():
     """Prometheus metrics endpoint."""
@@ -345,18 +305,15 @@ async def metrics():
         return JSONResponse(
             content={
                 "error": "Prometheus metrics not available",
-                "details": "Install prometheus_client: pip install prometheus-client"
+                "details": "Install prometheus_client: pip install prometheus-client",
             },
-            status_code=503
+            status_code=503,
         )
 
     # Generate Prometheus metrics
     metrics_output = generate_latest()
 
-    return Response(
-        content=metrics_output,
-        media_type=CONTENT_TYPE_LATEST
-    )
+    return Response(content=metrics_output, media_type=CONTENT_TYPE_LATEST)
 
 
 @router.get(
@@ -368,9 +325,7 @@ async def metrics():
     WARNING: This endpoint may expose sensitive system information.
     Should be restricted to admin users only in production.
     """,
-    responses={
-        200: {"description": "Detailed diagnostic information"}
-    }
+    responses={200: {"description": "Detailed diagnostic information"}},
 )
 async def detailed_diagnostics():
     """Detailed diagnostic information for troubleshooting."""
@@ -383,29 +338,27 @@ async def detailed_diagnostics():
         "python": {
             "version": sys.version,
             "executable": sys.executable,
-            "platform": platform.platform()
+            "platform": platform.platform(),
         },
         "system": await get_system_metrics(),
         "health_checks": {
             "database": await check_database(),
             "redis": await check_redis(),
-            "ifcopenshell": await check_ifcopenshell()
-        }
+            "ifcopenshell": await check_ifcopenshell(),
+        },
     }
 
     # Add package versions
     try:
         import pkg_resources
-        installed_packages = {
-            pkg.key: pkg.version
-            for pkg in pkg_resources.working_set
-        }
+
+        installed_packages = {pkg.key: pkg.version for pkg in pkg_resources.working_set}
         diagnostics["packages"] = {
             "fastapi": installed_packages.get("fastapi", "unknown"),
             "sqlalchemy": installed_packages.get("sqlalchemy", "unknown"),
             "redis": installed_packages.get("redis", "unknown"),
             "ifcopenshell": installed_packages.get("ifcopenshell", "unknown"),
-            "pydantic": installed_packages.get("pydantic", "unknown")
+            "pydantic": installed_packages.get("pydantic", "unknown"),
         }
     except Exception as e:
         logger.warning(f"Could not get package versions: {e}")

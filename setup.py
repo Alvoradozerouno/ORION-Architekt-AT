@@ -2,6 +2,7 @@
 Setup script for ORION Architekt-AT
 Backwards compatibility with older Python packaging tools
 """
+
 from setuptools import setup, find_packages
 from pathlib import Path
 
@@ -9,10 +10,12 @@ from pathlib import Path
 this_directory = Path(__file__).parent
 long_description = (this_directory / "README.md").read_text(encoding="utf-8")
 
+
 # Read requirements
 def read_requirements(filename):
     with open(filename) as f:
         return [line.strip() for line in f if line.strip() and not line.startswith("#")]
+
 
 setup(
     name="orion-architekt-at",

@@ -25,7 +25,6 @@ from typing import Dict, List, Optional, Tuple
 from urllib.parse import urljoin, quote
 import time
 
-
 # ============================================================================
 # KONFIGURATION
 # ============================================================================
@@ -65,6 +64,7 @@ _cache_duration = timedelta(hours=24)
 # HILFSFUNKTIONEN
 # ============================================================================
 
+
 def _get_cache_key(url: str, params: Optional[Dict] = None) -> str:
     """Erzeugt Cache-Schlüssel für API-Anfragen."""
     key_data = url + json.dumps(params or {}, sort_keys=True)
@@ -90,13 +90,12 @@ def _get_cached(cache_key: str) -> Optional[Dict]:
 
 def _set_cache(cache_key: str, data: Dict):
     """Speichert Daten im Cache."""
-    _cache[cache_key] = {
-        "data": data,
-        "timestamp": datetime.now(timezone.utc)
-    }
+    _cache[cache_key] = {"data": data, "timestamp": datetime.now(timezone.utc)}
 
 
-def _safe_request(url: str, params: Optional[Dict] = None, timeout: int = 10) -> Optional[requests.Response]:
+def _safe_request(
+    url: str, params: Optional[Dict] = None, timeout: int = 10
+) -> Optional[requests.Response]:
     """Sichere HTTP-Anfrage mit Fehlerbehandlung."""
     try:
         response = requests.get(url, params=params, timeout=timeout)
@@ -111,6 +110,7 @@ def _safe_request(url: str, params: Optional[Dict] = None, timeout: int = 10) ->
 # VERSIONS-MANAGEMENT
 # ============================================================================
 
+
 def get_standard_version(standard_name: str) -> Optional[Dict]:
     """
     Gibt die aktuelle Version eines Standards zurück.
@@ -124,7 +124,9 @@ def get_standard_version(standard_name: str) -> Optional[Dict]:
     return STANDARD_VERSIONS.get(standard_name)
 
 
-def is_standard_current(standard_name: str, reference_date: Optional[datetime] = None) -> Tuple[bool, str]:
+def is_standard_current(
+    standard_name: str, reference_date: Optional[datetime] = None
+) -> Tuple[bool, str]:
     """
     Prüft ob ein Standard zum gegebenen Datum aktuell ist.
 
@@ -169,7 +171,7 @@ def check_all_standards() -> Dict[str, Dict]:
         results[standard_name] = {
             "aktuell": is_current,
             "nachricht": message,
-            "version": STANDARD_VERSIONS[standard_name]["version"]
+            "version": STANDARD_VERSIONS[standard_name]["version"],
         }
     return results
 
@@ -177,6 +179,7 @@ def check_all_standards() -> Dict[str, Dict]:
 # ============================================================================
 # RIS AUSTRIA INTEGRATION
 # ============================================================================
+
 
 def check_ris_updates(bundesland: str, rechtsgebiet: str = "Baurecht") -> Dict:
     """
@@ -215,36 +218,44 @@ def check_ris_updates(bundesland: str, rechtsgebiet: str = "Baurecht") -> Dict:
 
         response = _safe_request(search_url, timeout=15)
         if response:
-            soup = BeautifulSoup(response.content, 'html.parser')
+            soup = BeautifulSoup(response.content, "html.parser")
             # Look for recent laws (within last 12 months)
             today = datetime.now(timezone.utc)
             one_year_ago = today - timedelta(days=365)
 
             # Parse table of laws
-            result_tables = soup.find_all('table', class_='result')
+            result_tables = soup.find_all("table", class_="result")
             updates_found = []
 
             for table in result_tables[:10]:  # Check first 10 results
-                rows = table.find_all('tr')
+                rows = table.find_all("tr")
                 for row in rows:
-                    cells = row.find_all('td')
+                    cells = row.find_all("td")
                     if len(cells) >= 3:
                         title_cell = cells[0]
                         date_cell = cells[1] if len(cells) > 1 else None
 
-                        if date_cell and 'bau' in title_cell.get_text().lower():
+                        if date_cell and "bau" in title_cell.get_text().lower():
                             try:
                                 # Extract date
                                 date_text = date_cell.get_text().strip()
                                 # Austrian date format: DD.MM.YYYY
-                                law_date = datetime.strptime(date_text.split()[0], '%d.%m.%Y').replace(tzinfo=timezone.utc)
+                                law_date = datetime.strptime(
+                                    date_text.split()[0], "%d.%m.%Y"
+                                ).replace(tzinfo=timezone.utc)
 
                                 if law_date >= one_year_ago:
-                                    updates_found.append({
-                                        "titel": title_cell.get_text().strip()[:100],
-                                        "datum": law_date.isoformat(),
-                                        "url": title_cell.find('a')['href'] if title_cell.find('a') else None
-                                    })
+                                    updates_found.append(
+                                        {
+                                            "titel": title_cell.get_text().strip()[:100],
+                                            "datum": law_date.isoformat(),
+                                            "url": (
+                                                title_cell.find("a")["href"]
+                                                if title_cell.find("a")
+                                                else None
+                                            ),
+                                        }
+                                    )
                             except (ValueError, IndexError, KeyError, TypeError):
                                 continue
 
@@ -252,10 +263,16 @@ def check_ris_updates(bundesland: str, rechtsgebiet: str = "Baurecht") -> Dict:
             result["anzahl_updates"] = len(updates_found)
             result["updates"] = updates_found[:5]  # Top 5 most recent
             result["status"] = "success" if len(updates_found) > 0 else "info"
-            result["hinweis"] = f"✓ {len(updates_found)} Baurechts-Updates in den letzten 12 Monaten gefunden" if len(updates_found) > 0 else "Keine Updates in den letzten 12 Monaten"
+            result["hinweis"] = (
+                f"✓ {len(updates_found)} Baurechts-Updates in den letzten 12 Monaten gefunden"
+                if len(updates_found) > 0
+                else "Keine Updates in den letzten 12 Monaten"
+            )
 
     except ImportError:
-        result["hinweis"] = "⚠️ BeautifulSoup4 nicht installiert. Bitte 'pip install beautifulsoup4 lxml' ausführen."
+        result["hinweis"] = (
+            "⚠️ BeautifulSoup4 nicht installiert. Bitte 'pip install beautifulsoup4 lxml' ausführen."
+        )
     except Exception as e:
         result["fehler"] = f"RIS-Scraping-Fehler: {str(e)}"
         result["status"] = "error"
@@ -301,6 +318,7 @@ def get_landesgesetzblatt_updates(bundesland: str, jahr: Optional[int] = None) -
 # OIB-RICHTLINIEN ÜBERWACHUNG
 # ============================================================================
 
+
 def check_oib_updates() -> Dict:
     """
     Prüft auf Aktualisierungen der OIB-Richtlinien.
@@ -320,7 +338,7 @@ def check_oib_updates() -> Dict:
         "aktuelle_version": "2023",
         "naechste_version_erwartet": "2026",
         "richtlinien": {},
-        "hinweis": "OIB-Richtlinien werden ca. alle 3 Jahre aktualisiert. Aktuelle Version: 2023"
+        "hinweis": "OIB-Richtlinien werden ca. alle 3 Jahre aktualisiert. Aktuelle Version: 2023",
     }
 
     # Prüfe alle OIB-RL
@@ -330,7 +348,7 @@ def check_oib_updates() -> Dict:
         result["richtlinien"][rl_name] = {
             "aktuell": is_current,
             "nachricht": message,
-            "version": STANDARD_VERSIONS[rl_name]["version"]
+            "version": STANDARD_VERSIONS[rl_name]["version"],
         }
 
     _set_cache(cache_key, result)
@@ -340,6 +358,7 @@ def check_oib_updates() -> Dict:
 # ============================================================================
 # ÖNORM STANDARDS ÜBERWACHUNG
 # ============================================================================
+
 
 def check_oenorm_updates(norm_nummer: str) -> Dict:
     """
@@ -380,6 +399,7 @@ def check_oenorm_updates(norm_nummer: str) -> Dict:
 # HORA.GV.AT INTEGRATION (Naturgefahren)
 # ============================================================================
 
+
 def check_naturgefahren(plz: Optional[str] = None, gemeinde: Optional[str] = None) -> Dict:
     """
     Prüft Naturgefahren über hora.gv.at.
@@ -419,14 +439,10 @@ def check_naturgefahren(plz: Optional[str] = None, gemeinde: Optional[str] = Non
         # hora.gv.at bietet verschiedene GeoJSON-Services
         # Prüfe auf Hochwassergefahr (HQ30, HQ100, HQ300)
         gefahren = {
-            "hochwasser": {
-                "hq30": False,
-                "hq100": False,
-                "hq300": False
-            },
+            "hochwasser": {"hq30": False, "hq100": False, "hq300": False},
             "lawinen": False,
             "rutschungen": False,
-            "wildbach": False
+            "wildbach": False,
         }
 
         if gemeinde:
@@ -435,7 +451,7 @@ def check_naturgefahren(plz: Optional[str] = None, gemeinde: Optional[str] = Non
             response = _safe_request(search_url, timeout=10)
 
             if response:
-                soup = BeautifulSoup(response.content, 'html.parser')
+                soup = BeautifulSoup(response.content, "html.parser")
 
                 # hora.gv.at verwendet ein interaktives Kartentool
                 # Für vollständige Integration wäre WMS/WFS-Client erforderlich
@@ -450,7 +466,7 @@ def check_naturgefahren(plz: Optional[str] = None, gemeinde: Optional[str] = Non
                     "HORA:HQ300",  # 300-jährliches Hochwasser
                     "HORA:Lawinen",
                     "HORA:Rutschungen",
-                    "HORA:Wildbäche"
+                    "HORA:Wildbäche",
                 ]
                 result["status"] = "info"
                 result["hinweis"] = "✓ hora.gv.at WMS/WFS-Services verfügbar"
@@ -459,7 +475,7 @@ def check_naturgefahren(plz: Optional[str] = None, gemeinde: Optional[str] = Non
             result["plz_info"] = {
                 "plz": plz,
                 "empfehlung": f"Prüfen Sie interaktiv auf {result.get('interaktiv_link', 'hora.gv.at')}",
-                "wichtig": "Hochwassergefahr (HQ30, HQ100, HQ300) kann baurechtliche Auflagen auslösen"
+                "wichtig": "Hochwassergefahr (HQ30, HQ100, HQ300) kann baurechtliche Auflagen auslösen",
             }
 
         # Add GIS integration instructions
@@ -472,7 +488,9 @@ def check_naturgefahren(plz: Optional[str] = None, gemeinde: Optional[str] = Non
         }
 
     except ImportError:
-        result["hinweis"] = "⚠️ BeautifulSoup4 nicht installiert. GIS-Integration erfordert zusätzlich 'owslib'."
+        result["hinweis"] = (
+            "⚠️ BeautifulSoup4 nicht installiert. GIS-Integration erfordert zusätzlich 'owslib'."
+        )
         result["gis_integration"] = {"info": "Für WMS/WFS-Integration: pip install owslib"}
     except Exception as e:
         result["fehler"] = f"hora.gv.at-Integration-Fehler: {str(e)}"
@@ -485,6 +503,7 @@ def check_naturgefahren(plz: Optional[str] = None, gemeinde: Optional[str] = Non
 # ============================================================================
 # DATEN-FRESHNESS CHECKS
 # ============================================================================
+
 
 def check_data_freshness(last_update_date: str) -> Dict:
     """
@@ -538,11 +557,14 @@ def check_data_freshness(last_update_date: str) -> Dict:
 # HAUPT-VALIDIERUNGSFUNKTION
 # ============================================================================
 
-def validate_knowledge_base(bundesland: Optional[str] = None,
-                            include_ris: bool = True,
-                            include_oib: bool = True,
-                            include_oenorm: bool = True,
-                            include_hora: bool = False) -> Dict:
+
+def validate_knowledge_base(
+    bundesland: Optional[str] = None,
+    include_ris: bool = True,
+    include_oib: bool = True,
+    include_oenorm: bool = True,
+    include_hora: bool = False,
+) -> Dict:
     """
     Führt eine vollständige Validierung der Wissensdatenbank durch.
 
@@ -616,6 +638,7 @@ def validate_knowledge_base(bundesland: Optional[str] = None,
 # EXPORT-FUNKTIONEN
 # ============================================================================
 
+
 def export_validation_report(report: Dict, format: str = "json") -> str:
     """
     Exportiert Validierungsbericht in verschiedene Formate.
@@ -671,7 +694,7 @@ if __name__ == "__main__":
         include_ris=True,
         include_oib=True,
         include_oenorm=True,
-        include_hora=True
+        include_hora=True,
     )
 
     # Ausgabe als Text

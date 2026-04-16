@@ -35,6 +35,7 @@ from typing import List, Tuple, Dict, Any, Optional
 
 class ValidationStatus(Enum):
     """Validation status for TRL assessment"""
+
     NOT_STARTED = "not_started"
     IMPLEMENTED = "implemented"
     TESTED = "tested"
@@ -45,6 +46,7 @@ class ValidationStatus(Enum):
 @dataclass
 class EC2Config:
     """Configuration for EC2 concrete beam design"""
+
     # System
     SYSTEM_TYP: str = "Stahlbeton-Rechteckbalken"
     LAGERUNG: str = "Einfeldträger"
@@ -114,8 +116,8 @@ BETON_KLASSEN_AT = {
 # Austrian reinforcement steel grades
 STAHL_KLASSEN_AT = {
     "B500A": {"fyk": 500.0, "Es": 200000, "duktil": False},  # Limited ductility
-    "B500B": {"fyk": 500.0, "Es": 200000, "duktil": True},   # High ductility (Standard)
-    "B500C": {"fyk": 500.0, "Es": 200000, "duktil": True},   # Very high ductility
+    "B500B": {"fyk": 500.0, "Es": 200000, "duktil": True},  # High ductility (Standard)
+    "B500C": {"fyk": 500.0, "Es": 200000, "duktil": True},  # Very high ductility
 }
 
 # Standard reinforcement bar diameters (mm)
@@ -125,6 +127,7 @@ BEWEHRUNG_DURCHMESSER_MM = [6, 8, 10, 12, 14, 16, 20, 25, 28, 32, 40]
 @dataclass
 class EC2IterationResult:
     """Results from one beam design iteration"""
+
     h_total_mm: float
     d_eff_mm: float  # Effective depth
     area_beton_mm2: float
@@ -186,7 +189,12 @@ class BetonTraegerEC2AT_V1:
 
     def calculate_effective_depth(self, h_total_mm: float) -> float:
         """Calculate effective depth d"""
-        d = h_total_mm - self.config.DECKUNG_c_MM - self.config.BUEGELDURCHMESSER_MM - self.config.LAENGSBEWEHRUNG_DIA_MM / 2
+        d = (
+            h_total_mm
+            - self.config.DECKUNG_c_MM
+            - self.config.BUEGELDURCHMESSER_MM
+            - self.config.LAENGSBEWEHRUNG_DIA_MM / 2
+        )
         return d
 
     def calculate_design_loads(self) -> Tuple[float, float]:
@@ -201,7 +209,9 @@ class BetonTraegerEC2AT_V1:
 
         return M_Ed, V_Ed
 
-    def calculate_required_reinforcement(self, M_Ed_knm: float, b_mm: float, d_mm: float) -> Dict[str, float]:
+    def calculate_required_reinforcement(
+        self, M_Ed_knm: float, b_mm: float, d_mm: float
+    ) -> Dict[str, float]:
         """
         Calculate required reinforcement for bending moment
         EN 1992-1-1 Section 6.1
@@ -230,10 +240,7 @@ class BetonTraegerEC2AT_V1:
         # Minimum reinforcement (EN 1992-1-1 Eq. 9.1N)
         fctm = self.config.FCTM_N_PER_MM2
         fyk = self.config.FYK_N_PER_MM2
-        As_min = max(
-            0.26 * fctm / fyk * b_mm * d_mm,
-            0.0013 * b_mm * d_mm
-        )
+        As_min = max(0.26 * fctm / fyk * b_mm * d_mm, 0.0013 * b_mm * d_mm)
 
         # Maximum reinforcement (EN 1992-1-1 9.2.1.1)
         As_max = self.config.RHO_MAX * b_mm * d_mm
@@ -245,7 +252,7 @@ class BetonTraegerEC2AT_V1:
             "As_erf": As_erf,
             "As_min": As_min,
             "As_max": As_max,
-            "compression_required": compression_required
+            "compression_required": compression_required,
         }
 
     def select_reinforcement_bars(self, As_erf_mm2: float) -> Tuple[int, float, float]:
@@ -254,7 +261,7 @@ class BetonTraegerEC2AT_V1:
         Returns: (anzahl_staebe, durchmesser_mm, As_vorh_mm2)
         """
         best_solution = None
-        min_excess = float('inf')
+        min_excess = float("inf")
 
         # Try different bar diameters
         for dia in BEWEHRUNG_DURCHMESSER_MM:
@@ -263,7 +270,7 @@ class BetonTraegerEC2AT_V1:
             if dia > 32:  # Skip very large diameters
                 continue
 
-            A_bar = math.pi * (dia/2)**2
+            A_bar = math.pi * (dia / 2) ** 2
             anzahl = math.ceil(As_erf_mm2 / A_bar)
 
             # Limit number of bars (practical constraint)
@@ -283,12 +290,14 @@ class BetonTraegerEC2AT_V1:
             # Fallback: use maximum practical bars
             dia = 25
             anzahl = 4
-            As_vorh = anzahl * math.pi * (dia/2)**2
+            As_vorh = anzahl * math.pi * (dia / 2) ** 2
             best_solution = (anzahl, dia, As_vorh)
 
         return best_solution
 
-    def verify_bending(self, As_vorh_mm2: float, M_Ed_knm: float, b_mm: float, d_mm: float) -> Tuple[float, bool]:
+    def verify_bending(
+        self, As_vorh_mm2: float, M_Ed_knm: float, b_mm: float, d_mm: float
+    ) -> Tuple[float, bool]:
         """
         Verify bending capacity with provided reinforcement
         Returns: (eta, ok)
@@ -308,7 +317,9 @@ class BetonTraegerEC2AT_V1:
 
         return eta, ok
 
-    def verify_shear(self, V_Ed_kn: float, b_mm: float, d_mm: float, As_vorh_mm2: float) -> Dict[str, Any]:
+    def verify_shear(
+        self, V_Ed_kn: float, b_mm: float, d_mm: float, As_vorh_mm2: float
+    ) -> Dict[str, Any]:
         """
         Verify shear capacity (EN 1992-1-1 Section 6.2)
         MVP: Only concrete shear resistance (V_Rd,c), no stirrup design
@@ -330,8 +341,8 @@ class BetonTraegerEC2AT_V1:
         C_Rd_c = 0.18 / self.config.GAMMA_C
 
         V_Rd_c = max(
-            C_Rd_c * k * (100 * rho_l * fck)**(1/3) * b_mm * d_mm / 1000,
-            0.035 * k**(3/2) * fck**0.5 * b_mm * d_mm / 1000
+            C_Rd_c * k * (100 * rho_l * fck) ** (1 / 3) * b_mm * d_mm / 1000,
+            0.035 * k ** (3 / 2) * fck**0.5 * b_mm * d_mm / 1000,
         )  # kN
 
         # Check if stirrups required
@@ -346,7 +357,7 @@ class BetonTraegerEC2AT_V1:
             "tau_Rd_max": tau_Rd_max,
             "stirrups_required": stirrups_required,
             "eta_shear": eta_shear,
-            "shear_ok": shear_ok
+            "shear_ok": shear_ok,
         }
 
     def verify_deflection(self, L_m: float, d_mm: float) -> Tuple[float, float, bool]:
@@ -448,7 +459,7 @@ class BetonTraegerEC2AT_V1:
                 deflection_limit_mm=defl_limit,
                 deflection_ok=defl_ok,
                 overall_ok=overall_ok,
-                design_status=status
+                design_status=status,
             )
 
             iterations.append(result)
@@ -462,15 +473,18 @@ class BetonTraegerEC2AT_V1:
 
     def create_verification_hash(self, result: EC2IterationResult) -> str:
         """Create SHA-256 verification hash"""
-        hash_input = json.dumps({
-            "L": self.config.L_SPANNWEITE_M,
-            "b": self.config.BREITE_b_MM,
-            "h": result.h_total_mm,
-            "beton": self.config.BETON_KLASSE,
-            "stahl": self.config.STAHL_KLASSE,
-            "M_Ed": result.M_Ed_knm,
-            "As": result.As_vorh_mm2
-        }, sort_keys=True)
+        hash_input = json.dumps(
+            {
+                "L": self.config.L_SPANNWEITE_M,
+                "b": self.config.BREITE_b_MM,
+                "h": result.h_total_mm,
+                "beton": self.config.BETON_KLASSE,
+                "stahl": self.config.STAHL_KLASSE,
+                "M_Ed": result.M_Ed_knm,
+                "As": result.As_vorh_mm2,
+            },
+            sort_keys=True,
+        )
         return hashlib.sha256(hash_input.encode()).hexdigest()[:16]
 
     def generate_report(self, iterations: List[EC2IterationResult]) -> str:
@@ -560,7 +574,7 @@ class BetonTraegerEC2AT_V1:
             "",
             "=" * 80,
             "Prüf-Hash: " + verification_hash,
-            "=" * 80
+            "=" * 80,
         ]
 
         return "\n".join(lines)

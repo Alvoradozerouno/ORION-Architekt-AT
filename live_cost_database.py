@@ -33,13 +33,14 @@ from datetime import datetime, timezone, timedelta
 from enum import Enum
 import json
 
-
 # ═══════════════════════════════════════════════════════════════════════════
 # Material Categories
 # ═══════════════════════════════════════════════════════════════════════════
 
+
 class MaterialCategory(str, Enum):
     """Hauptgruppen für Baupreisindex"""
+
     BETON = "beton"
     STAHL = "stahl"
     HOLZ = "holz"
@@ -56,9 +57,11 @@ class MaterialCategory(str, Enum):
 # Data Classes
 # ═══════════════════════════════════════════════════════════════════════════
 
+
 @dataclass
 class PriceIndex:
     """Baupreisindex für bestimmte Kategorie"""
+
     category: str
     index_value: float  # Basis 2015 = 100
     timestamp: str
@@ -85,6 +88,7 @@ class PriceIndex:
 @dataclass
 class LiveCostData:
     """Live-Kostendaten für LV-Position"""
+
     material_category: str
     base_price_eur: float  # Basispreis 2015
     current_price_eur: float  # Aktueller Preis
@@ -103,6 +107,7 @@ class LiveCostData:
 @dataclass
 class CostDatabaseEntry:
     """Eintrag in der Kostendatenbank"""
+
     item_code: str  # z.B. "02.001" ÖNORM Position
     description: str
     unit: str
@@ -128,57 +133,57 @@ BAUPREISINDEX_2026 = {
         index_value=143.2,  # +43.2% seit 2015
         timestamp="2026-03-01",
         previous_month=142.8,
-        previous_year=138.5
+        previous_year=138.5,
     ),
     MaterialCategory.STAHL: PriceIndex(
         category="Baustahl",
         index_value=168.5,  # +68.5% seit 2015
         timestamp="2026-03-01",
         previous_month=167.2,
-        previous_year=155.8
+        previous_year=155.8,
     ),
     MaterialCategory.HOLZ: PriceIndex(
         category="Bauholz",
         index_value=152.3,  # +52.3% seit 2015
         timestamp="2026-03-01",
         previous_month=151.9,
-        previous_year=148.2
+        previous_year=148.2,
     ),
     MaterialCategory.ZIEGEL: PriceIndex(
         category="Ziegel",
         index_value=135.8,
         timestamp="2026-03-01",
         previous_month=135.5,
-        previous_year=132.1
+        previous_year=132.1,
     ),
     MaterialCategory.DAEMMUNG: PriceIndex(
         category="Dämmstoffe",
         index_value=128.4,
         timestamp="2026-03-01",
         previous_month=128.1,
-        previous_year=124.7
+        previous_year=124.7,
     ),
     MaterialCategory.FENSTER: PriceIndex(
         category="Fenster und Türen",
         index_value=141.6,
         timestamp="2026-03-01",
         previous_month=141.2,
-        previous_year=137.9
+        previous_year=137.9,
     ),
     MaterialCategory.DACHZIEGEL: PriceIndex(
         category="Dachziegel",
         index_value=133.2,
         timestamp="2026-03-01",
         previous_month=133.0,
-        previous_year=130.5
+        previous_year=130.5,
     ),
     MaterialCategory.LOHN: PriceIndex(
         category="Löhne Baugewerbe",
         index_value=156.8,  # +56.8% seit 2015
         timestamp="2026-03-01",
         previous_month=156.8,  # Stabil
-        previous_year=148.2
-    )
+        previous_year=148.2,
+    ),
 }
 
 
@@ -190,7 +195,7 @@ COST_DATABASE_BASE = {
         unit="m2",
         material_category=MaterialCategory.ZIEGEL.value,
         base_price_2015=88.50,  # EUR/m2 Basis 2015
-        current_prices={}  # Wird berechnet
+        current_prices={},  # Wird berechnet
     ),
     "03.001": CostDatabaseEntry(
         item_code="03.001",
@@ -198,7 +203,7 @@ COST_DATABASE_BASE = {
         unit="m3",
         material_category=MaterialCategory.BETON.value,
         base_price_2015=315.00,
-        current_prices={}
+        current_prices={},
     ),
     "04.001": CostDatabaseEntry(
         item_code="04.001",
@@ -206,7 +211,7 @@ COST_DATABASE_BASE = {
         unit="m3",
         material_category=MaterialCategory.HOLZ.value,
         base_price_2015=620.00,
-        current_prices={}
+        current_prices={},
     ),
     "05.001": CostDatabaseEntry(
         item_code="05.001",
@@ -214,7 +219,7 @@ COST_DATABASE_BASE = {
         unit="m2",
         material_category=MaterialCategory.DACHZIEGEL.value,
         base_price_2015=63.80,
-        current_prices={}
+        current_prices={},
     ),
     "07.001": CostDatabaseEntry(
         item_code="07.001",
@@ -222,14 +227,15 @@ COST_DATABASE_BASE = {
         unit="m2",
         material_category=MaterialCategory.FENSTER.value,
         base_price_2015=388.00,
-        current_prices={}
-    )
+        current_prices={},
+    ),
 }
 
 
 # ═══════════════════════════════════════════════════════════════════════════
 # Live Price Functions
 # ═══════════════════════════════════════════════════════════════════════════
+
 
 def get_current_price_index(material: str) -> Optional[PriceIndex]:
     """
@@ -248,9 +254,7 @@ def get_current_price_index(material: str) -> Optional[PriceIndex]:
 
 
 def calculate_live_price(
-    base_price_2015: float,
-    material_category: str,
-    bundesland: str = "wien"
+    base_price_2015: float, material_category: str, bundesland: str = "wien"
 ) -> LiveCostData:
     """
     Calculate current price based on live index
@@ -274,7 +278,7 @@ def calculate_live_price(
             "tirol": 1.18,
             "vorarlberg": 1.20,
             "kärnten": 1.02,
-            "burgenland": 1.00
+            "burgenland": 1.00,
         }
 
         regional_factor = regional_factors.get(bundesland.lower(), 1.0)
@@ -289,7 +293,7 @@ def calculate_live_price(
             price_index=index_value,
             adjustment_factor=regional_factor,
             volatility_7d=abs(price_index_obj.change_month_pct()),
-            volatility_30d=abs(price_index_obj.change_year_pct() / 12)
+            volatility_30d=abs(price_index_obj.change_year_pct() / 12),
         )
     else:
         # Fallback: no index available
@@ -298,7 +302,7 @@ def calculate_live_price(
             base_price_eur=base_price_2015,
             current_price_eur=base_price_2015,
             last_updated=datetime.now(timezone.utc).isoformat(),
-            bundesland=bundesland
+            bundesland=bundesland,
         )
 
 
@@ -313,11 +317,7 @@ def update_cost_database_live(bundesland: str = "wien") -> Dict[str, CostDatabas
 
     for code, entry in COST_DATABASE_BASE.items():
         # Calculate live price
-        live_data = calculate_live_price(
-            entry.base_price_2015,
-            entry.material_category,
-            bundesland
-        )
+        live_data = calculate_live_price(entry.base_price_2015, entry.material_category, bundesland)
 
         # Update entry
         entry.current_prices[bundesland] = live_data.current_price_eur
@@ -328,10 +328,7 @@ def update_cost_database_live(bundesland: str = "wien") -> Dict[str, CostDatabas
     return updated_db
 
 
-def get_live_price_for_item(
-    item_code: str,
-    bundesland: str = "wien"
-) -> Optional[float]:
+def get_live_price_for_item(item_code: str, bundesland: str = "wien") -> Optional[float]:
     """
     Get current live price for specific ÖNORM position
 
@@ -351,9 +348,9 @@ def get_live_price_for_item(
 # Integration with LV
 # ═══════════════════════════════════════════════════════════════════════════
 
+
 def enrich_lv_with_live_prices(
-    lv_positions: List[Dict[str, Any]],
-    bundesland: str = "wien"
+    lv_positions: List[Dict[str, Any]], bundesland: str = "wien"
 ) -> List[Dict[str, Any]]:
     """
     Enrich LV positions with live market prices
@@ -381,7 +378,9 @@ def enrich_lv_with_live_prices(
             position["einheitspreis_live"] = live_price
             position["gesamtpreis_live"] = live_price * position["menge"]
             position["preis_quelle"] = "Live Index 2026"
-            position["preisstand"] = BAUPREISINDEX_2026[list(BAUPREISINDEX_2026.keys())[0]].timestamp
+            position["preisstand"] = BAUPREISINDEX_2026[
+                list(BAUPREISINDEX_2026.keys())[0]
+            ].timestamp
 
     return lv_positions
 
@@ -402,20 +401,21 @@ def generate_price_trend_report() -> Dict[str, Any]:
             "change_month_pct": round(price_idx.change_month_pct(), 2),
             "change_year_pct": round(price_idx.change_year_pct(), 2),
             "timestamp": price_idx.timestamp,
-            "trend": "steigend" if price_idx.change_month_pct() > 0 else "fallend"
+            "trend": "steigend" if price_idx.change_month_pct() > 0 else "fallend",
         }
 
     return {
         "report_date": datetime.now(timezone.utc).isoformat(),
         "source": "Statistik Austria Baupreisindex",
         "base_year": "2015",
-        "trends": trends
+        "trends": trends,
     }
 
 
 # ═══════════════════════════════════════════════════════════════════════════
 # API Integration (Placeholder)
 # ═══════════════════════════════════════════════════════════════════════════
+
 
 def fetch_live_data_from_statistik_austria() -> Dict[str, PriceIndex]:
     """
@@ -446,8 +446,10 @@ if __name__ == "__main__":
     # Test 1: Get current indices
     print("Test 1: Aktuelle Baupreisindizes (Q1 2026)...")
     for mat, idx in BAUPREISINDEX_2026.items():
-        print(f"  {idx.category:30s} Index: {idx.index_value:6.1f}  "
-              f"ΔM: {idx.change_month_pct():+.2f}%  ΔJ: {idx.change_year_pct():+.2f}%")
+        print(
+            f"  {idx.category:30s} Index: {idx.index_value:6.1f}  "
+            f"ΔM: {idx.change_month_pct():+.2f}%  ΔJ: {idx.change_year_pct():+.2f}%"
+        )
     print()
 
     # Test 2: Calculate live price
@@ -468,8 +470,10 @@ if __name__ == "__main__":
         wien_price = entry.current_prices.get("wien", 0)
         base_price = entry.base_price_2015
         change = ((wien_price - base_price) / base_price) * 100
-        print(f"  {code} - {entry.description[:40]:40s} "
-              f"EUR {wien_price:8.2f}/{entry.unit} ({change:+.1f}%)")
+        print(
+            f"  {code} - {entry.description[:40]:40s} "
+            f"EUR {wien_price:8.2f}/{entry.unit} ({change:+.1f}%)"
+        )
     print()
 
     # Test 4: Price trend report
@@ -480,9 +484,7 @@ if __name__ == "__main__":
     print()
     print("  Top Preisänderungen (Jahr):")
     sorted_trends = sorted(
-        report['trends'].items(),
-        key=lambda x: abs(x[1]['change_year_pct']),
-        reverse=True
+        report["trends"].items(), key=lambda x: abs(x[1]["change_year_pct"]), reverse=True
     )
     for mat, trend in sorted_trends[:5]:
         print(f"    {trend['category']:30s} {trend['change_year_pct']:+6.2f}% ({trend['trend']})")

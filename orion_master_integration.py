@@ -27,7 +27,6 @@ from datetime import datetime
 from enum import Enum
 import json
 
-
 # ============================================================================
 # Import All ORION Modules
 # ============================================================================
@@ -38,7 +37,7 @@ try:
     from live_cost_database import (
         calculate_live_price,
         MaterialCategory,
-        enrich_lv_with_live_prices
+        enrich_lv_with_live_prices,
     )
     from ai_tender_evaluation import ai_evaluate_bid, BidDocument
 
@@ -48,12 +47,12 @@ try:
         design_rectangular_beam_flexure,
         get_seismic_parameters,
         ConcreteGrade,
-        SteelGrade
+        SteelGrade,
     )
     from structural_software_connectors import (
         UniversalConnector,
         StructuralSoftware,
-        export_from_ifc_to_analysis_software
+        export_from_ifc_to_analysis_software,
     )
     from automatic_load_calculation import (
         LoadParameters,
@@ -63,7 +62,7 @@ try:
         calculate_wind_load,
         generate_load_combinations,
         BuildingUsage,
-        TerrainCategory
+        TerrainCategory,
     )
 
     MODULES_AVAILABLE = True
@@ -76,8 +75,10 @@ except ImportError as e:
 # Workflow Orchestration
 # ============================================================================
 
+
 class WorkflowStage(str, Enum):
     """Workflow stages"""
+
     IFC_IMPORT = "IFC Import"
     QUANTITY_TAKEOFF = "AI Quantity Takeoff"
     COST_ESTIMATION = "Cost Estimation"
@@ -91,6 +92,7 @@ class WorkflowStage(str, Enum):
 @dataclass
 class ProjectParameters:
     """Complete project parameters for ORION workflow"""
+
     # Project Info
     project_name: str
     project_id: str
@@ -115,15 +117,15 @@ class ProjectParameters:
     ifc_file_path: Optional[str] = None
 
     # Export
-    export_to: List[StructuralSoftware] = field(default_factory=lambda: [
-        StructuralSoftware.ETABS,
-        StructuralSoftware.SAP2000
-    ])
+    export_to: List[StructuralSoftware] = field(
+        default_factory=lambda: [StructuralSoftware.ETABS, StructuralSoftware.SAP2000]
+    )
 
 
 @dataclass
 class WorkflowResult:
     """Complete workflow results"""
+
     project_id: str
     workflow_status: WorkflowStage
     started_at: str
@@ -150,6 +152,7 @@ class WorkflowResult:
 # Master Orchestrator
 # ============================================================================
 
+
 class ORIONMasterOrchestrator:
     """
     Master orchestrator for complete ORION workflow
@@ -163,7 +166,7 @@ class ORIONMasterOrchestrator:
         self.result = WorkflowResult(
             project_id=params.project_id,
             workflow_status=WorkflowStage.IFC_IMPORT,
-            started_at=datetime.now().isoformat()
+            started_at=datetime.now().isoformat(),
         )
 
     def execute_full_workflow(self) -> WorkflowResult:
@@ -210,6 +213,7 @@ class ORIONMasterOrchestrator:
             self.result.errors.append(f"Workflow error: {str(e)}")
             print(f"\n❌ ERROR: {e}")
             import traceback
+
             traceback.print_exc()
 
         end_time = datetime.now()
@@ -238,7 +242,7 @@ class ORIONMasterOrchestrator:
             result = automatic_quantity_takeoff_workflow(
                 source_file=ifc_file,
                 project_name=self.params.project_name,
-                bundesland=self.params.bundesland
+                bundesland=self.params.bundesland,
             )
 
             self.result.quantity_takeoff_result = result
@@ -266,21 +270,20 @@ class ORIONMasterOrchestrator:
 
         try:
             # Get LV positions from quantity takeoff
-            lv_positions = self.result.quantity_takeoff_result.get('lv_positions', [])
+            lv_positions = self.result.quantity_takeoff_result.get("lv_positions", [])
 
             if MODULES_AVAILABLE and lv_positions:
                 # Enrich with live prices
                 enriched = enrich_lv_with_live_prices(
-                    lv_positions,
-                    bundesland=self.params.bundesland
+                    lv_positions, bundesland=self.params.bundesland
                 )
 
-                total_cost = sum(p.get('gesamtpreis_aktuell', 0) for p in enriched)
+                total_cost = sum(p.get("gesamtpreis_aktuell", 0) for p in enriched)
 
                 self.result.cost_estimation_result = {
-                    'lv_positions': enriched,
-                    'total_cost_eur': total_cost,
-                    'bundesland': self.params.bundesland
+                    "lv_positions": enriched,
+                    "total_cost_eur": total_cost,
+                    "bundesland": self.params.bundesland,
                 }
 
                 self.result.total_cost_eur = total_cost
@@ -288,8 +291,8 @@ class ORIONMasterOrchestrator:
                 print(f"✓ Enriched {len(enriched)} LV positions with live prices")
                 print(f"✓ Total cost (live): EUR {total_cost:,.2f}")
             else:
-                base_cost = self.result.quantity_takeoff_result['statistics']['estimated_cost_eur']
-                self.result.cost_estimation_result = {'total_cost_eur': base_cost}
+                base_cost = self.result.quantity_takeoff_result["statistics"]["estimated_cost_eur"]
+                self.result.cost_estimation_result = {"total_cost_eur": base_cost}
                 self.result.total_cost_eur = base_cost
                 print(f"✓ Base cost: EUR {base_cost:,.2f}")
 
@@ -318,7 +321,7 @@ class ORIONMasterOrchestrator:
                 building_width_m=self.params.building_width_m,
                 building_length_m=self.params.building_length_m,
                 roof_angle_deg=self.params.roof_angle_deg,
-                usage_category=self.params.building_usage
+                usage_category=self.params.building_usage,
             )
 
             # Calculate all loads
@@ -327,33 +330,29 @@ class ORIONMasterOrchestrator:
             dead = calculate_dead_load("Decke", floor_area, 0.20, "Stahlbeton")
             live = calculate_live_load(load_params.usage_category, floor_area)
             snow = calculate_snow_load(load_params, floor_area)
-            wind = calculate_wind_load(load_params, load_params.building_height_m * load_params.building_width_m)
+            wind = calculate_wind_load(
+                load_params, load_params.building_height_m * load_params.building_width_m
+            )
 
             # Load combinations
             combinations = generate_load_combinations(
-                dead.total_load_kN,
-                live.total_load_kN,
-                snow.total_load_kN,
-                wind.total_load_kN
+                dead.total_load_kN, live.total_load_kN, snow.total_load_kN, wind.total_load_kN
             )
 
             governing = max(combinations, key=lambda c: c.total_combined_kN)
 
             self.result.load_calculation_result = {
-                'dead_load_kN': dead.total_load_kN,
-                'live_load_kN': live.total_load_kN,
-                'snow_load_kN': snow.total_load_kN,
-                'wind_load_kN': wind.total_load_kN,
-                'combinations': [
-                    {
-                        'id': c.combination_id,
-                        'total_kN': c.total_combined_kN
-                    } for c in combinations
+                "dead_load_kN": dead.total_load_kN,
+                "live_load_kN": live.total_load_kN,
+                "snow_load_kN": snow.total_load_kN,
+                "wind_load_kN": wind.total_load_kN,
+                "combinations": [
+                    {"id": c.combination_id, "total_kN": c.total_combined_kN} for c in combinations
                 ],
-                'governing_combination': {
-                    'id': governing.combination_id,
-                    'total_kN': governing.total_combined_kN
-                }
+                "governing_combination": {
+                    "id": governing.combination_id,
+                    "total_kN": governing.total_combined_kN,
+                },
             }
 
             print(f"✓ Dead load: {dead.total_load_kN:.1f} kN")
@@ -383,7 +382,9 @@ class ORIONMasterOrchestrator:
 
             # Get governing moment from loads
             if self.result.load_calculation_result:
-                governing_load = self.result.load_calculation_result['governing_combination']['total_kN']
+                governing_load = self.result.load_calculation_result["governing_combination"][
+                    "total_kN"
+                ]
                 # Simplified: assume beam span 5m, moment ≈ wL²/8
                 moment_kNm = (governing_load / 5.0) * 5.0**2 / 8.0
             else:
@@ -395,16 +396,16 @@ class ORIONMasterOrchestrator:
                 width=0.30,
                 height=0.50,
                 concrete_grade=self.params.concrete_grade,
-                steel_grade=self.params.steel_grade
+                steel_grade=self.params.steel_grade,
             )
 
             self.result.structural_design_result = {
-                'moment_kNm': moment_kNm,
-                'required_reinforcement_cm2': design.as_required_bottom,
-                'provided_reinforcement_cm2': design.as_provided_bottom,
-                'utilization_percent': design.utilization_bending,
-                'concrete_grade': self.params.concrete_grade.value,
-                'steel_grade': self.params.steel_grade.value
+                "moment_kNm": moment_kNm,
+                "required_reinforcement_cm2": design.as_required_bottom,
+                "provided_reinforcement_cm2": design.as_provided_bottom,
+                "utilization_percent": design.utilization_bending,
+                "concrete_grade": self.params.concrete_grade.value,
+                "steel_grade": self.params.steel_grade.value,
             }
 
             print(f"✓ Design moment: {moment_kNm:.1f} kNm")
@@ -436,18 +437,19 @@ class ORIONMasterOrchestrator:
             connector = UniversalConnector(self.params.project_name)
 
             from structural_engineering_integration import LoadCase
+
             load_cases = [LoadCase("DEAD", "Eigenlast", "Eigenlast")]
 
             exports = connector.export_all(
-                structural_model['nodes'],
-                structural_model['members'],
+                structural_model["nodes"],
+                structural_model["members"],
                 load_cases,
-                output_dir="/tmp"
+                output_dir="/tmp",
             )
 
             self.result.software_export_result = {
-                'exported_formats': list(exports.keys()),
-                'export_paths': {k: v.export_path for k, v in exports.items()}
+                "exported_formats": list(exports.keys()),
+                "export_paths": {k: v.export_path for k, v in exports.items()},
             }
 
             print(f"✓ Exported to {len(exports)} formats:")
@@ -460,15 +462,15 @@ class ORIONMasterOrchestrator:
     def _simulate_quantity_takeoff(self) -> Dict[str, Any]:
         """Simulate quantity takeoff for testing"""
         return {
-            'project_name': self.params.project_name,
-            'statistics': {
-                'total_elements': 4,
-                'total_volume_m3': 83.3,
-                'total_area_m2': 475.5,
-                'estimated_cost_eur': 60385.0,
-                'confidence_score': 0.95
+            "project_name": self.params.project_name,
+            "statistics": {
+                "total_elements": 4,
+                "total_volume_m3": 83.3,
+                "total_area_m2": 475.5,
+                "estimated_cost_eur": 60385.0,
+                "confidence_score": 0.95,
             },
-            'lv_positions': []
+            "lv_positions": [],
         }
 
     def _print_summary(self):
@@ -513,10 +515,9 @@ class ORIONMasterOrchestrator:
 # Convenience Functions
 # ============================================================================
 
+
 def execute_orion_workflow(
-    project_name: str,
-    bundesland: str,
-    ifc_file: Optional[str] = None
+    project_name: str, bundesland: str, ifc_file: Optional[str] = None
 ) -> WorkflowResult:
     """
     Execute complete ORION workflow with minimal parameters
@@ -533,7 +534,7 @@ def execute_orion_workflow(
         project_name=project_name,
         project_id=f"ORION-{datetime.now().strftime('%Y%m%d-%H%M%S')}",
         bundesland=bundesland,
-        ifc_file_path=ifc_file
+        ifc_file_path=ifc_file,
     )
 
     orchestrator = ORIONMasterOrchestrator(params)
@@ -549,24 +550,24 @@ def export_workflow_report(result: WorkflowResult, output_path: str):
         output_path: Output file path
     """
     report = {
-        'project_id': result.project_id,
-        'workflow_status': result.workflow_status.value,
-        'started_at': result.started_at,
-        'completed_at': result.completed_at,
-        'total_time_seconds': result.total_time_seconds,
-        'total_cost_eur': result.total_cost_eur,
-        'stages': {
-            'quantity_takeoff': result.quantity_takeoff_result,
-            'cost_estimation': result.cost_estimation_result,
-            'load_calculation': result.load_calculation_result,
-            'structural_design': result.structural_design_result,
-            'software_export': result.software_export_result,
+        "project_id": result.project_id,
+        "workflow_status": result.workflow_status.value,
+        "started_at": result.started_at,
+        "completed_at": result.completed_at,
+        "total_time_seconds": result.total_time_seconds,
+        "total_cost_eur": result.total_cost_eur,
+        "stages": {
+            "quantity_takeoff": result.quantity_takeoff_result,
+            "cost_estimation": result.cost_estimation_result,
+            "load_calculation": result.load_calculation_result,
+            "structural_design": result.structural_design_result,
+            "software_export": result.software_export_result,
         },
-        'errors': result.errors,
-        'warnings': result.warnings
+        "errors": result.errors,
+        "warnings": result.warnings,
     }
 
-    with open(output_path, 'w') as f:
+    with open(output_path, "w") as f:
         json.dump(report, f, indent=2, default=str)
 
     print(f"✓ Report exported to: {output_path}")
@@ -585,7 +586,7 @@ if __name__ == "__main__":
     result = execute_orion_workflow(
         project_name="Wohnanlage Wien Donaustadt",
         bundesland="Wien",
-        ifc_file="projekt_wohnanlage_wien.ifc"
+        ifc_file="projekt_wohnanlage_wien.ifc",
     )
 
     # Export report

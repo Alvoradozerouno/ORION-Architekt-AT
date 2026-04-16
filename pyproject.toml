@@ -95,11 +95,9 @@ Issues = "https://github.com/Alvoradozerouno/ORION-Architekt-AT/issues"
 requires = ["setuptools>=68.0", "wheel"]
 build-backend = "setuptools.build_meta"
 
-[tool.setuptools]
-packages = ["orion_architekt_at", "tests"]
-
-[tool.setuptools.package-data]
-orion_architekt_at = ["*.json", "*.md"]
+[tool.setuptools.packages.find]
+where = ["."]
+exclude = ["htmlcov*", "docs*", "k8s*", "monitoring*"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]

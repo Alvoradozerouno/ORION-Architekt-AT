@@ -51,12 +51,12 @@ jobs:
 
       - name: Start application with Docker Compose
         run: |
-          docker-compose -f docker-compose.production.yml up -d
+          docker compose -f docker-compose.production.yml up -d
           sleep 45  # Wait for services to be fully ready
 
       - name: Verify application is running
         run: |
-          curl -f http://localhost/health || (docker-compose -f docker-compose.production.yml logs && exit 1)
+          curl -f http://localhost/health || (docker compose -f docker-compose.production.yml logs && exit 1)
 
       - name: ZAP Baseline Scan
         uses: zaproxy/action-baseline@v0.10.0
@@ -79,7 +79,7 @@ jobs:
 
       - name: Stop services
         if: always()
-        run: docker-compose -f docker-compose.production.yml down
+        run: docker compose -f docker-compose.production.yml down
 
   # ==========================================================================
   # OWASP ZAP Full Scan (Weekly)
@@ -109,7 +109,7 @@ jobs:
 
       - name: Start application
         run: |
-          docker-compose -f docker-compose.production.yml up -d
+          docker compose -f docker-compose.production.yml up -d
           sleep 45
 
       - name: ZAP Full Scan
@@ -133,7 +133,7 @@ jobs:
 
       - name: Stop services
         if: always()
-        run: docker-compose -f docker-compose.production.yml down
+        run: docker compose -f docker-compose.production.yml down
 
   # ==========================================================================
   # API Security Testing (OWASP API Top 10)
@@ -160,7 +160,7 @@ jobs:
 
       - name: Start services
         run: |
-          docker-compose -f docker-compose.production.yml up -d
+          docker compose -f docker-compose.production.yml up -d
           sleep 45
 
       - name: Run API Security Tests
@@ -171,7 +171,7 @@ jobs:
 
       - name: Stop services
         if: always()
-        run: docker-compose -f docker-compose.production.yml down
+        run: docker compose -f docker-compose.production.yml down
 
   # ==========================================================================
   # Secrets Scanning
@@ -190,7 +190,7 @@ jobs:
         uses: trufflesecurity/trufflehog@main
         with:
           path: ./
-          base: ${{ github.event.repository.default_branch }}
+          base: ${{ github.event_name == 'push' && github.event.before || github.event.repository.default_branch }}
           head: HEAD
           extra_args: --only-verified
 

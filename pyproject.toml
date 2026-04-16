@@ -96,10 +96,10 @@ requires = ["setuptools>=68.0", "wheel"]
 build-backend = "setuptools.build_meta"
 
 [tool.setuptools]
-packages = ["orion_architekt_at", "tests"]
+packages = ["api", "tests"]
 
 [tool.setuptools.package-data]
-orion_architekt_at = ["*.json", "*.md"]
+api = ["*.json", "*.md"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]

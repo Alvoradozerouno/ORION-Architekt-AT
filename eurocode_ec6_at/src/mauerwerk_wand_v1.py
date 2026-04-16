@@ -33,12 +33,12 @@ NICHT SCOPE (Future):
 =============================================================================
 """
 
-import math
 import hashlib
 import json
-from dataclasses import dataclass, asdict
-from typing import List, Optional, Dict, Any
+import math
+from dataclasses import asdict, dataclass
 from datetime import datetime
+from typing import Any, Dict, List, Optional
 
 # =============================================================================
 # ÖSTERREICHISCHE MAUERSTEIN-DATENBANK

@@ -11,17 +11,17 @@ Datum: 2026-04-07
 =============================================================================
 """
 
-import sys
 import json
+import sys
 from pathlib import Path
 
 from orion_multi_agent_system import (
-    TheArchitektAgent,
-    ZivilingenieurAgent,
+    EUROCODE_AVAILABLE,
     BauphysikerAgent,
     KostenplanerAgent,
     RisikomanagerAgent,
-    EUROCODE_AVAILABLE,
+    TheArchitektAgent,
+    ZivilingenieurAgent,
 )
 
 

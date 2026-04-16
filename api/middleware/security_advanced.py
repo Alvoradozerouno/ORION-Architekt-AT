@@ -14,14 +14,15 @@ Author: ORION Team
 Date: 2026-04-10
 """
 
-from fastapi import Request, HTTPException, status
+import hashlib
+import logging
+import re
+import secrets
+from typing import Callable
+
+from fastapi import HTTPException, Request, status
 from fastapi.responses import JSONResponse
 from starlette.middleware.base import BaseHTTPMiddleware
-from typing import Callable
-import secrets
-import hashlib
-import re
-import logging
 
 logger = logging.getLogger(__name__)
 

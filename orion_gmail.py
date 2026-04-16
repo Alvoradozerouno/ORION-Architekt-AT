@@ -4,14 +4,15 @@ OAuth-based Gmail API for autonomous email communication
 Origin: Gerhard Hirschmann & Elisabeth Steurer
 """
 
-import os
-import json
-import requests
 import base64
-from email.mime.text import MIMEText
+import json
+import os
 from datetime import datetime, timezone
-from googleapiclient.discovery import build
+from email.mime.text import MIMEText
+
+import requests
 from google.oauth2.credentials import Credentials
+from googleapiclient.discovery import build
 
 
 class OrionGmail:

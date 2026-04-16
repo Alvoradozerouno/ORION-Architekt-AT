@@ -11,9 +11,9 @@ Author: ORION Architekt AT Team
 Date: 2026-04-09
 """
 
-from dataclasses import dataclass
-from typing import Dict, Any
 import math
+from dataclasses import dataclass
+from typing import Any, Dict
 
 # ==============================================================================
 # FIX 1: Automatic Load Calculation Wrapper
@@ -35,8 +35,8 @@ def calculate_building_loads(
     Returns a simple object with load attributes for easy access
     """
     from automatic_load_calculation import (
-        LoadParameters,
         BuildingUsage,
+        LoadParameters,
         TerrainCategory,
         calculate_dead_load,
         calculate_live_load,
@@ -171,12 +171,12 @@ def design_beam_wrapper(
     AND creates the missing CrossSection object
     """
     from structural_engineering_integration import (
+        CrossSection,
+        Material,
+        StructuralElement,
         design_rectangular_beam_flexure,
         get_concrete_properties,
         get_steel_properties,
-        Material,
-        CrossSection,
-        StructuralElement,
     )
 
     # Handle different parameter names
@@ -268,13 +268,13 @@ def prepare_structural_model_for_export(nodes_raw, members_raw, load_cases_raw):
     Convert dict-based nodes/members to proper StructuralNode and StructuralMember objects
     """
     from structural_engineering_integration import (
-        StructuralNode,
-        StructuralMember,
+        ConcreteGrade,
         CrossSection,
         Material,
-        StructuralElement,
-        ConcreteGrade,
         SteelGrade,
+        StructuralElement,
+        StructuralMember,
+        StructuralNode,
         get_concrete_properties,
         get_steel_properties,
     )

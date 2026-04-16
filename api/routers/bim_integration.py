@@ -3,12 +3,13 @@ UNIQUE FEATURE: BIM Integration Layer
 Processes IFC files and integrates with Austrian building regulations
 """
 
-from fastapi import APIRouter, HTTPException, UploadFile, File, Depends
-from pydantic import BaseModel, Field
-from typing import List, Dict, Optional, Any
-import tempfile
 import os
+import tempfile
 from datetime import datetime
+from typing import Any, Dict, List, Optional
+
+from fastapi import APIRouter, Depends, File, HTTPException, UploadFile
+from pydantic import BaseModel, Field
 
 router = APIRouter()
 
@@ -237,8 +238,9 @@ def _parse_ifc_file(file_path: str, bundesland: str, building_type: str) -> IFCA
     Replaces mock implementation with actual BIM processing
     """
     try:
-        from bim_ifc_real import IFCProcessor
         import logging
+
+        from bim_ifc_real import IFCProcessor
 
         logger = logging.getLogger(__name__)
         logger.info(f"Processing IFC file: {file_path}")

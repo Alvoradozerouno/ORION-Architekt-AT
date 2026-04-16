@@ -21,11 +21,11 @@ Author: ORION Architekt AT Team
 Date: 2026-04-09
 """
 
+import json
 from dataclasses import dataclass, field
-from typing import List, Dict, Optional, Any
 from datetime import datetime
 from enum import Enum
-import json
+from typing import Any, Dict, List, Optional
 
 # ============================================================================
 # Import All ORION Modules
@@ -34,35 +34,35 @@ import json
 try:
     # AI Tendering Modules
     from ai_quantity_takeoff import automatic_quantity_takeoff_workflow
-    from live_cost_database import (
-        calculate_live_price,
-        MaterialCategory,
-        enrich_lv_with_live_prices,
-    )
-    from ai_tender_evaluation import ai_evaluate_bid, BidDocument
-
-    # Structural Engineering Modules
-    from structural_engineering_integration import (
-        extract_structural_model_from_ifc,
-        design_rectangular_beam_flexure,
-        get_seismic_parameters,
-        ConcreteGrade,
-        SteelGrade,
-    )
-    from structural_software_connectors import (
-        UniversalConnector,
-        StructuralSoftware,
-        export_from_ifc_to_analysis_software,
-    )
+    from ai_tender_evaluation import BidDocument, ai_evaluate_bid
     from automatic_load_calculation import (
+        BuildingUsage,
         LoadParameters,
+        TerrainCategory,
         calculate_dead_load,
         calculate_live_load,
         calculate_snow_load,
         calculate_wind_load,
         generate_load_combinations,
-        BuildingUsage,
-        TerrainCategory,
+    )
+    from live_cost_database import (
+        MaterialCategory,
+        calculate_live_price,
+        enrich_lv_with_live_prices,
+    )
+
+    # Structural Engineering Modules
+    from structural_engineering_integration import (
+        ConcreteGrade,
+        SteelGrade,
+        design_rectangular_beam_flexure,
+        extract_structural_model_from_ifc,
+        get_seismic_parameters,
+    )
+    from structural_software_connectors import (
+        StructuralSoftware,
+        UniversalConnector,
+        export_from_ifc_to_analysis_software,
     )
 
     MODULES_AVAILABLE = True

@@ -2,13 +2,14 @@
 API Authentication Middleware for ORION Architekt AT
 """
 
-from fastapi import Depends, HTTPException, Security, status, APIRouter
-from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
-from jose import JWTError, jwt
-from datetime import datetime, timedelta
-from typing import Optional, List
-import os
 import logging
+import os
+from datetime import datetime, timedelta
+from typing import List, Optional
+
+from fastapi import APIRouter, Depends, HTTPException, Security, status
+from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
+from jose import JWTError, jwt
 from pydantic import BaseModel
 
 logger = logging.getLogger(__name__)

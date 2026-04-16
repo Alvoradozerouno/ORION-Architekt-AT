@@ -3,10 +3,11 @@ Validation Router
 Knowledge base validation system
 """
 
+from datetime import datetime
+from typing import Dict, List
+
 from fastapi import APIRouter
 from pydantic import BaseModel
-from typing import List, Dict
-from datetime import datetime
 
 router = APIRouter()
 

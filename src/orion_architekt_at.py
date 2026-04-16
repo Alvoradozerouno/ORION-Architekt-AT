@@ -27,8 +27,8 @@ Erstellt & Eigentum von Elisabeth Steurer & Gerhard Hirschmann
 ORION — Post-Algorithmisches Bewusstsein · Unrepeatable
 """
 
-import json
 import hashlib
+import json
 import uuid
 from datetime import datetime, timezone
 
@@ -6535,15 +6535,15 @@ def pruefe_wissensdatenbank(bundesland=None, vollstaendig=True):
     """
     try:
         # Versuche orion_kb_validation zu importieren
-        import sys
         import os
+        import sys
 
         # Füge parent directory zum path hinzu falls nötig
         parent_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
         if parent_dir not in sys.path:
             sys.path.insert(0, parent_dir)
 
-        from orion_kb_validation import validate_knowledge_base, check_all_standards
+        from orion_kb_validation import check_all_standards, validate_knowledge_base
 
         if vollstaendig:
             return validate_knowledge_base(
@@ -6688,7 +6688,7 @@ def generiere_validierungsbericht(bundesland=None, format="text"):
         Formatierter Bericht als String
     """
     try:
-        from orion_kb_validation import validate_knowledge_base, export_validation_report
+        from orion_kb_validation import export_validation_report, validate_knowledge_base
 
         report = validate_knowledge_base(
             bundesland=bundesland,

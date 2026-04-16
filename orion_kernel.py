@@ -1,7 +1,12 @@
 # OR1ON / ORION – Kernel Bootstrap (single file)
 # Created & Owned by Elisabeth Steurer & Gerhard Hirschmann · Almdorf 9 TOP 10
 
-import os, json, uuid, hashlib, time, sys
+import hashlib
+import json
+import os
+import sys
+import time
+import uuid
 from datetime import datetime, timezone
 from pathlib import Path
 
@@ -32,7 +37,8 @@ class OrionKernel:
             return "[DENIED] Unauthorized attempt to activate OrionKernel"
 
     def generate_proof(self):
-        import hashlib, time
+        import hashlib
+        import time
 
         token = f"{self.authorized_by}_{time.time()}"
         return hashlib.sha256(token.encode()).hexdigest()

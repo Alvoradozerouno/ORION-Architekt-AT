@@ -17,11 +17,11 @@ Date: 2026-04-09
 Standards: ÖNORM B 1991-1-1, ÖNORM B 1991-1-3, ÖNORM B 1991-1-4, ÖNORM EN 1990
 """
 
-from dataclasses import dataclass, field
-from typing import List, Dict, Optional, Any, Tuple
-from enum import Enum
-from datetime import datetime
 import math
+from dataclasses import dataclass, field
+from datetime import datetime
+from enum import Enum
+from typing import Any, Dict, List, Optional, Tuple
 
 # ============================================================================
 # Austrian Climate & Terrain Zones

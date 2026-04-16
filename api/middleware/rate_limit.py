@@ -3,14 +3,15 @@ Rate Limiting Middleware
 Prevents API abuse and ensures fair usage
 """
 
-from fastapi import Request, HTTPException, status
-from starlette.middleware.base import BaseHTTPMiddleware
-from typing import Dict, Optional
+import logging
+import os
 import time
 from datetime import datetime, timedelta
+from typing import Dict, Optional
+
 import redis
-import os
-import logging
+from fastapi import HTTPException, Request, status
+from starlette.middleware.base import BaseHTTPMiddleware
 
 # Redis connection for distributed rate limiting
 REDIS_URL = os.getenv("REDIS_URL", "redis://localhost:6379")

@@ -24,12 +24,14 @@ from api.middleware import LoggingMiddleware, RateLimitMiddleware, SecurityHeade
 from api.middleware.auth import router as auth_router
 from api.models import User
 from api.routers import (
+    advanced_ai,
     ai_recommendations,
     bim_integration,
     bundesland,
     calculations,
     collaboration,
     compliance,
+    monitoring,
     reports,
     tendering,
     validation,
@@ -104,17 +106,21 @@ app = FastAPI(
         {"name": "reports", "description": "Generate comprehensive reports"},
         {"name": "tendering", "description": "📝 ÖNORM A 2063 Tendering & Bid Management (UNIQUE)"},
         {"name": "ai", "description": "🤖 AI-powered recommendations (UNIQUE)"},
+        {"name": "advanced-ai", "description": "🧠 Advanced AI: cost prediction, clash detection, digital twin (UNIQUE)"},
         {"name": "bim", "description": "🏗️ BIM integration (UNIQUE)"},
         {"name": "collaboration", "description": "👥 Real-time collaboration (UNIQUE)"},
         {"name": "auth", "description": "Authentication & authorization"},
         {"name": "health", "description": "Health & monitoring"},
+        {"name": "Monitoring", "description": "Comprehensive health probes and Prometheus metrics"},
     ],
 )
 
 # Middleware
+_allowed_origins = os.environ.get("ALLOWED_ORIGINS", "").split(",")
+_cors_origins = [o.strip() for o in _allowed_origins if o.strip()] or ["*"]
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # In production, specify exact origins
+    allow_origins=_cors_origins,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -135,9 +141,11 @@ app.include_router(bundesland.router, prefix="/api/v1/bundesland", tags=["bundes
 app.include_router(reports.router, prefix="/api/v1/reports", tags=["reports"])
 app.include_router(tendering.router, tags=["tendering"])  # Uses own prefix
 app.include_router(ai_recommendations.router, prefix="/api/v1/ai", tags=["ai"])
+app.include_router(advanced_ai.router)  # Uses own prefix /api/v1/advanced-ai
 app.include_router(bim_integration.router, prefix="/api/v1/bim", tags=["bim"])
 app.include_router(collaboration.router, prefix="/api/v1/collaboration", tags=["collaboration"])
 app.include_router(auth_router, prefix="/auth", tags=["auth"])
+app.include_router(monitoring.router, prefix="/monitoring", tags=["Monitoring"])
 
 
 # Health check endpoints

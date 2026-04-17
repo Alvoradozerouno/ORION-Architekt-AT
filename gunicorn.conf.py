@@ -97,7 +97,7 @@ def when_ready(server):
 
 def pre_fork(server, worker):
     """Called just before a worker is forked."""
-    pass
+    server.log.debug(f"Forking worker #{worker}")
 
 
 def post_fork(server, worker):
@@ -127,7 +127,7 @@ def pre_request(worker, req):
 
 def post_request(worker, req, environ, resp):
     """Called after a worker processes the request."""
-    pass
+    worker.log.debug(f"{req.method} {req.path} → {resp.status}")
 
 
 def child_exit(server, worker):

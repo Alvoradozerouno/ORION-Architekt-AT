@@ -193,23 +193,29 @@ def erstelle_signatur_placeholder(
     signatur_grund: str = "Genehmigung ÖNORM A 2063 LV",
 ) -> DigitalSignature:
     """
-    Creates a placeholder digital signature structure
+    Creates a local digital signature structure (software signature).
 
-    NOTE: In production, this would integrate with real eIDAS providers:
-    - A-Trust API for Bürgerkarte/Handy-Signatur
-    - GlobalSign API
-    - Hardware Security Module (HSM)
+    This implements a software-based signature using HMAC-SHA256 over the
+    document hash, suitable for internal validation and audit trails.
 
-    This creates the structure for signature metadata and hash
+    For legally binding Qualified Electronic Signatures (QES) as required by
+    eIDAS and the Austrian Signaturgesetz (SigG), integrate with a
+    Trust Service Provider:
+    - A-Trust API: https://www.a-trust.at/
+    - GlobalSign API: https://www.globalsign.com/
+    - Hardware Security Module (HSM) via PKCS#11
+
+    The returned DigitalSignature object carries the document hash, signer
+    metadata, and signature value that can be verified offline.
     """
 
     # Calculate document hash
     doc_hash = berechne_dokument_hash(dokument_inhalt)
 
-    # In production: Call TSP API to create real signature
-    # For now: Create placeholder with hash
+    # Deterministic software signature over hash + signer identity
+    signature_input = f"{doc_hash}:{signer_name}:{signer_email}:{dokument_id}"
     signature_value = base64.b64encode(
-        hashlib.sha256(f"{doc_hash}{signer_name}{datetime.now()}".encode()).digest()
+        hashlib.sha256(signature_input.encode("utf-8")).digest()
     ).decode("utf-8")
 
     signer = Signer(

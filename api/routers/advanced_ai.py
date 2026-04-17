@@ -616,7 +616,11 @@ async def quantum_optimize(problem_space: Dict[str, Any]) -> Dict[str, Any]:
     return _quantum_optimizer.optimize_quantum_ready(problem_space)
 
 
+# =============================================================================
+# Manual test (python -m api.routers.advanced_ai)
+# =============================================================================
 
+if __name__ == "__main__":
     print("=== Advanced AI Features Test ===\n")
 
     # Test 1: Predictive Cost Analytics

@@ -201,7 +201,7 @@ class InputSanitizationMiddleware(BaseHTTPMiddleware):
                                 content={"detail": "Invalid input detected"},
                             )
 
-                    # For JSON bodies, also sanitize individual string fields
+                    # For JSON bodies, also check individual string fields for XSS
                     content_type = request.headers.get("content-type", "")
                     if "application/json" in content_type:
                         import json as _json
@@ -209,9 +209,16 @@ class InputSanitizationMiddleware(BaseHTTPMiddleware):
                         try:
                             data = _json.loads(body_str)
                             sanitized = self._sanitize_value(data)
-                            # Rebuild the request body scope is read-only in ASGI;
-                            # the sanitized version is validated above – proceed normally.
-                            _ = sanitized
+                            # Validate sanitized structure equals original:
+                            # if any string was changed, it contained HTML tags.
+                            if _json.dumps(sanitized, sort_keys=True) != _json.dumps(data, sort_keys=True):
+                                logger.warning(
+                                    "XSS content detected in JSON field from %s", request.client
+                                )
+                                return JSONResponse(
+                                    status_code=status.HTTP_400_BAD_REQUEST,
+                                    content={"detail": "Invalid input detected"},
+                                )
                         except (_json.JSONDecodeError, Exception):
                             pass  # Not valid JSON – skip field-level check
             except Exception as e:

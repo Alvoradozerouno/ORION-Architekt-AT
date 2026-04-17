@@ -35,6 +35,7 @@ Lizenz: Apache 2.0
 ═══════════════════════════════════════════════════════════════════════════
 """
 
+import base64
 import hashlib
 import json
 from dataclasses import dataclass, field
@@ -728,19 +729,22 @@ class TEDAPIClient:
         try:
             import httpx
 
+            credentials = base64.b64encode(
+                f"{self.esender_login}:{self.esender_password}".encode("utf-8")
+            ).decode("ascii")
             response = httpx.post(
                 f"{self.BASE_URL}/notices",
                 content=ted_xml.encode("utf-8"),
                 headers={
                     "Content-Type": "application/xml",
-                    "Authorization": f"Basic {self.esender_login}:{self.esender_password}",
+                    "Authorization": f"Basic {credentials}",
                 },
                 timeout=60.0,
             )
             response.raise_for_status()
             return {
                 "success": True,
-                "ted_notice_number": f"2026/S 042-123456",
+                "ted_notice_number": "2026/S 042-123456",
                 "publication_date": datetime.now(timezone.utc).date().isoformat(),
             }
         except Exception as e:

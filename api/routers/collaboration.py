@@ -216,14 +216,12 @@ async def invite_member(project_id: str, user_id: str, name: str, email: str, ro
         is_online=False,
     )
 
-    # Generate a secure invitation token and log the invitation
-    import hashlib
+    # Generate a cryptographically secure invitation token and log the invitation
     import logging
+    import secrets
 
     logger = logging.getLogger(__name__)
-    invitation_token = hashlib.sha256(
-        f"{project_id}:{user_id}:{email}:{datetime.now().isoformat()}".encode()
-    ).hexdigest()[:32]
+    invitation_token = secrets.token_urlsafe(32)
 
     logger.info(
         "Invitation created: project=%s user=%s email=%s role=%s",

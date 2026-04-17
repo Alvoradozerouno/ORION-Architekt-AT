@@ -425,14 +425,21 @@ def convert_to_oenorm_lv_positions(takeoff_result: QuantityTakeoffResult) -> Lis
 
         lv_positions_converted = []
         for pos in takeoff_result.lv_positions:
-            lv_pos = LVPosition(
-                position_nr=pos.get("position_nr", ""),
-                kurztext=pos.get("kurztext", pos.get("beschreibung", "")),
-                einheit=pos.get("einheit", "m2"),
-                menge=float(pos.get("menge", 0)),
-                einheitspreis=float(pos.get("einheitspreis_basis", 0)),
-            )
-            lv_positions_converted.append(lv_pos)
+            try:
+                lv_pos = LVPosition(
+                    position_nr=pos.get("position_nr", ""),
+                    kurztext=pos.get("kurztext", pos.get("beschreibung", "")),
+                    einheit=pos.get("einheit", "m2"),
+                    menge=float(pos.get("menge", 0)),
+                    einheitspreis=float(pos.get("einheitspreis_basis", 0)),
+                )
+                lv_positions_converted.append(lv_pos)
+            except (TypeError, ValueError) as conv_err:
+                field_name = "menge" if "menge" not in pos else "einheitspreis_basis"
+                raise ValueError(
+                    f"Position {pos.get('position_nr', '?')}: "
+                    f"cannot convert field '{field_name}' to float – {conv_err}"
+                ) from conv_err
         return lv_positions_converted
     except ImportError:
         # Fall back to returning raw positions

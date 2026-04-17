@@ -216,13 +216,27 @@ async def invite_member(project_id: str, user_id: str, name: str, email: str, ro
         is_online=False,
     )
 
-    # In production, this would save to database and send email
+    # Generate a cryptographically secure invitation token and log the invitation
+    import logging
+    import secrets
+
+    logger = logging.getLogger(__name__)
+    invitation_token = secrets.token_urlsafe(32)
+
+    logger.info(
+        "Invitation created: project=%s user=%s email=%s role=%s",
+        project_id,
+        user_id,
+        email,
+        role,
+    )
+
     return {
         "status": "invited",
         "project_id": project_id,
         "member": member,
         "invitation_sent": True,
-        "invitation_link": f"https://orion-architekt.at/projects/{project_id}/join?token=abc123",
+        "invitation_link": f"https://orion-architekt.at/projects/{project_id}/join?token={invitation_token}",
     }
 
 

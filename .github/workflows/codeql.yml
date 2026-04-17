@@ -31,8 +31,14 @@ jobs:
       with:
         languages: ${{ matrix.language }}
 
-    - name: Autobuild
-      uses: github/codeql-action/autobuild@v4
+    - name: Build C++ (manual cmake build for CodeQL)
+      if: matrix.language == 'cpp'
+      run: |
+        cd cpp_core
+        mkdir -p build
+        cd build
+        cmake .. -DBUILD_PYTHON_BINDINGS=OFF -DBUILD_TESTS=OFF -DBUILD_DEMO=ON
+        cmake --build .
 
     - name: Perform CodeQL Analysis
       uses: github/codeql-action/analyze@v4

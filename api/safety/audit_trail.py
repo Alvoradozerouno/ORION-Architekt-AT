@@ -23,12 +23,12 @@ License: Apache 2.0
 
 import hashlib
 import json
-import time
-from datetime import datetime, timezone
-from typing import Dict, List, Optional, Any
-from pathlib import Path
-from dataclasses import dataclass, asdict
 import logging
+import time
+from dataclasses import asdict, dataclass
+from datetime import datetime, timezone
+from pathlib import Path
+from typing import Any, Dict, List, Optional
 
 logger = logging.getLogger(__name__)
 
@@ -61,7 +61,7 @@ class AuditEntry:
     ) -> "AuditEntry":
         """Create new audit entry with calculated hash"""
 
-        timestamp = timestamp or datetime.now(timezone.utc).isoformat().replace('+00:00', 'Z')
+        timestamp = timestamp or datetime.now(timezone.utc).isoformat().replace("+00:00", "Z")
 
         # Create data for hashing (excluding entry_hash itself)
         data_to_hash = {
@@ -210,9 +210,7 @@ class AuditTrail:
         # Persist to disk
         self._persist_entry(entry)
 
-        logger.info(
-            f"Audit entry added: {event_type}/{action} by {actor} → {result}"
-        )
+        logger.info(f"Audit entry added: {event_type}/{action} by {actor} → {result}")
 
         return entry
 
@@ -269,17 +267,9 @@ class AuditTrail:
         """Get all entries for specific resource"""
         return [e for e in self.entries if e.resource == resource]
 
-    def get_entries_in_timerange(
-        self, start: datetime, end: datetime
-    ) -> List[AuditEntry]:
+    def get_entries_in_timerange(self, start: datetime, end: datetime) -> List[AuditEntry]:
         """Get entries within time range"""
-        return [
-            e
-            for e in self.entries
-            if start.isoformat()
-            <= e.timestamp
-            <= end.isoformat()
-        ]
+        return [e for e in self.entries if start.isoformat() <= e.timestamp <= end.isoformat()]
 
     def export_report(self, output_path: Path, format: str = "json"):
         """

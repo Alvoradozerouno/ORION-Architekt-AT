@@ -23,17 +23,17 @@ Lizenz: Apache 2.0
 ═══════════════════════════════════════════════════════════════════════════
 """
 
-import json
 import hashlib
+import json
 import uuid
+from dataclasses import asdict, dataclass
 from datetime import datetime, timezone
-from typing import Dict, List, Optional, Any
-from dataclasses import dataclass, asdict
-
+from typing import Any, Dict, List, Optional
 
 # ═══════════════════════════════════════════════════════════════════════════
 # STANDARDISIERTE LEISTUNGSKATALOGE (StLB-BAU / ABK)
 # ═══════════════════════════════════════════════════════════════════════════
+
 
 @dataclass
 class LVPosition:
@@ -55,6 +55,7 @@ class LVPosition:
         version: Versionsnummer der Position
         aenderungs_historie: Liste der Änderungen
     """
+
     oz: str
     kurztext: str
     langtext: str
@@ -90,6 +91,7 @@ class LVAenderung:
         beschreibung: Textuelle Beschreibung der Änderung
         checksum: SHA-256 Hash des geänderten LV-Stands
     """
+
     timestamp: str
     version: str
     autor: str
@@ -109,7 +111,7 @@ def erstelle_lv_aenderung(
     positionen_alt: List[LVPosition],
     positionen_neu: List[LVPosition],
     version_neu: str,
-    autor: str = "THE ARCHITEKT"
+    autor: str = "THE ARCHITEKT",
 ) -> LVAenderung:
     """
     Erstellt Änderungsdokumentation zwischen zwei LV-Versionen
@@ -134,9 +136,11 @@ def erstelle_lv_aenderung(
     for pos_neu in positionen_neu:
         if pos_neu.oz in oz_alt:
             pos_alt = next(p for p in positionen_alt if p.oz == pos_neu.oz)
-            if (pos_neu.menge != pos_alt.menge or
-                pos_neu.ep != pos_alt.ep or
-                pos_neu.kurztext != pos_alt.kurztext):
+            if (
+                pos_neu.menge != pos_alt.menge
+                or pos_neu.ep != pos_alt.ep
+                or pos_neu.kurztext != pos_alt.kurztext
+            ):
                 geändert.append(pos_neu.oz)
 
     beschreibung_teile = []
@@ -156,7 +160,7 @@ def erstelle_lv_aenderung(
     betroffene = list(hinzugefügt) + geändert + list(gelöscht)
 
     return LVAenderung(
-        timestamp=datetime.now(timezone.utc).isoformat().replace('+00:00', 'Z'),
+        timestamp=datetime.now(timezone.utc).isoformat().replace("+00:00", "Z"),
         version=version_neu,
         autor=autor,
         aenderung_typ=aenderung_typ,
@@ -166,8 +170,7 @@ def erstelle_lv_aenderung(
 
 
 def vergleiche_lv_versionen(
-    positionen_v1: List[LVPosition],
-    positionen_v2: List[LVPosition]
+    positionen_v1: List[LVPosition], positionen_v2: List[LVPosition]
 ) -> Dict[str, Any]:
     """
     Vergleicht zwei LV-Versionen und zeigt Unterschiede
@@ -199,14 +202,16 @@ def vergleiche_lv_versionen(
                 änderungen.append("Kurztext geändert")
 
             if änderungen:
-                geändert_details.append({
-                    "oz": pos_v2.oz,
-                    "kurztext": pos_v2.kurztext,
-                    "änderungen": änderungen,
-                    "gp_alt": pos_v1.gp,
-                    "gp_neu": pos_v2.gp,
-                    "differenz_eur": round(pos_v2.gp - pos_v1.gp, 2),
-                })
+                geändert_details.append(
+                    {
+                        "oz": pos_v2.oz,
+                        "kurztext": pos_v2.kurztext,
+                        "änderungen": änderungen,
+                        "gp_alt": pos_v1.gp,
+                        "gp_neu": pos_v2.gp,
+                        "differenz_eur": round(pos_v2.gp - pos_v1.gp, 2),
+                    }
+                )
 
     return {
         "anzahl_neu": len(neu),
@@ -225,16 +230,16 @@ def vergleiche_lv_versionen(
 
 WASTE_FACTORS_AT = {
     # Quelle: Österreichische Baupraxis, BKI-Baukosten 2024
-    "beton": 0.03,           # 3% Verschnitt bei Betonarbeiten
-    "mauerwerk": 0.08,       # 8% Verschnitt bei Mauersteinen
-    "estrich": 0.05,         # 5% Verschnitt bei Estrichen
-    "erdarbeiten": 0.10,     # 10% Auflockerung + Sackung bei Erdarbeiten
-    "holz": 0.06,            # 6% Verschnitt bei Holzkonstruktionen
-    "dachziegel": 0.10,      # 10% Verschnitt bei Dachziegeln
-    "gipskarton": 0.12,      # 12% Verschnitt bei Trockenbau
-    "fliesen": 0.08,         # 8% Verschnitt bei Fliesenarbeiten
-    "putz": 0.05,            # 5% Verschnitt bei Putzarbeiten
-    "default": 0.05,         # 5% Standard für sonstige Gewerke
+    "beton": 0.03,  # 3% Verschnitt bei Betonarbeiten
+    "mauerwerk": 0.08,  # 8% Verschnitt bei Mauersteinen
+    "estrich": 0.05,  # 5% Verschnitt bei Estrichen
+    "erdarbeiten": 0.10,  # 10% Auflockerung + Sackung bei Erdarbeiten
+    "holz": 0.06,  # 6% Verschnitt bei Holzkonstruktionen
+    "dachziegel": 0.10,  # 10% Verschnitt bei Dachziegeln
+    "gipskarton": 0.12,  # 12% Verschnitt bei Trockenbau
+    "fliesen": 0.08,  # 8% Verschnitt bei Fliesenarbeiten
+    "putz": 0.05,  # 5% Verschnitt bei Putzarbeiten
+    "default": 0.05,  # 5% Standard für sonstige Gewerke
 }
 
 
@@ -416,8 +421,7 @@ REGIONALE_FAKTOREN_AT = {
 
 
 def berechne_regionale_anpassung(
-    positionen: List[LVPosition],
-    bundesland: str = "niederoesterreich"
+    positionen: List[LVPosition], bundesland: str = "niederoesterreich"
 ) -> Dict[str, Any]:
     """
     Berechnet regionale Kostenanpassung für ein Bundesland
@@ -478,6 +482,7 @@ def berechne_regionale_anpassung(
 # PARAMETRISCHE POSITIONS-TEMPLATES (Wiederverwendbare Bauelemente)
 # ═══════════════════════════════════════════════════════════════════════════
 
+
 def erstelle_template_erdarbeiten(grundflaeche_m2: float, tiefe_m: float = 3.0) -> LVPosition:
     """Parametrisches Template: Erdarbeiten mit Auflockerungszuschlag"""
     menge_netto = grundflaeche_m2 * tiefe_m
@@ -491,11 +496,13 @@ def erstelle_template_erdarbeiten(grundflaeche_m2: float, tiefe_m: float = 3.0) 
         menge=menge_brutto,
         gewerk="01",
         kostengruppe=300,
-        stlb_code="001.01.001"
+        stlb_code="001.01.001",
     )
 
 
-def erstelle_template_betondecke(flaeche_m2: float, dicke_cm: int = 20, betonfestigkeitsklasse: str = "C25/30") -> LVPosition:
+def erstelle_template_betondecke(
+    flaeche_m2: float, dicke_cm: int = 20, betonfestigkeitsklasse: str = "C25/30"
+) -> LVPosition:
     """Parametrisches Template: Stahlbetondecke"""
     volumen_netto = flaeche_m2 * (dicke_cm / 100)
     volumen_brutto = round(volumen_netto * (1 + WASTE_FACTORS_AT["beton"]), 2)
@@ -511,7 +518,9 @@ def erstelle_template_betondecke(flaeche_m2: float, dicke_cm: int = 20, betonfes
     )
 
 
-def erstelle_template_mauerwerk(umfang_m: float, hoehe_m: float = 2.5, dicke_cm: int = 25) -> LVPosition:
+def erstelle_template_mauerwerk(
+    umfang_m: float, hoehe_m: float = 2.5, dicke_cm: int = 25
+) -> LVPosition:
     """Parametrisches Template: Mauerwerk mit Verschnittzuschlag"""
     flaeche_netto = umfang_m * hoehe_m
     flaeche_brutto = round(flaeche_netto * (1 + WASTE_FACTORS_AT["mauerwerk"]), 2)
@@ -527,7 +536,9 @@ def erstelle_template_mauerwerk(umfang_m: float, hoehe_m: float = 2.5, dicke_cm:
     )
 
 
-def erstelle_template_dacheindeckung(dachflaeche_m2: float, material: str = "Tondachziegel") -> LVPosition:
+def erstelle_template_dacheindeckung(
+    dachflaeche_m2: float, material: str = "Tondachziegel"
+) -> LVPosition:
     """Parametrisches Template: Dacheindeckung mit Verschnittzuschlag"""
     flaeche_brutto = round(dachflaeche_m2 * (1 + WASTE_FACTORS_AT["dachziegel"]), 2)
 
@@ -542,7 +553,9 @@ def erstelle_template_dacheindeckung(dachflaeche_m2: float, material: str = "Ton
     )
 
 
-def erstelle_template_estrich(nutzflaeche_m2: float, typ: str = "Heizestrich", dicke_cm: int = 6) -> LVPosition:
+def erstelle_template_estrich(
+    nutzflaeche_m2: float, typ: str = "Heizestrich", dicke_cm: int = 6
+) -> LVPosition:
     """Parametrisches Template: Estrich mit Verschnittzuschlag"""
     flaeche_brutto = round(nutzflaeche_m2 * (1 + WASTE_FACTORS_AT["estrich"]), 2)
 
@@ -557,7 +570,9 @@ def erstelle_template_estrich(nutzflaeche_m2: float, typ: str = "Heizestrich", d
     )
 
 
-def erstelle_template_fenster(anzahl: int, flaeche_m2_pro_stueck: float = 1.5, u_wert: float = 0.9) -> LVPosition:
+def erstelle_template_fenster(
+    anzahl: int, flaeche_m2_pro_stueck: float = 1.5, u_wert: float = 0.9
+) -> LVPosition:
     """Parametrisches Template: Fenster nach OIB-RL 6"""
     flaeche_gesamt = anzahl * flaeche_m2_pro_stueck
 
@@ -576,7 +591,10 @@ def erstelle_template_fenster(anzahl: int, flaeche_m2_pro_stueck: float = 1.5, u
 # LV-GENERATOR: BEISPIELPOSITIONEN FÜR EINFAMILIENHAUS
 # ═══════════════════════════════════════════════════════════════════════════
 
-def generiere_beispiel_lv_einfamilienhaus(bgf_m2: float = 150, geschosse: int = 2) -> List[LVPosition]:
+
+def generiere_beispiel_lv_einfamilienhaus(
+    bgf_m2: float = 150, geschosse: int = 2
+) -> List[LVPosition]:
     """
     Generiert Beispiel-Leistungsverzeichnis für Einfamilienhaus
 
@@ -590,189 +608,213 @@ def generiere_beispiel_lv_einfamilienhaus(bgf_m2: float = 150, geschosse: int = 
     positionen = []
 
     # Gewerk 01: Baumeisterarbeiten
-    positionen.extend([
-        LVPosition(
-            oz="01.001",
-            kurztext="Erdarbeiten Aushub",
-            langtext="Erdaushub für Keller/Fundament, maschinell, inkl. Zwischenlagerung und Abtransport überschüssiger Erde (inkl. 10% Auflockerungszuschlag)",
-            einheit="m³",
-            menge=round(bgf_m2 * 0.8 * (1 + WASTE_FACTORS_AT["erdarbeiten"]), 2),
-            gewerk="01",
-            kostengruppe=300,
-            stlb_code="001.01.001"
-        ),
-        LVPosition(
-            oz="01.002",
-            kurztext="Fundament Streifenfundament",
-            langtext="Streifenfundament C25/30, bewehrt, inkl. Schalung und Verdichtung, gemäß Statik (inkl. 3% Betonverschnitt)",
-            einheit="m³",
-            menge=round(bgf_m2 * 0.15 * (1 + WASTE_FACTORS_AT["beton"]), 2),
-            gewerk="01",
-            kostengruppe=310,
-        ),
-        LVPosition(
-            oz="01.003",
-            kurztext="Kellermauerwerk 25cm",
-            langtext="Kellermauerwerk 25cm, Ziegel HLz 25, vermörtelt, inkl. Horizontalsperre (inkl. 8% Ziegelverschnitt)",
-            einheit="m²",
-            menge=round((bgf_m2 ** 0.5 * 4) * 2.5 * (1 + WASTE_FACTORS_AT["mauerwerk"]), 2) if geschosse >= 1 else 0,
-            gewerk="01",
-            kostengruppe=320,
-        ),
-        LVPosition(
-            oz="01.004",
-            kurztext="Decke Stahlbeton 20cm",
-            langtext="Stahlbetondecke 20cm, C25/30, bewehrt mit Baustahlgewebe, inkl. Schalung gemäß Statik (inkl. 3% Betonverschnitt)",
-            einheit="m²",
-            menge=round(bgf_m2 * (geschosse - 1) * (1 + WASTE_FACTORS_AT["beton"]), 2),
-            gewerk="01",
-            kostengruppe=320,
-        ),
-    ])
+    positionen.extend(
+        [
+            LVPosition(
+                oz="01.001",
+                kurztext="Erdarbeiten Aushub",
+                langtext="Erdaushub für Keller/Fundament, maschinell, inkl. Zwischenlagerung und Abtransport überschüssiger Erde (inkl. 10% Auflockerungszuschlag)",
+                einheit="m³",
+                menge=round(bgf_m2 * 0.8 * (1 + WASTE_FACTORS_AT["erdarbeiten"]), 2),
+                gewerk="01",
+                kostengruppe=300,
+                stlb_code="001.01.001",
+            ),
+            LVPosition(
+                oz="01.002",
+                kurztext="Fundament Streifenfundament",
+                langtext="Streifenfundament C25/30, bewehrt, inkl. Schalung und Verdichtung, gemäß Statik (inkl. 3% Betonverschnitt)",
+                einheit="m³",
+                menge=round(bgf_m2 * 0.15 * (1 + WASTE_FACTORS_AT["beton"]), 2),
+                gewerk="01",
+                kostengruppe=310,
+            ),
+            LVPosition(
+                oz="01.003",
+                kurztext="Kellermauerwerk 25cm",
+                langtext="Kellermauerwerk 25cm, Ziegel HLz 25, vermörtelt, inkl. Horizontalsperre (inkl. 8% Ziegelverschnitt)",
+                einheit="m²",
+                menge=(
+                    round((bgf_m2**0.5 * 4) * 2.5 * (1 + WASTE_FACTORS_AT["mauerwerk"]), 2)
+                    if geschosse >= 1
+                    else 0
+                ),
+                gewerk="01",
+                kostengruppe=320,
+            ),
+            LVPosition(
+                oz="01.004",
+                kurztext="Decke Stahlbeton 20cm",
+                langtext="Stahlbetondecke 20cm, C25/30, bewehrt mit Baustahlgewebe, inkl. Schalung gemäß Statik (inkl. 3% Betonverschnitt)",
+                einheit="m²",
+                menge=round(bgf_m2 * (geschosse - 1) * (1 + WASTE_FACTORS_AT["beton"]), 2),
+                gewerk="01",
+                kostengruppe=320,
+            ),
+        ]
+    )
 
     # Gewerk 02: Zimmererarbeiten
-    positionen.extend([
-        LVPosition(
-            oz="02.001",
-            kurztext="Dachstuhl Pfettendach",
-            langtext="Pfettendachstuhl, Konstruktionsvollholz C24, inkl. Lattung und Konterlattung, Dachneigung 35° (inkl. 6% Holzverschnitt)",
-            einheit="m²",
-            menge=round(bgf_m2 * 0.7 * (1 + WASTE_FACTORS_AT["holz"]), 2),
-            gewerk="02",
-            kostengruppe=330,
-        ),
-    ])
+    positionen.extend(
+        [
+            LVPosition(
+                oz="02.001",
+                kurztext="Dachstuhl Pfettendach",
+                langtext="Pfettendachstuhl, Konstruktionsvollholz C24, inkl. Lattung und Konterlattung, Dachneigung 35° (inkl. 6% Holzverschnitt)",
+                einheit="m²",
+                menge=round(bgf_m2 * 0.7 * (1 + WASTE_FACTORS_AT["holz"]), 2),
+                gewerk="02",
+                kostengruppe=330,
+            ),
+        ]
+    )
 
     # Gewerk 03: Dachdeckerarbeiten
-    positionen.extend([
-        LVPosition(
-            oz="03.001",
-            kurztext="Dacheindeckung Ziegel",
-            langtext="Dachdeckung Tondachziegel Wienerberger Alegra, inkl. Unterdach und Dampfsperre (inkl. 10% Ziegelverschnitt)",
-            einheit="m²",
-            menge=round(bgf_m2 * 0.7 * (1 + WASTE_FACTORS_AT["dachziegel"]), 2),
-            gewerk="03",
-            kostengruppe=360,
-        ),
-        LVPosition(
-            oz="03.002",
-            kurztext="Dachrinnen und Fallrohre",
-            langtext="Dachrinnen halbrund DN 150, Kupfer, inkl. Fallrohre DN 100",
-            einheit="m",
-            menge=round(bgf_m2 ** 0.5 * 4, 2),  # Umfang
-            gewerk="03",
-            kostengruppe=360,
-        ),
-    ])
+    positionen.extend(
+        [
+            LVPosition(
+                oz="03.001",
+                kurztext="Dacheindeckung Ziegel",
+                langtext="Dachdeckung Tondachziegel Wienerberger Alegra, inkl. Unterdach und Dampfsperre (inkl. 10% Ziegelverschnitt)",
+                einheit="m²",
+                menge=round(bgf_m2 * 0.7 * (1 + WASTE_FACTORS_AT["dachziegel"]), 2),
+                gewerk="03",
+                kostengruppe=360,
+            ),
+            LVPosition(
+                oz="03.002",
+                kurztext="Dachrinnen und Fallrohre",
+                langtext="Dachrinnen halbrund DN 150, Kupfer, inkl. Fallrohre DN 100",
+                einheit="m",
+                menge=round(bgf_m2**0.5 * 4, 2),  # Umfang
+                gewerk="03",
+                kostengruppe=360,
+            ),
+        ]
+    )
 
     # Gewerk 04: Fenster
-    positionen.extend([
-        LVPosition(
-            oz="04.001",
-            kurztext="Fenster Holz-Alu",
-            langtext="Fenster Holz-Aluminium, 3-fach-Verglasung Ug=0.7 W/m²K, Uw≤0.9 W/m²K nach OIB-RL 6",
-            einheit="m²",
-            menge=round(bgf_m2 * 0.18, 2),  # Ca. 18% Fensterfläche
-            gewerk="04",
-            kostengruppe=330,
-        ),
-        LVPosition(
-            oz="04.002",
-            kurztext="Haustür Alu",
-            langtext="Haustür Aluminium, wärmegedämmt, U≤1.0 W/m²K, inkl. Beschlag und Zylinder",
-            einheit="Stk",
-            menge=1,
-            gewerk="04",
-            kostengruppe=330,
-        ),
-    ])
+    positionen.extend(
+        [
+            LVPosition(
+                oz="04.001",
+                kurztext="Fenster Holz-Alu",
+                langtext="Fenster Holz-Aluminium, 3-fach-Verglasung Ug=0.7 W/m²K, Uw≤0.9 W/m²K nach OIB-RL 6",
+                einheit="m²",
+                menge=round(bgf_m2 * 0.18, 2),  # Ca. 18% Fensterfläche
+                gewerk="04",
+                kostengruppe=330,
+            ),
+            LVPosition(
+                oz="04.002",
+                kurztext="Haustür Alu",
+                langtext="Haustür Aluminium, wärmegedämmt, U≤1.0 W/m²K, inkl. Beschlag und Zylinder",
+                einheit="Stk",
+                menge=1,
+                gewerk="04",
+                kostengruppe=330,
+            ),
+        ]
+    )
 
     # Gewerk 05: Elektro
-    positionen.extend([
-        LVPosition(
-            oz="05.001",
-            kurztext="Elektroinstallation Grundausstattung",
-            langtext="Elektroinstallation komplett, Schuko-Steckdosen, Lichtschalter, Verteiler, Leitungen NYM-J",
-            einheit="psch",
-            menge=1,
-            gewerk="05",
-            kostengruppe=440,
-        ),
-    ])
+    positionen.extend(
+        [
+            LVPosition(
+                oz="05.001",
+                kurztext="Elektroinstallation Grundausstattung",
+                langtext="Elektroinstallation komplett, Schuko-Steckdosen, Lichtschalter, Verteiler, Leitungen NYM-J",
+                einheit="psch",
+                menge=1,
+                gewerk="05",
+                kostengruppe=440,
+            ),
+        ]
+    )
 
     # Gewerk 06: Sanitär
-    positionen.extend([
-        LVPosition(
-            oz="06.001",
-            kurztext="Sanitärinstallation komplett",
-            langtext="Wasser-/Abwasserleitungen, Sanitärobjekte (WC, Waschbecken, Dusche, Badewanne), Armaturen Mittelklasse",
-            einheit="psch",
-            menge=1,
-            gewerk="06",
-            kostengruppe=450,
-        ),
-    ])
+    positionen.extend(
+        [
+            LVPosition(
+                oz="06.001",
+                kurztext="Sanitärinstallation komplett",
+                langtext="Wasser-/Abwasserleitungen, Sanitärobjekte (WC, Waschbecken, Dusche, Badewanne), Armaturen Mittelklasse",
+                einheit="psch",
+                menge=1,
+                gewerk="06",
+                kostengruppe=450,
+            ),
+        ]
+    )
 
     # Gewerk 07: Heizung
-    positionen.extend([
-        LVPosition(
-            oz="07.001",
-            kurztext="Wärmepumpe Luft-Wasser",
-            langtext="Luft-Wasser-Wärmepumpe 8-12 kW, inkl. Pufferspeicher 300L, Fußbodenheizung komplett",
-            einheit="psch",
-            menge=1,
-            gewerk="07",
-            kostengruppe=460,
-        ),
-    ])
+    positionen.extend(
+        [
+            LVPosition(
+                oz="07.001",
+                kurztext="Wärmepumpe Luft-Wasser",
+                langtext="Luft-Wasser-Wärmepumpe 8-12 kW, inkl. Pufferspeicher 300L, Fußbodenheizung komplett",
+                einheit="psch",
+                menge=1,
+                gewerk="07",
+                kostengruppe=460,
+            ),
+        ]
+    )
 
     # Gewerk 08: Estrich/Boden
-    positionen.extend([
-        LVPosition(
-            oz="08.001",
-            kurztext="Estrich Heizestrich",
-            langtext="Heizestrich 6cm über Fußbodenheizung, inkl. Dämmung EPS 10cm (inkl. 5% Estrichverschnitt)",
-            einheit="m²",
-            menge=round(bgf_m2 * 0.8 * (1 + WASTE_FACTORS_AT["estrich"]), 2),
-            gewerk="08",
-            kostengruppe=370,
-        ),
-        LVPosition(
-            oz="08.002",
-            kurztext="Bodenbelag Parkett/Fliesen",
-            langtext="Bodenbeläge: Parkett Eiche gebürstet (Wohnbereich), Fliesen (Nassbereiche) (inkl. 8% Fliesenverschnitt)",
-            einheit="m²",
-            menge=round(bgf_m2 * 0.8 * (1 + WASTE_FACTORS_AT["fliesen"]), 2),
-            gewerk="08",
-            kostengruppe=370,
-        ),
-    ])
+    positionen.extend(
+        [
+            LVPosition(
+                oz="08.001",
+                kurztext="Estrich Heizestrich",
+                langtext="Heizestrich 6cm über Fußbodenheizung, inkl. Dämmung EPS 10cm (inkl. 5% Estrichverschnitt)",
+                einheit="m²",
+                menge=round(bgf_m2 * 0.8 * (1 + WASTE_FACTORS_AT["estrich"]), 2),
+                gewerk="08",
+                kostengruppe=370,
+            ),
+            LVPosition(
+                oz="08.002",
+                kurztext="Bodenbelag Parkett/Fliesen",
+                langtext="Bodenbeläge: Parkett Eiche gebürstet (Wohnbereich), Fliesen (Nassbereiche) (inkl. 8% Fliesenverschnitt)",
+                einheit="m²",
+                menge=round(bgf_m2 * 0.8 * (1 + WASTE_FACTORS_AT["fliesen"]), 2),
+                gewerk="08",
+                kostengruppe=370,
+            ),
+        ]
+    )
 
     # Gewerk 09: Malerarbeiten
-    positionen.extend([
-        LVPosition(
-            oz="09.001",
-            kurztext="Malerarbeiten innen",
-            langtext="Innenanstrich Wände/Decken, 2× Dispersionsfarbe weiß, inkl. Spachteln (inkl. 5% Materialverschnitt)",
-            einheit="m²",
-            menge=round(bgf_m2 * 3.5 * (1 + WASTE_FACTORS_AT["putz"]), 2),
-            gewerk="09",
-            kostengruppe=370,
-        ),
-    ])
+    positionen.extend(
+        [
+            LVPosition(
+                oz="09.001",
+                kurztext="Malerarbeiten innen",
+                langtext="Innenanstrich Wände/Decken, 2× Dispersionsfarbe weiß, inkl. Spachteln (inkl. 5% Materialverschnitt)",
+                einheit="m²",
+                menge=round(bgf_m2 * 3.5 * (1 + WASTE_FACTORS_AT["putz"]), 2),
+                gewerk="09",
+                kostengruppe=370,
+            ),
+        ]
+    )
 
     # Gewerk 12: Außenanlagen
-    positionen.extend([
-        LVPosition(
-            oz="12.001",
-            kurztext="Terrasse Pflaster",
-            langtext="Terrasse Betonpflaster, inkl. Unterbau und Randeinfassung",
-            einheit="m²",
-            menge=round(bgf_m2 * 0.25, 2),  # Ca. 25% der BGF
-            gewerk="12",
-            kostengruppe=500,
-        ),
-    ])
+    positionen.extend(
+        [
+            LVPosition(
+                oz="12.001",
+                kurztext="Terrasse Pflaster",
+                langtext="Terrasse Betonpflaster, inkl. Unterbau und Randeinfassung",
+                einheit="m²",
+                menge=round(bgf_m2 * 0.25, 2),  # Ca. 25% der BGF
+                gewerk="12",
+                kostengruppe=500,
+            ),
+        ]
+    )
 
     return positionen
 
@@ -791,10 +833,7 @@ def berechne_phasen_kosten(positionen: List[LVPosition]) -> Dict[str, Any]:
     total_gp = sum(p.gp for p in positionen)
 
     for phase_key, phase_info in BAUPHASEN_AT.items():
-        phase_positionen = [
-            p for p in positionen
-            if p.kostengruppe in phase_info["kostengruppen"]
-        ]
+        phase_positionen = [p for p in positionen if p.kostengruppe in phase_info["kostengruppen"]]
 
         phase_summe = sum(p.gp for p in phase_positionen)
         phase_prozent = (phase_summe / total_gp * 100) if total_gp > 0 else 0.0
@@ -820,11 +859,12 @@ def berechne_phasen_kosten(positionen: List[LVPosition]) -> Dict[str, Any]:
 # LV-EXPORT: ÖNORM A 2063 konformes JSON-Format
 # ═══════════════════════════════════════════════════════════════════════════
 
+
 def exportiere_lv_oenorm_json(
     positionen: List[LVPosition],
     projekt_info: Dict[str, Any],
     auftraggeber: Dict[str, str],
-    bundesland: str = "tirol"
+    bundesland: str = "tirol",
 ) -> Dict[str, Any]:
     """
     Exportiert Leistungsverzeichnis im ÖNORM A 2063-konformen JSON-Format
@@ -847,7 +887,7 @@ def exportiere_lv_oenorm_json(
             gewerke_dict[gewerk_nr] = {
                 "gewerk_nr": gewerk_nr,
                 "gewerk_name": gewerk_info["name"],
-                "positionen": []
+                "positionen": [],
             }
         gewerke_dict[gewerk_nr]["positionen"].append(asdict(pos))
 
@@ -867,7 +907,7 @@ def exportiere_lv_oenorm_json(
         "meta": {
             "standard": "ÖNORM A 2063-1:2024",
             "version": "1.0",
-            "erstellt_am": datetime.now(timezone.utc).isoformat().replace('+00:00', 'Z'),
+            "erstellt_am": datetime.now(timezone.utc).isoformat().replace("+00:00", "Z"),
             "dokument_id": str(uuid.uuid4()),
             "dokument_typ": "Leistungsverzeichnis",
         },
@@ -880,7 +920,9 @@ def exportiere_lv_oenorm_json(
         },
         "auftraggeber": auftraggeber,
         "ausschreibung": {
-            "ausschreibungsfrist_bis": projekt_info.get("angebotsfrist", "3 Wochen nach Zustellung"),
+            "ausschreibungsfrist_bis": projekt_info.get(
+                "angebotsfrist", "3 Wochen nach Zustellung"
+            ),
             "bindefrist_monate": 2,
             "nebenangebote": "zugelassen",
             "begehung_datum": projekt_info.get("begehung", "Nach Vereinbarung"),
@@ -892,9 +934,11 @@ def exportiere_lv_oenorm_json(
             "anzahlung_prozent": 30,
             "baufortschritt_prozent": 60,
             "schlussrechnung_prozent": 10,
-            "hinweis": "Zahlungen erfolgen nach Baufortschritt gemäß ÖNORM B 2110"
+            "hinweis": "Zahlungen erfolgen nach Baufortschritt gemäß ÖNORM B 2110",
         },
-        "phasen_kosten": berechne_phasen_kosten(positionen) if any(p.ep > 0 for p in positionen) else None,
+        "phasen_kosten": (
+            berechne_phasen_kosten(positionen) if any(p.ep > 0 for p in positionen) else None
+        ),
     }
 
     return lv_dokument
@@ -904,9 +948,9 @@ def exportiere_lv_oenorm_json(
 # ANGEBOTS-VERGLEICH MIT PREISSPIEGELMATRIX
 # ═══════════════════════════════════════════════════════════════════════════
 
+
 def vergleiche_angebote_detailliert(
-    angebote: List[Dict[str, Any]],
-    lv_positionen: List[LVPosition]
+    angebote: List[Dict[str, Any]], lv_positionen: List[LVPosition]
 ) -> Dict[str, Any]:
     """
     Erstellt detaillierten Angebotsvergleich mit Preisspiegelmatrix
@@ -924,8 +968,7 @@ def vergleiche_angebote_detailliert(
     # Sortiere Angebote nach Gesamtpreis
     for angebot in angebote:
         gesamt = sum(
-            pos.get("menge", 0) * pos.get("ep", 0)
-            for pos in angebot.get("positionen", [])
+            pos.get("menge", 0) * pos.get("ep", 0) for pos in angebot.get("positionen", [])
         )
         angebot["gesamt_netto"] = round(gesamt, 2)
         angebot["gesamt_brutto"] = round(gesamt * 1.20, 2)
@@ -936,7 +979,11 @@ def vergleiche_angebote_detailliert(
     teuerstes = angebote_sortiert[-1]
 
     differenz_absolut = teuerstes["gesamt_netto"] - guenstigstes["gesamt_netto"]
-    differenz_prozent = (differenz_absolut / guenstigstes["gesamt_netto"]) * 100 if guenstigstes["gesamt_netto"] > 0 else 0
+    differenz_prozent = (
+        (differenz_absolut / guenstigstes["gesamt_netto"]) * 100
+        if guenstigstes["gesamt_netto"] > 0
+        else 0
+    )
 
     # Preisspiegelmatrix: Position für Position
     preisspiegelmatrix = []
@@ -947,29 +994,35 @@ def vergleiche_angebote_detailliert(
         for angebot in angebote:
             for pos in angebot.get("positionen", []):
                 if pos.get("oz") == oz:
-                    preise.append({
-                        "firma": angebot.get("firma", "Unbekannt"),
-                        "ep": pos.get("ep", 0),
-                        "gp": pos.get("menge", 0) * pos.get("ep", 0)
-                    })
+                    preise.append(
+                        {
+                            "firma": angebot.get("firma", "Unbekannt"),
+                            "ep": pos.get("ep", 0),
+                            "gp": pos.get("menge", 0) * pos.get("ep", 0),
+                        }
+                    )
 
         if preise:
             eps = [p["ep"] for p in preise]
             gps = [p["gp"] for p in preise]
 
-            preisspiegelmatrix.append({
-                "oz": oz,
-                "kurztext": lv_pos.kurztext,
-                "einheit": lv_pos.einheit,
-                "menge": lv_pos.menge,
-                "ep_min": round(min(eps), 2),
-                "ep_max": round(max(eps), 2),
-                "ep_durchschnitt": round(sum(eps) / len(eps), 2),
-                "gp_min": round(min(gps), 2),
-                "gp_max": round(max(gps), 2),
-                "differenz_ep_prozent": round(((max(eps) - min(eps)) / min(eps) * 100), 1) if min(eps) > 0 else 0,
-                "preise_pro_firma": preise,
-            })
+            preisspiegelmatrix.append(
+                {
+                    "oz": oz,
+                    "kurztext": lv_pos.kurztext,
+                    "einheit": lv_pos.einheit,
+                    "menge": lv_pos.menge,
+                    "ep_min": round(min(eps), 2),
+                    "ep_max": round(max(eps), 2),
+                    "ep_durchschnitt": round(sum(eps) / len(eps), 2),
+                    "gp_min": round(min(gps), 2),
+                    "gp_max": round(max(gps), 2),
+                    "differenz_ep_prozent": (
+                        round(((max(eps) - min(eps)) / min(eps) * 100), 1) if min(eps) > 0 else 0
+                    ),
+                    "preise_pro_firma": preise,
+                }
+            )
 
     # Vergabeempfehlung
     empfehlung = []
@@ -979,7 +1032,9 @@ def vergleiche_angebote_detailliert(
         warnung.append("⚠ Weniger als 3 Angebote - Nachausschreibung empfohlen")
 
     if differenz_prozent > 25:
-        warnung.append(f"⚠ Preisspanne sehr hoch ({differenz_prozent:.1f}%) - Nachverhandlung erforderlich")
+        warnung.append(
+            f"⚠ Preisspanne sehr hoch ({differenz_prozent:.1f}%) - Nachverhandlung erforderlich"
+        )
     elif differenz_prozent > 15:
         warnung.append(f"⚠ Preisspanne hoch ({differenz_prozent:.1f}%) - Prüfung empfohlen")
     else:
@@ -988,7 +1043,9 @@ def vergleiche_angebote_detailliert(
     # Prüfe Ausreißer-Positionen
     ausreisser = [p for p in preisspiegelmatrix if p["differenz_ep_prozent"] > 50]
     if ausreisser:
-        warnung.append(f"⚠ {len(ausreisser)} Positionen mit >50% Preisdifferenz - Prüfung erforderlich")
+        warnung.append(
+            f"⚠ {len(ausreisser)} Positionen mit >50% Preisdifferenz - Prüfung erforderlich"
+        )
 
     if len(angebote) >= 3 and differenz_prozent < 15:
         empfehlung.append("✓ Marktübliche Preise, gute Vergleichbarkeit")
@@ -998,13 +1055,19 @@ def vergleiche_angebote_detailliert(
     bewertungen = []
     for angebot in angebote_sortiert:
         # Calculate score based on multiple criteria
-        preis_score = 100 - ((angebot["gesamt_netto"] - guenstigstes["gesamt_netto"]) / guenstigstes["gesamt_netto"] * 100)
+        preis_score = 100 - (
+            (angebot["gesamt_netto"] - guenstigstes["gesamt_netto"])
+            / guenstigstes["gesamt_netto"]
+            * 100
+        )
         preis_score = max(0, min(100, preis_score))  # Clamp to 0-100
 
         # Check for outliers
         ausreisser_count = 0
         for pos in preisspiegelmatrix:
-            firma_preis = next((p for p in pos["preise_pro_firma"] if p["firma"] == angebot.get("firma")), None)
+            firma_preis = next(
+                (p for p in pos["preise_pro_firma"] if p["firma"] == angebot.get("firma")), None
+            )
             if firma_preis and firma_preis["ep"] > pos["ep_durchschnitt"] * 1.5:
                 ausreisser_count += 1
 
@@ -1045,14 +1108,16 @@ def vergleiche_angebote_detailliert(
         "warnung": warnung,
         "angebote_sortiert": [
             {
-                "rang": i+1,
+                "rang": i + 1,
                 "firma": a.get("firma", f"Bieter {i+1}"),
                 "gesamt_netto": a["gesamt_netto"],
                 "gesamt_brutto": a["gesamt_brutto"],
             }
             for i, a in enumerate(angebote_sortiert)
         ],
-        "vergabe_status": "Vergabereif" if len(empfehlung) > 1 and not warnung else "Prüfung erforderlich",
+        "vergabe_status": (
+            "Vergabereif" if len(empfehlung) > 1 and not warnung else "Prüfung erforderlich"
+        ),
         "bewertungen": bewertungen_sortiert,
         "empfohlener_bieter": bewertungen_sortiert[0]["firma"] if bewertungen_sortiert else None,
     }
@@ -1062,9 +1127,9 @@ def vergleiche_angebote_detailliert(
 # BIM-INTEGRATION: IFC-Mengenübernahme
 # ═══════════════════════════════════════════════════════════════════════════
 
+
 def verknuepfe_lv_mit_bim(
-    lv_positionen: List[LVPosition],
-    ifc_mengen: Dict[str, Any]
+    lv_positionen: List[LVPosition], ifc_mengen: Dict[str, Any]
 ) -> List[LVPosition]:
     """
     Verknüpft LV-Positionen mit BIM/IFC-Daten (ÖNORM A 2063-2)
@@ -1106,7 +1171,10 @@ def verknuepfe_lv_mit_bim(
 # GAEB/XML EXPORT (Datenaustausch mit AVA-Software)
 # ═══════════════════════════════════════════════════════════════════════════
 
-def exportiere_gaeb_xml(lv_positionen: List[LVPosition], projekt_info: Dict, version: str = "1.0") -> str:
+
+def exportiere_gaeb_xml(
+    lv_positionen: List[LVPosition], projekt_info: Dict, version: str = "1.0"
+) -> str:
     """
     Exportiert LV im GAEB XML-Format (D83/X31) für AVA-Software
 
@@ -1125,10 +1193,10 @@ def exportiere_gaeb_xml(lv_positionen: List[LVPosition], projekt_info: Dict, ver
     # Für Produktion: GAEB-Bibliothek verwenden (z.B. python-gaeb)
 
     dokument_id = str(uuid.uuid4())
-    timestamp = datetime.now(timezone.utc).isoformat().replace('+00:00', 'Z')
+    timestamp = datetime.now(timezone.utc).isoformat().replace("+00:00", "Z")
     version_hash = hashlib.sha256(f"{timestamp}{version}".encode()).hexdigest()[:16]
 
-    xml_header = '''<?xml version="1.0" encoding="UTF-8"?>
+    xml_header = """<?xml version="1.0" encoding="UTF-8"?>
 <GAEB xmlns="http://www.gaeb.de/GAEB_DA_XML/200407">
   <GAEBInfo>
     <Version>3.1</Version>
@@ -1146,19 +1214,19 @@ def exportiere_gaeb_xml(lv_positionen: List[LVPosition], projekt_info: Dict, ver
   </PrjInfo>
   <Award>
     <BoQ>
-'''.format(
+""".format(
         datum=datetime.now().strftime("%Y-%m-%d"),
         projektname=projekt_info.get("name", "Projekt"),
         projekt_id=projekt_info.get("id", str(uuid.uuid4())[:8]),
         dokument_id=dokument_id,
         version=version,
         version_hash=version_hash,
-        timestamp=timestamp
+        timestamp=timestamp,
     )
 
     xml_positionen = ""
     for pos in lv_positionen:
-        xml_positionen += f'''      <Itemlist>
+        xml_positionen += f"""      <Itemlist>
         <Item>
           <ID>{pos.oz}</ID>
           <Description>{pos.kurztext}</Description>
@@ -1168,24 +1236,24 @@ def exportiere_gaeb_xml(lv_positionen: List[LVPosition], projekt_info: Dict, ver
           <UP>{pos.ep}</UP>
           <TP>{pos.gp}</TP>
           <Gewerk>{pos.gewerk}</Gewerk>
-          <Kostengruppe>{pos.kostengruppe}</Kostengruppe>'''
+          <Kostengruppe>{pos.kostengruppe}</Kostengruppe>"""
 
         if pos.bim_ref:
-            xml_positionen += f'''
-          <BIM_Referenz>{pos.bim_ref}</BIM_Referenz>'''
+            xml_positionen += f"""
+          <BIM_Referenz>{pos.bim_ref}</BIM_Referenz>"""
 
         if pos.stlb_code:
-            xml_positionen += f'''
-          <StLB_Code>{pos.stlb_code}</StLB_Code>'''
+            xml_positionen += f"""
+          <StLB_Code>{pos.stlb_code}</StLB_Code>"""
 
-        xml_positionen += '''
+        xml_positionen += """
         </Item>
       </Itemlist>
-'''
+"""
 
-    xml_footer = '''    </BoQ>
+    xml_footer = """    </BoQ>
   </Award>
-</GAEB>'''
+</GAEB>"""
 
     return xml_header + xml_positionen + xml_footer
 
@@ -1194,11 +1262,12 @@ def exportiere_gaeb_xml(lv_positionen: List[LVPosition], projekt_info: Dict, ver
 # CONVENIENCE FUNKTIONEN
 # ═══════════════════════════════════════════════════════════════════════════
 
+
 def erstelle_vollstaendige_ausschreibung(
     projekt_typ: str = "einfamilienhaus",
     bgf_m2: float = 150,
     bundesland: str = "tirol",
-    auftraggeber: Optional[Dict] = None
+    auftraggeber: Optional[Dict] = None,
 ) -> Dict[str, Any]:
     """
     One-Stop-Funktion: Erstellt komplette Ausschreibung mit LV
@@ -1226,7 +1295,7 @@ def erstelle_vollstaendige_ausschreibung(
         auftraggeber = {
             "name": "Mustermann GmbH",
             "adresse": "Musterstraße 1, 6020 Innsbruck",
-            "kontakt": "office@mustermann.at"
+            "kontakt": "office@mustermann.at",
         }
 
     # Exportiere ÖNORM JSON
@@ -1234,7 +1303,7 @@ def erstelle_vollstaendige_ausschreibung(
         positionen=lv_positionen,
         projekt_info=projekt_info,
         auftraggeber=auftraggeber,
-        bundesland=bundesland
+        bundesland=bundesland,
     )
 
     # Exportiere GAEB XML
@@ -1274,9 +1343,7 @@ if __name__ == "__main__":
     # Test 3: Vollständige Ausschreibung
     print("\n3. Erstelle vollständige Ausschreibung...")
     ausschreibung = erstelle_vollstaendige_ausschreibung(
-        projekt_typ="einfamilienhaus",
-        bgf_m2=150,
-        bundesland="tirol"
+        projekt_typ="einfamilienhaus", bgf_m2=150, bundesland="tirol"
     )
     print(f"   ✓ Ausschreibung erstellt: {ausschreibung['anzahl_positionen']} Positionen")
     print(f"   ✓ Status: {ausschreibung['status']}")

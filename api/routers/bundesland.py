@@ -1,19 +1,24 @@
 """
 Bundesland-specific regulations Router
 """
+
+from typing import Dict, List
+
 from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel
-from typing import List, Dict
 
 router = APIRouter()
 
+
 class BundeslandInfo(BaseModel):
     """Bundesland information"""
+
     name: str
     bauordnung: str
     stellplatz_factor: float
     aufzug_ab_geschoss: int
     special_regulations: List[str]
+
 
 @router.get("/{bundesland}", response_model=BundeslandInfo)
 async def get_bundesland_info(bundesland: str):
@@ -32,8 +37,8 @@ async def get_bundesland_info(bundesland: str):
             special_regulations=[
                 "Dachgeschoßausbau: besondere Bestimmungen",
                 "Stellplatzpflicht: 1,2 pro Wohnung",
-                "Grünflächenanteil erforderlich"
-            ]
+                "Grünflächenanteil erforderlich",
+            ],
         ),
         "tirol": BundeslandInfo(
             name="Tirol",
@@ -43,8 +48,8 @@ async def get_bundesland_info(bundesland: str):
             special_regulations=[
                 "Höhere Stellplatzpflicht: 1,5 pro Wohnung",
                 "Lawinenschutz beachten",
-                "Ortsbildschutz in Tourismusgebieten"
-            ]
+                "Ortsbildschutz in Tourismusgebieten",
+            ],
         ),
         "salzburg": BundeslandInfo(
             name="Salzburg",
@@ -53,8 +58,8 @@ async def get_bundesland_info(bundesland: str):
             aufzug_ab_geschoss=4,
             special_regulations=[
                 "Altstadtschutzzone: besondere Auflagen",
-                "Schneelast: erhöhte Anforderungen"
-            ]
+                "Schneelast: erhöhte Anforderungen",
+            ],
         ),
         "vorarlberg": BundeslandInfo(
             name="Vorarlberg",
@@ -63,8 +68,8 @@ async def get_bundesland_info(bundesland: str):
             aufzug_ab_geschoss=4,
             special_regulations=[
                 "Energiestandard: oft höher als OIB-RL 6",
-                "Holzbau: förderungswürdig"
-            ]
+                "Holzbau: förderungswürdig",
+            ],
         ),
     }
 
@@ -76,10 +81,11 @@ async def get_bundesland_info(bundesland: str):
             bauordnung=f"{bundesland.title()} Bauordnung",
             stellplatz_factor=1.2,
             aufzug_ab_geschoss=4,
-            special_regulations=["Lokale Bauordnung beachten"]
+            special_regulations=["Lokale Bauordnung beachten"],
         )
 
     return bundesland_data[bundesland_lower]
+
 
 @router.get("/{bundesland}/stellplaetze")
 async def get_stellplatz_requirements(bundesland: str, wohnungen: int):
@@ -92,8 +98,9 @@ async def get_stellplatz_requirements(bundesland: str, wohnungen: int):
         "wohnungen": wohnungen,
         "factor": info.stellplatz_factor,
         "required_stellplaetze": required,
-        "regulation": info.bauordnung
+        "regulation": info.bauordnung,
     }
+
 
 @router.get("/{bundesland}/aufzug")
 async def get_aufzug_requirements(bundesland: str, geschosse: int):
@@ -106,5 +113,5 @@ async def get_aufzug_requirements(bundesland: str, geschosse: int):
         "geschosse": geschosse,
         "aufzug_required": required,
         "ab_geschoss": info.aufzug_ab_geschoss,
-        "regulation": info.bauordnung
+        "regulation": info.bauordnung,
     }

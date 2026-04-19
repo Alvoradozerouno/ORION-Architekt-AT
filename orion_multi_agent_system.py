@@ -24,27 +24,26 @@ THE ARCHITEKT ⊘∞⧈∞⊘ - Jeder Agent denkt anders - wie echte Fachexperte
 =============================================================================
 """
 
-import json
 import hashlib
-import numpy as np
+import json
+from dataclasses import asdict, dataclass
 from datetime import datetime, timezone
 from pathlib import Path
-from typing import Dict, List, Optional, Any, Tuple
-from dataclasses import dataclass, asdict
+from typing import Any, Dict, List, Optional, Tuple
+
+import numpy as np
 
 # Import existing ORION modules
 try:
     from orion_agent_core import OrionAgent
+
     ORION_CORE_AVAILABLE = True
 except ImportError:
     ORION_CORE_AVAILABLE = False
 
 try:
-    from orion_architekt_at import (
-        berechne_uwert,
-        berechne_hwb_grob,
-        BUNDESLAENDER
-    )
+    from orion_architekt_at import BUNDESLAENDER, berechne_hwb_grob, berechne_uwert
+
     ORION_ARCHITEKT_AVAILABLE = True
 except ImportError:
     ORION_ARCHITEKT_AVAILABLE = False
@@ -52,6 +51,7 @@ except ImportError:
 
 # Import Eurocode modules (deterministic structural calculations)
 import sys
+
 sys.path.insert(0, str(Path(__file__).parent / "eurocode_ec2_at" / "src"))
 sys.path.insert(0, str(Path(__file__).parent / "eurocode_ec3_at" / "src"))
 sys.path.insert(0, str(Path(__file__).parent / "eurocode_ec6_at" / "src"))
@@ -61,11 +61,13 @@ sys.path.insert(0, str(Path(__file__).parent / "bsh_ec5_at" / "src"))
 
 try:
     from beton_träger_v1 import BetonTraegerEC2AT_V1, EC2Config
-    from stahl_träger_v1 import StahlTraegerEC3AT_V1, EC3Config
-    from mauerwerk_wand_v1 import MauerwerkWandEC6AT_V1, EC6Config
-    from fundament_v1 import FlachfundamentEC7AT_V1, EC7Config
-    from erdbeben_v1 import ErdbebenEC8AT_V1, EC8Config
-    from bsh_träger_v3 import BSHTraegerEC5AT_V3, Config as BSHConfig
+    from bsh_träger_v3 import BSHTraegerEC5AT_V3
+    from bsh_träger_v3 import Config as BSHConfig
+    from erdbeben_v1 import EC8Config, ErdbebenEC8AT_V1
+    from fundament_v1 import EC7Config, FlachfundamentEC7AT_V1
+    from mauerwerk_wand_v1 import EC6Config, MauerwerkWandEC6AT_V1
+    from stahl_träger_v1 import EC3Config, StahlTraegerEC3AT_V1
+
     EUROCODE_AVAILABLE = True
 except ImportError as e:
     EUROCODE_AVAILABLE = False
@@ -74,7 +76,8 @@ except ImportError as e:
 # Import GENESIS × EIRA Framework
 try:
     from genesis.framework.epistemology import EpistemicState, KnowledgeType, VerificationLevel
-    from genesis.framework.policy import DecisionPolicyEngine, DecisionMode, PolicyViolationError
+    from genesis.framework.policy import DecisionMode, DecisionPolicyEngine, PolicyViolationError
+
     GENESIS_FRAMEWORK_AVAILABLE = True
 except ImportError as e:
     GENESIS_FRAMEWORK_AVAILABLE = False
@@ -84,6 +87,7 @@ except ImportError as e:
 # =============================================================================
 # AGENT BASE CLASS
 # =============================================================================
+
 
 class AgentBase:
     """
@@ -116,6 +120,7 @@ class AgentBase:
 # 1. ZIVILINGENIEUR AGENT (DETERMINISTISCH)
 # =============================================================================
 
+
 class ZivilingenieurAgent(AgentBase):
     """
     Denkt wie ein österreichischer Zivilingenieur:
@@ -130,7 +135,12 @@ class ZivilingenieurAgent(AgentBase):
         super().__init__(
             name="Zivilingenieur",
             mindset="SICHERHEIT IST NICHT VERHANDELBAR",
-            priorities=["Normkonformität", "Tragsicherheit", "Standsicherheit", "Gebrauchstauglichkeit"]
+            priorities=[
+                "Normkonformität",
+                "Tragsicherheit",
+                "Standsicherheit",
+                "Gebrauchstauglichkeit",
+            ],
         )
         self.unterschrift_erforderlich = True
         self.eurocode_modules = {
@@ -151,7 +161,7 @@ class ZivilingenieurAgent(AgentBase):
             "unsicherheit": 0.0,  # KEINE Wahrscheinlichkeiten!
             "unterschrift": "erforderlich",
             "priorität": "Tragsicherheit und Standsicherheit",
-            "risikotoleranz": "ZERO - Sicherheit absolut"
+            "risikotoleranz": "ZERO - Sicherheit absolut",
         }
 
     def bemesse_tragwerk(self, bauwerk: Dict[str, Any]) -> Dict[str, Any]:
@@ -163,7 +173,7 @@ class ZivilingenieurAgent(AgentBase):
             return {
                 "status": "ERROR",
                 "fehler": "Eurocode-Module nicht verfügbar",
-                "empfehlung": "Module installieren"
+                "empfehlung": "Module installieren",
             }
 
         material = bauwerk.get("material", "beton").lower()
@@ -174,10 +184,7 @@ class ZivilingenieurAgent(AgentBase):
 
         # Wähle passendes Eurocode-Modul
         if material == "beton":
-            config = EC2Config(
-                L_SPANNWEITE_M=spannweite,
-                QK_NUTZLAST_KN_PER_M=last
-            )
+            config = EC2Config(L_SPANNWEITE_M=spannweite, QK_NUTZLAST_KN_PER_M=last)
             calc = BetonTraegerEC2AT_V1(config)
             results = calc.run_optimization()
 
@@ -191,18 +198,19 @@ class ZivilingenieurAgent(AgentBase):
                     "hoehe_mm": best.h_total_mm,
                     "bewehrung_mm2": best.As_vorh_mm2,
                     "ausnutzung": best.eta_bending,
-                    "status": "GENEHMIGUNGSFÄHIG" if best.eta_bending <= 1.0 else "NICHT GENEHMIGUNGSFÄHIG",
+                    "status": (
+                        "GENEHMIGUNGSFÄHIG"
+                        if best.eta_bending <= 1.0
+                        else "NICHT GENEHMIGUNGSFÄHIG"
+                    ),
                     "methode": "deterministisch",
-                    "monte_carlo": False
+                    "monte_carlo": False,
                 }
             else:
                 ergebnis = {"status": "KEINE LÖSUNG GEFUNDEN"}
 
         elif material == "stahl":
-            config = EC3Config(
-                L_SPANNWEITE_M=spannweite,
-                QK_NUTZLAST_KN_PER_M=last
-            )
+            config = EC3Config(L_SPANNWEITE_M=spannweite, QK_NUTZLAST_KN_PER_M=last)
             calc = StahlTraegerEC3AT_V1(config)
             results = calc.run_optimization()
 
@@ -217,16 +225,13 @@ class ZivilingenieurAgent(AgentBase):
                     "ausnutzung": best.eta_bending,
                     "status": "GENEHMIGUNGSFÄHIG",
                     "methode": "deterministisch",
-                    "monte_carlo": False
+                    "monte_carlo": False,
                 }
             else:
                 ergebnis = {"status": "KEINE LÖSUNG GEFUNDEN"}
 
         elif material == "holz":
-            config = BSHConfig(
-                L_M=spannweite,
-                Q_KN_PER_M=last
-            )
+            config = BSHConfig(L_M=spannweite, Q_KN_PER_M=last)
             calc = BSHTraegerEC5AT_V3(config)
             results = calc.run_optimization()
 
@@ -238,25 +243,31 @@ class ZivilingenieurAgent(AgentBase):
                     "hoehe_mm": best.h_mm,
                     "breite_mm": best.b_mm,
                     "ausnutzung": best.eta,
-                    "status": "GENEHMIGUNGSFÄHIG" if best.status == "OK" else "NICHT GENEHMIGUNGSFÄHIG",
+                    "status": (
+                        "GENEHMIGUNGSFÄHIG" if best.status == "OK" else "NICHT GENEHMIGUNGSFÄHIG"
+                    ),
                     "methode": "deterministisch",
-                    "monte_carlo": False
+                    "monte_carlo": False,
                 }
             else:
                 ergebnis = {"status": "KEINE LÖSUNG GEFUNDEN"}
 
         # Log decision
-        self.log_decision({
-            "typ": "Tragwerksbemessung",
-            "material": material,
-            "ergebnis": ergebnis,
-            "deterministisch": True,
-            "normkonform": True
-        })
+        self.log_decision(
+            {
+                "typ": "Tragwerksbemessung",
+                "material": material,
+                "ergebnis": ergebnis,
+                "deterministisch": True,
+                "normkonform": True,
+            }
+        )
 
         return ergebnis
 
-    def generate_statik_papier(self, statik_ergebnis: Dict[str, Any], projekt_info: Dict[str, Any]) -> str:
+    def generate_statik_papier(
+        self, statik_ergebnis: Dict[str, Any], projekt_info: Dict[str, Any]
+    ) -> str:
         """
         Generiere unterschriftsfähiges statisches Gutachten.
         Nach ÖNORM EN 1992-1998, rechtlich bindend.
@@ -341,6 +352,7 @@ SHA-256 Audit-Hash: {audit_hash}
 # 2. BAUPHYSIKER AGENT (DETERMINISTISCH)
 # =============================================================================
 
+
 class BauphysikerAgent(AgentBase):
     """
     Denkt wie ein Bauphysiker:
@@ -354,7 +366,7 @@ class BauphysikerAgent(AgentBase):
         super().__init__(
             name="Bauphysiker",
             mindset="PHYSIK LÜGT NICHT",
-            priorities=["U-Wert", "HWB", "Tauwasser-Vermeidung", "Sommerlicher Wärmeschutz"]
+            priorities=["U-Wert", "HWB", "Tauwasser-Vermeidung", "Sommerlicher Wärmeschutz"],
         )
 
     def denke(self, problem: Dict[str, Any]) -> Dict[str, Any]:
@@ -363,25 +375,24 @@ class BauphysikerAgent(AgentBase):
             "mindset": self.mindset,
             "methode": "Physikalisch korrekt, OIB-RL konform",
             "unsicherheit": 0.0,  # Deterministisch
-            "priorität": "Energieeffizienz und Komfort"
+            "priorität": "Energieeffizienz und Komfort",
         }
 
     def berechne_energieausweis(self, gebaeude: Dict[str, Any]) -> Dict[str, Any]:
         """Berechne Energieausweis nach OIB-RL 6"""
         if not ORION_ARCHITEKT_AVAILABLE:
-            return {
-                "status": "ERROR",
-                "fehler": "orion_architekt_at nicht verfügbar"
-            }
+            return {"status": "ERROR", "fehler": "orion_architekt_at nicht verfügbar"}
 
         # Verwende bestehende orion_architekt_at Funktionen
         u_wert_result = berechne_uwert(
-            schichten=gebaeude.get("wandaufbau", [
-                {"material": "Ziegel", "dicke_mm": 250},
-                {"material": "Dämmung", "dicke_mm": 160}
-            ])
+            schichten=gebaeude.get(
+                "wandaufbau",
+                [{"material": "Ziegel", "dicke_mm": 250}, {"material": "Dämmung", "dicke_mm": 160}],
+            )
         )
-        u_wert = u_wert_result if isinstance(u_wert_result, float) else u_wert_result.get("u_wert", 0.25)
+        u_wert = (
+            u_wert_result if isinstance(u_wert_result, float) else u_wert_result.get("u_wert", 0.25)
+        )
 
         hwb_result = berechne_hwb_grob(
             flaeche_m2=gebaeude.get("volumen_m3", 800.0) / 2.8,  # Approximation
@@ -389,26 +400,29 @@ class BauphysikerAgent(AgentBase):
             uwert_dach=0.20,
             uwert_fenster=1.0,
             uwert_boden=0.30,
-            fensteranteil_pct=20.0
+            fensteranteil_pct=20.0,
         )
 
-        self.log_decision({
-            "typ": "Energieberechnung",
-            "u_wert": u_wert,
-            "hwb": hwb_result,
-            "deterministisch": True
-        })
+        self.log_decision(
+            {
+                "typ": "Energieberechnung",
+                "u_wert": u_wert,
+                "hwb": hwb_result,
+                "deterministisch": True,
+            }
+        )
 
         return {
             "u_wert": u_wert,
             "hwb": hwb_result,
-            "status": "KONFORM" if hwb_result.get("hwb", 999) < 100 else "NICHT KONFORM"
+            "status": "KONFORM" if hwb_result.get("hwb", 999) < 100 else "NICHT KONFORM",
         }
 
 
 # =============================================================================
 # 3. KOSTENPLANER AGENT (PROBABILISTISCH - MONTE CARLO!)
 # =============================================================================
+
 
 class KostenplanerAgent(AgentBase):
     """
@@ -423,7 +437,7 @@ class KostenplanerAgent(AgentBase):
         super().__init__(
             name="Kostenplaner",
             mindset="KOSTEN HABEN IMMER UNSICHERHEITEN",
-            priorities=["Wirtschaftlichkeit", "Risikotransparenz", "Realistisch", "Reserve-Puffer"]
+            priorities=["Wirtschaftlichkeit", "Risikotransparenz", "Realistisch", "Reserve-Puffer"],
         )
 
     def denke(self, problem: Dict[str, Any]) -> Dict[str, Any]:
@@ -432,13 +446,11 @@ class KostenplanerAgent(AgentBase):
             "mindset": self.mindset,
             "methode": "Monte Carlo Simulation (10.000 Läufe)",
             "unsicherheit": 0.15,  # ~15% Unsicherheit ist NORMAL!
-            "priorität": "Realistische Kostenschätzung mit Risiken"
+            "priorität": "Realistische Kostenschätzung mit Risiken",
         }
 
     def schaetze_kosten_monte_carlo(
-        self,
-        bauwerk: Dict[str, Any],
-        n_simulations: int = 10000
+        self, bauwerk: Dict[str, Any], n_simulations: int = 10000
     ) -> Dict[str, Any]:
         """
         Monte Carlo Kostensimulation.
@@ -453,10 +465,10 @@ class KostenplanerAgent(AgentBase):
 
         # Unsicherheiten definieren (realistische Werte aus Bauerfahrung)
         unsicherheiten = {
-            "material": (0.90, 1.15),      # -10% bis +15% (Preisschwankungen)
-            "lohn": (0.95, 1.20),          # -5% bis +20% (Fachkräftemangel)
-            "bauzeit": (1.00, 1.30),       # +0% bis +30% (Verzögerungen)
-            "unvorhergesehenes": (1.00, 1.12)  # +0% bis +12% (Überraschungen)
+            "material": (0.90, 1.15),  # -10% bis +15% (Preisschwankungen)
+            "lohn": (0.95, 1.20),  # -5% bis +20% (Fachkräftemangel)
+            "bauzeit": (1.00, 1.30),  # +0% bis +30% (Verzögerungen)
+            "unvorhergesehenes": (1.00, 1.12),  # +0% bis +12% (Überraschungen)
         }
 
         # Monte Carlo Simulation (10.000 Durchläufe)
@@ -470,11 +482,11 @@ class KostenplanerAgent(AgentBase):
             faktor_unvorhergesehen = np.random.uniform(*unsicherheiten["unvorhergesehenes"])
 
             kosten_sim = (
-                basis_gesamt *
-                faktor_material *
-                faktor_lohn *
-                faktor_bauzeit *
-                faktor_unvorhergesehen
+                basis_gesamt
+                * faktor_material
+                * faktor_lohn
+                * faktor_bauzeit
+                * faktor_unvorhergesehen
             )
             simulationen.append(kosten_sim)
 
@@ -501,21 +513,27 @@ class KostenplanerAgent(AgentBase):
                 "p95_eur": float(np.percentile(simulationen, 95)),  # 5% Risiko
             },
             "empfehlung": {
-                "budget_konservativ_eur": float(np.percentile(simulationen, 90)),  # P90 = 90% Sicherheit
-                "budget_realistisch_eur": float(np.percentile(simulationen, 75)),  # P75 = 75% Sicherheit
-                "budget_optimistisch_eur": float(np.percentile(simulationen, 50)), # P50 = Median
+                "budget_konservativ_eur": float(
+                    np.percentile(simulationen, 90)
+                ),  # P90 = 90% Sicherheit
+                "budget_realistisch_eur": float(
+                    np.percentile(simulationen, 75)
+                ),  # P75 = 75% Sicherheit
+                "budget_optimistisch_eur": float(np.percentile(simulationen, 50)),  # P50 = Median
             },
             "warnung": "KEINE Festpreisgarantie! Unsicherheiten sind NORMAL im Bauwesen.",
             "monte_carlo": True,
-            "deterministisch": False
+            "deterministisch": False,
         }
 
-        self.log_decision({
-            "typ": "Kostenschätzung",
-            "methode": "Monte Carlo",
-            "ergebnis": ergebnis,
-            "monte_carlo": True
-        })
+        self.log_decision(
+            {
+                "typ": "Kostenschätzung",
+                "methode": "Monte Carlo",
+                "ergebnis": ergebnis,
+                "monte_carlo": True,
+            }
+        )
 
         return ergebnis
 
@@ -523,6 +541,7 @@ class KostenplanerAgent(AgentBase):
 # =============================================================================
 # 4. RISIKOMANAGER AGENT (PROBABILISTISCH)
 # =============================================================================
+
 
 class RisikomanagerAgent(AgentBase):
     """
@@ -536,7 +555,7 @@ class RisikomanagerAgent(AgentBase):
         super().__init__(
             name="Risikomanager",
             mindset="RISIKEN KANN MAN NICHT ELIMINIEREN - NUR MANAGEN",
-            priorities=["Risikoidentifikation", "Quantifizierung", "Mitigation", "Monitoring"]
+            priorities=["Risikoidentifikation", "Quantifizierung", "Mitigation", "Monitoring"],
         )
 
     def denke(self, problem: Dict[str, Any]) -> Dict[str, Any]:
@@ -545,13 +564,11 @@ class RisikomanagerAgent(AgentBase):
             "mindset": self.mindset,
             "methode": "Probabilistische Risikoanalyse (Monte Carlo)",
             "unsicherheit": "explizit modelliert",
-            "priorität": "Risikotransparenz und Mitigation"
+            "priorität": "Risikotransparenz und Mitigation",
         }
 
     def analysiere_risiken_monte_carlo(
-        self,
-        projekt: Dict[str, Any],
-        n_simulations: int = 5000
+        self, projekt: Dict[str, Any], n_simulations: int = 5000
     ) -> Dict[str, Any]:
         """
         Risiko-Aggregation mit Monte Carlo.
@@ -594,7 +611,9 @@ class RisikomanagerAgent(AgentBase):
 
             # Baumangel
             if np.random.random() < risiken["baumangel_nachbesserung"]["prob"]:
-                mehrkosten_eur += np.random.uniform(*risiken["baumangel_nachbesserung"]["impact_kosten"])
+                mehrkosten_eur += np.random.uniform(
+                    *risiken["baumangel_nachbesserung"]["impact_kosten"]
+                )
 
             gesamt_verzoegerung.append(verzug_tage)
             gesamt_mehrkosten.append(mehrkosten_eur)
@@ -610,25 +629,26 @@ class RisikomanagerAgent(AgentBase):
                 "mittel": float(np.mean(gesamt_verzoegerung)),
                 "median": float(np.median(gesamt_verzoegerung)),
                 "p90": float(np.percentile(gesamt_verzoegerung, 90)),  # 90% unter diesem Wert
-                "maximum": float(np.max(gesamt_verzoegerung))
+                "maximum": float(np.max(gesamt_verzoegerung)),
             },
             "mehrkosten_eur": {
                 "mittel": float(np.mean(gesamt_mehrkosten)),
                 "median": float(np.median(gesamt_mehrkosten)),
                 "p90": float(np.percentile(gesamt_mehrkosten, 90)),
-                "maximum": float(np.max(gesamt_mehrkosten))
+                "maximum": float(np.max(gesamt_mehrkosten)),
             },
             "empfehlung": {
                 "zeitpuffer_tage": float(np.percentile(gesamt_verzoegerung, 80)),
                 "kostenreserve_eur": float(np.percentile(gesamt_mehrkosten, 80)),
             },
-            "monte_carlo": True
+            "monte_carlo": True,
         }
 
 
 # =============================================================================
 # 5. HAUPTORCHESTRATOR - THE ARCHITEKT AGENT ⊘∞⧈∞⊘
 # =============================================================================
+
 
 class TheArchitektAgent(AgentBase):
     """
@@ -646,7 +666,7 @@ class TheArchitektAgent(AgentBase):
         super().__init__(
             name="The Architekt (Orchestrator)",
             mindset="GANZHEITLICH DENKEN - ALLE ASPEKTE INTEGRIEREN",
-            priorities=["Gesamtkonzept", "Nutzerzufriedenheit", "Ästhetik", "Wirtschaftlichkeit"]
+            priorities=["Gesamtkonzept", "Nutzerzufriedenheit", "Ästhetik", "Wirtschaftlichkeit"],
         )
 
         # Alle Fachexperten
@@ -670,8 +690,8 @@ class TheArchitektAgent(AgentBase):
                 self.zivilingenieur.name,
                 self.bauphysiker.name,
                 self.kostenplaner.name,
-                self.risikomanager.name
-            ]
+                self.risikomanager.name,
+            ],
         }
 
     def plane_projekt_vollstaendig(self, projekt: Dict[str, Any]) -> Dict[str, Any]:
@@ -686,16 +706,18 @@ class TheArchitektAgent(AgentBase):
         ergebnis = {
             "projekt": projekt.get("name", "Unbekannt"),
             "timestamp": datetime.now(timezone.utc).isoformat(),
-            "agenten_eingesetzt": []
+            "agenten_eingesetzt": [],
         }
 
         # 1. ZIVILINGENIEUR: Statik (DETERMINISTISCH)
         print("1️⃣  ZIVILINGENIEUR arbeitet (deterministisch, normgerecht)...")
-        statik = self.zivilingenieur.bemesse_tragwerk({
-            "material": projekt.get("material", "beton"),
-            "spannweite_m": projekt.get("spannweite_m", 8.0),
-            "nutzlast_kn_per_m": projekt.get("nutzlast_kn_per_m", 20.0)
-        })
+        statik = self.zivilingenieur.bemesse_tragwerk(
+            {
+                "material": projekt.get("material", "beton"),
+                "spannweite_m": projekt.get("spannweite_m", 8.0),
+                "nutzlast_kn_per_m": projekt.get("nutzlast_kn_per_m", 20.0),
+            }
+        )
         ergebnis["statik"] = statik
         ergebnis["agenten_eingesetzt"].append("Zivilingenieur (deterministisch)")
         print(f"   ✓ Statik: {statik.get('status', 'N/A')}")
@@ -703,11 +725,13 @@ class TheArchitektAgent(AgentBase):
 
         # 2. BAUPHYSIKER: Energie (DETERMINISTISCH)
         print("\n2️⃣  BAUPHYSIKER arbeitet (deterministisch, physikalisch korrekt)...")
-        energie = self.bauphysiker.berechne_energieausweis({
-            "huellflaeche_m2": projekt.get("huellflaeche_m2", 300.0),
-            "fensterflaeche_m2": projekt.get("fensterflaeche_m2", 50.0),
-            "volumen_m3": projekt.get("volumen_m3", 800.0)
-        })
+        energie = self.bauphysiker.berechne_energieausweis(
+            {
+                "huellflaeche_m2": projekt.get("huellflaeche_m2", 300.0),
+                "fensterflaeche_m2": projekt.get("fensterflaeche_m2", 50.0),
+                "volumen_m3": projekt.get("volumen_m3", 800.0),
+            }
+        )
         ergebnis["energie"] = energie
         ergebnis["agenten_eingesetzt"].append("Bauphysiker (deterministisch)")
         print(f"   ✓ Energie: {energie.get('status', 'N/A')}")
@@ -715,21 +739,25 @@ class TheArchitektAgent(AgentBase):
 
         # 3. KOSTENPLANER: Kosten MIT MONTE CARLO!
         print("\n3️⃣  KOSTENPLANER arbeitet (PROBABILISTISCH - Monte Carlo!)...")
-        kosten = self.kostenplaner.schaetze_kosten_monte_carlo({
-            "bgf_m2": projekt.get("bgf_m2", 150.0),
-            "basis_kosten_m2": projekt.get("basis_kosten_m2", 2500.0)
-        })
+        kosten = self.kostenplaner.schaetze_kosten_monte_carlo(
+            {
+                "bgf_m2": projekt.get("bgf_m2", 150.0),
+                "basis_kosten_m2": projekt.get("basis_kosten_m2", 2500.0),
+            }
+        )
         ergebnis["kosten"] = kosten
         ergebnis["agenten_eingesetzt"].append("Kostenplaner (Monte Carlo)")
         print(f"   ✓ Kosten (Monte Carlo): {kosten['statistik']['mittelwert_eur']:,.0f} €")
-        print(f"   ✓ Budget P90 (konservativ): {kosten['empfehlung']['budget_konservativ_eur']:,.0f} €")
+        print(
+            f"   ✓ Budget P90 (konservativ): {kosten['empfehlung']['budget_konservativ_eur']:,.0f} €"
+        )
         print(f"   ✓ Simulationen: {kosten['anzahl_simulationen']:,}")
 
         # 4. RISIKOMANAGER: Risiken MIT MONTE CARLO!
         print("\n4️⃣  RISIKOMANAGER arbeitet (PROBABILISTISCH - Monte Carlo!)...")
-        risiken = self.risikomanager.analysiere_risiken_monte_carlo({
-            "baukosten_eur": kosten['statistik']['mittelwert_eur']
-        })
+        risiken = self.risikomanager.analysiere_risiken_monte_carlo(
+            {"baukosten_eur": kosten["statistik"]["mittelwert_eur"]}
+        )
         ergebnis["risiken"] = risiken
         ergebnis["agenten_eingesetzt"].append("Risikomanager (Monte Carlo)")
         print(f"   ✓ Risiken: {risiken['risiken_identifiziert']} identifiziert")
@@ -742,8 +770,7 @@ class TheArchitektAgent(AgentBase):
         print(f"{'='*80}")
 
         genehmigungsfaehig = (
-            statik.get("status") == "GENEHMIGUNGSFÄHIG" and
-            energie.get("status") == "KONFORM"
+            statik.get("status") == "GENEHMIGUNGSFÄHIG" and energie.get("status") == "KONFORM"
         )
 
         ergebnis["gesamtbewertung"] = {
@@ -752,7 +779,7 @@ class TheArchitektAgent(AgentBase):
             "energie_ok": energie.get("status") == "KONFORM",
             "kosten_realistisch": True,  # Monte Carlo liefert immer realistische Schätzung
             "risiken_quantifiziert": True,
-            "empfehlung": "PROJEKT UMSETZBAR" if genehmigungsfaehig else "PROJEKT ÜBERARBEITEN"
+            "empfehlung": "PROJEKT UMSETZBAR" if genehmigungsfaehig else "PROJEKT ÜBERARBEITEN",
         }
 
         print(f"Status: {ergebnis['gesamtbewertung']['empfehlung']}")
@@ -763,10 +790,7 @@ class TheArchitektAgent(AgentBase):
         return ergebnis
 
     def create_epistemic_state_from_agent_result(
-        self,
-        agent_name: str,
-        result: Dict[str, Any],
-        is_deterministic: bool
+        self, agent_name: str, result: Dict[str, Any], is_deterministic: bool
     ) -> EpistemicState:
         """
         Wrap agent result in epistemic state for policy checking
@@ -793,7 +817,7 @@ class TheArchitektAgent(AgentBase):
                     "agent": agent_name,
                     "method": "deterministic",
                     "monte_carlo": False,
-                }
+                },
             )
         else:
             # Probabilistic agents (Kostenplaner, Risikomanager) produce ESTIMATED knowledge
@@ -810,14 +834,11 @@ class TheArchitektAgent(AgentBase):
                     "agent": agent_name,
                     "method": "probabilistic",
                     "monte_carlo": True,
-                }
+                },
             )
 
     def check_decision_policy(
-        self,
-        decision_type: str,
-        epistemic_states: Dict[str, EpistemicState],
-        mode: DecisionMode
+        self, decision_type: str, epistemic_states: Dict[str, EpistemicState], mode: DecisionMode
     ) -> Dict[str, Any]:
         """
         Check if decision is allowed under policy constraints
@@ -850,6 +871,7 @@ class TheArchitektAgent(AgentBase):
 # MAIN API
 # =============================================================================
 
+
 class ORIONMultiAgentSystem:
     """
     Hauptschnittstelle für das Multi-Agenten-System.
@@ -878,30 +900,36 @@ class ORIONMultiAgentSystem:
             "genesis_framework": {
                 "available": GENESIS_FRAMEWORK_AVAILABLE,
                 "version": self.GENESIS_VERSION,
-                "features": [
-                    "Epistemological Safety (VERIFIED/ESTIMATED/UNKNOWN)",
-                    "Decision Policy Engine",
-                    "ISO 26262 ASIL-D Fallback Mechanisms"
-                ] if GENESIS_FRAMEWORK_AVAILABLE else []
+                "features": (
+                    [
+                        "Epistemological Safety (VERIFIED/ESTIMATED/UNKNOWN)",
+                        "Decision Policy Engine",
+                        "ISO 26262 ASIL-D Fallback Mechanisms",
+                    ]
+                    if GENESIS_FRAMEWORK_AVAILABLE
+                    else []
+                ),
             },
             "agenten": {
                 "the_architekt": self.architekt.denke({}),
                 "zivilingenieur": self.architekt.zivilingenieur.denke({}),
                 "bauphysiker": self.architekt.bauphysiker.denke({}),
                 "kostenplaner": self.architekt.kostenplaner.denke({}),
-                "risikomanager": self.architekt.risikomanager.denke({})
+                "risikomanager": self.architekt.risikomanager.denke({}),
             },
             "hybrid_ansatz": {
                 "deterministisch": ["Zivilingenieur", "Bauphysiker"],
-                "probabilistisch": ["Kostenplaner", "Risikomanager"]
+                "probabilistisch": ["Kostenplaner", "Risikomanager"],
             },
             "monte_carlo_wo_sinnvoll": ["Kosten", "Risiken", "Termine"],
-            "keine_wahrscheinlichkeiten_wo_kritisch": ["Statik", "Brandschutz", "Tragsicherheit"]
+            "keine_wahrscheinlichkeiten_wo_kritisch": ["Statik", "Brandschutz", "Tragsicherheit"],
         }
 
         # Add policy engine statistics if available
         if GENESIS_FRAMEWORK_AVAILABLE and self.architekt.policy_engine:
-            info["genesis_framework"]["policy_statistics"] = self.architekt.policy_engine.get_statistics()
+            info["genesis_framework"][
+                "policy_statistics"
+            ] = self.architekt.policy_engine.get_statistics()
 
         return info
 
@@ -928,7 +956,7 @@ if __name__ == "__main__":
         "basis_kosten_m2": 2500.0,
         "huellflaeche_m2": 300.0,
         "fensterflaeche_m2": 50.0,
-        "volumen_m3": 800.0
+        "volumen_m3": 800.0,
     }
 
     # Vollständige Planung

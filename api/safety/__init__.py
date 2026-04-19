@@ -15,9 +15,9 @@ License: Apache 2.0
 from api.safety.audit_trail import (
     AuditEntry,
     AuditTrail,
-    create_compliance_trail,
-    create_calculation_trail,
     create_bim_trail,
+    create_calculation_trail,
+    create_compliance_trail,
 )
 
 __all__ = [

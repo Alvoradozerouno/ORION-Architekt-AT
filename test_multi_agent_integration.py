@@ -11,35 +11,31 @@ Datum: 2026-04-07
 =============================================================================
 """
 
-import sys
 import json
+import sys
 from pathlib import Path
 
 from orion_multi_agent_system import (
-    TheArchitektAgent,
-    ZivilingenieurAgent,
+    EUROCODE_AVAILABLE,
     BauphysikerAgent,
     KostenplanerAgent,
     RisikomanagerAgent,
-    EUROCODE_AVAILABLE
+    TheArchitektAgent,
+    ZivilingenieurAgent,
 )
 
 
 def test_1_zivilingenieur_deterministisch():
     """Test: Zivilingenieur arbeitet DETERMINISTISCH (keine Monte Carlo)"""
-    print("\n" + "="*70)
+    print("\n" + "=" * 70)
     print("TEST 1: Zivilingenieur - Deterministisch")
-    print("="*70)
+    print("=" * 70)
 
     agent = ZivilingenieurAgent()
 
     # Test verschiedene Materialien
     for material in ["beton", "stahl"]:
-        bauwerk = {
-            "material": material,
-            "spannweite_m": 8.0,
-            "nutzlast_kn_per_m": 20.0
-        }
+        bauwerk = {"material": material, "spannweite_m": 8.0, "nutzlast_kn_per_m": 20.0}
 
         ergebnis = agent.bemesse_tragwerk(bauwerk)
 
@@ -50,8 +46,12 @@ def test_1_zivilingenieur_deterministisch():
 
         # Validierung
         if EUROCODE_AVAILABLE:
-            assert ergebnis.get("monte_carlo") == False, f"❌ {material}: Monte Carlo sollte False sein!"
-            assert ergebnis.get("methode") == "deterministisch", f"❌ {material}: Methode sollte deterministisch sein!"
+            assert (
+                ergebnis.get("monte_carlo") == False
+            ), f"❌ {material}: Monte Carlo sollte False sein!"
+            assert (
+                ergebnis.get("methode") == "deterministisch"
+            ), f"❌ {material}: Methode sollte deterministisch sein!"
             assert "ausnutzung" in ergebnis, f"❌ {material}: Ausnutzung fehlt!"
             print(f"   ✅ DETERMINISTISCH bestätigt")
         else:
@@ -60,17 +60,13 @@ def test_1_zivilingenieur_deterministisch():
 
 def test_2_kostenplaner_probabilistisch():
     """Test: Kostenplaner arbeitet PROBABILISTISCH (MIT Monte Carlo)"""
-    print("\n" + "="*70)
+    print("\n" + "=" * 70)
     print("TEST 2: Kostenplaner - Probabilistisch (Monte Carlo)")
-    print("="*70)
+    print("=" * 70)
 
     agent = KostenplanerAgent()
 
-    bauwerk = {
-        "flaeche_m2": 200.0,
-        "geschosse": 2,
-        "qualitaet": "mittel"
-    }
+    bauwerk = {"flaeche_m2": 200.0, "geschosse": 2, "qualitaet": "mittel"}
 
     # Reduzierte Simulationen für schnelleren Test
     ergebnis = agent.schaetze_kosten_monte_carlo(bauwerk, n_simulations=1000)
@@ -86,16 +82,18 @@ def test_2_kostenplaner_probabilistisch():
     assert ergebnis["monte_carlo"] == True, "❌ Monte Carlo sollte True sein!"
     assert ergebnis["anzahl_simulationen"] == 1000, "❌ Anzahl Simulationen falsch!"
     assert ergebnis["deterministisch"] == False, "❌ Sollte nicht deterministisch sein!"
-    assert ergebnis["perzentile"]["p90_eur"] > ergebnis["perzentile"]["p50_eur"], "❌ P90 sollte > Median sein!"
+    assert (
+        ergebnis["perzentile"]["p90_eur"] > ergebnis["perzentile"]["p50_eur"]
+    ), "❌ P90 sollte > Median sein!"
 
     print(f"   ✅ PROBABILISTISCH bestätigt")
 
 
 def test_3_hybrid_architektur():
     """Test: Hybrid-Architektur (Deterministisch + Probabilistisch)"""
-    print("\n" + "="*70)
+    print("\n" + "=" * 70)
     print("TEST 3: Hybrid-Architektur")
-    print("="*70)
+    print("=" * 70)
 
     architekt = TheArchitektAgent()
 
@@ -107,8 +105,8 @@ def test_3_hybrid_architektur():
             "spannweite_m": 8.0,
             "nutzlast_kn_per_m": 20.0,
             "flaeche_m2": 200.0,
-            "geschosse": 2
-        }
+            "geschosse": 2,
+        },
     }
 
     # Plan project
@@ -135,20 +133,24 @@ def test_3_hybrid_architektur():
 
     # Probabilistisch: Kosten
     assert kosten["monte_carlo"] == True, "❌ Kosten sollten Monte Carlo verwenden!"
-    print(f"   ✅ Kosten: Probabilistisch (MC={kosten['monte_carlo']}, n={kosten['anzahl_simulationen']})")
+    print(
+        f"   ✅ Kosten: Probabilistisch (MC={kosten['monte_carlo']}, n={kosten['anzahl_simulationen']})"
+    )
 
     # Probabilistisch: Risiken
     assert risiken["monte_carlo"] == True, "❌ Risiken sollten Monte Carlo verwenden!"
-    print(f"   ✅ Risiken: Probabilistisch (MC={risiken['monte_carlo']}, n={risiken['anzahl_simulationen']})")
+    print(
+        f"   ✅ Risiken: Probabilistisch (MC={risiken['monte_carlo']}, n={risiken['anzahl_simulationen']})"
+    )
 
     print(f"\n✅ HYBRID-ARCHITEKTUR BESTÄTIGT!")
 
 
 def test_4_normgerechtes_papier():
     """Test: Generierung normgerechtes Statik-Papier"""
-    print("\n" + "="*70)
+    print("\n" + "=" * 70)
     print("TEST 4: Normgerechtes Statik-Papier")
-    print("="*70)
+    print("=" * 70)
 
     if not EUROCODE_AVAILABLE:
         print("⚠️  Eurocode nicht verfügbar - Test übersprungen")
@@ -156,11 +158,7 @@ def test_4_normgerechtes_papier():
 
     agent = ZivilingenieurAgent()
 
-    bauwerk = {
-        "material": "beton",
-        "spannweite_m": 8.0,
-        "nutzlast_kn_per_m": 20.0
-    }
+    bauwerk = {"material": "beton", "spannweite_m": 8.0, "nutzlast_kn_per_m": 20.0}
 
     statik_ergebnis = agent.bemesse_tragwerk(bauwerk)
 
@@ -168,7 +166,7 @@ def test_4_normgerechtes_papier():
         "name": "Test-Wohnhaus",
         "ort": "Innsbruck",
         "bundesland": "Tirol",
-        "bauherr": "Max Mustermann"
+        "bauherr": "Max Mustermann",
     }
 
     papier = agent.generate_statik_papier(statik_ergebnis, projekt_info)
@@ -192,16 +190,11 @@ def test_4_normgerechtes_papier():
 
 def test_5_agent_mindsets():
     """Test: Jeder Agent denkt anders"""
-    print("\n" + "="*70)
+    print("\n" + "=" * 70)
     print("TEST 5: Agent Mindsets - Unterschiedliche Denkweisen")
-    print("="*70)
+    print("=" * 70)
 
-    agenten = [
-        ZivilingenieurAgent(),
-        BauphysikerAgent(),
-        KostenplanerAgent(),
-        RisikomanagerAgent()
-    ]
+    agenten = [ZivilingenieurAgent(), BauphysikerAgent(), KostenplanerAgent(), RisikomanagerAgent()]
 
     for agent in agenten:
         denkweise = agent.denke({})
@@ -220,17 +213,13 @@ def test_5_agent_mindsets():
 
 def test_6_audit_trail():
     """Test: Audit Trail und Reproduzierbarkeit"""
-    print("\n" + "="*70)
+    print("\n" + "=" * 70)
     print("TEST 6: Audit Trail & Reproduzierbarkeit")
-    print("="*70)
+    print("=" * 70)
 
     agent = ZivilingenieurAgent()
 
-    bauwerk = {
-        "material": "beton",
-        "spannweite_m": 8.0,
-        "nutzlast_kn_per_m": 20.0
-    }
+    bauwerk = {"material": "beton", "spannweite_m": 8.0, "nutzlast_kn_per_m": 20.0}
 
     # Erste Berechnung
     ergebnis1 = agent.bemesse_tragwerk(bauwerk)
@@ -246,7 +235,9 @@ def test_6_audit_trail():
 
     if EUROCODE_AVAILABLE and ergebnis1.get("status") != "ERROR":
         # Deterministisch: Ergebnisse sollten identisch sein
-        assert ergebnis1.get("ausnutzung") == ergebnis2.get("ausnutzung"), "❌ Ergebnisse nicht reproduzierbar!"
+        assert ergebnis1.get("ausnutzung") == ergebnis2.get(
+            "ausnutzung"
+        ), "❌ Ergebnisse nicht reproduzierbar!"
         print(f"   ✅ Reproduzierbarkeit bestätigt")
     else:
         print(f"   ⚠️  Reproduzierbarkeit nicht testbar (Eurocode nicht verfügbar)")
@@ -254,9 +245,9 @@ def test_6_audit_trail():
 
 def run_all_tests():
     """Alle Integration-Tests ausführen"""
-    print("="*70)
+    print("=" * 70)
     print("ORION MULTI-AGENT INTEGRATION TESTS")
-    print("="*70)
+    print("=" * 70)
     print(f"Eurocode verfügbar: {EUROCODE_AVAILABLE}")
 
     tests = [
@@ -280,11 +271,12 @@ def run_all_tests():
             failed += 1
             print(f"\n❌ {name} FAILED: {e}")
             import traceback
+
             traceback.print_exc()
 
-    print("\n" + "="*70)
+    print("\n" + "=" * 70)
     print(f"ERGEBNIS: {passed} PASSED, {failed} FAILED")
-    print("="*70)
+    print("=" * 70)
 
     return failed == 0
 

@@ -18,19 +18,20 @@ Date: 2026-04-09
 Standards: ÖNORM B 4700, ÖNORM EN 1998, Eurocode 2
 """
 
-from dataclasses import dataclass, field
-from typing import List, Dict, Optional, Any, Tuple
-from enum import Enum
-from datetime import datetime
 import math
-
+from dataclasses import dataclass, field
+from datetime import datetime
+from enum import Enum
+from typing import Any, Dict, List, Optional, Tuple
 
 # ============================================================================
 # ÖNORM B 4700 & Eurocode 2 Constants for Austria
 # ============================================================================
 
+
 class ConcreteGrade(str, Enum):
     """Betongüten nach ÖNORM B 4700 / Eurocode 2"""
+
     C12_15 = "C12/15"
     C16_20 = "C16/20"
     C20_25 = "C20/25"
@@ -44,6 +45,7 @@ class ConcreteGrade(str, Enum):
 
 class SteelGrade(str, Enum):
     """Bewehrungsstahl nach ÖNORM B 4700"""
+
     BSt_500S = "BSt 500S"  # Standard
     BSt_500M = "BSt 500M"
     BSt_500A = "BSt 500A"
@@ -51,6 +53,7 @@ class SteelGrade(str, Enum):
 
 class ExposureClass(str, Enum):
     """Expositionsklassen ÖNORM B 4700"""
+
     XC1 = "XC1"  # Trocken, innen
     XC2 = "XC2"  # Nass, selten trocken
     XC3 = "XC3"  # Mäßige Feuchte
@@ -66,6 +69,7 @@ class ExposureClass(str, Enum):
 
 class SeismicZoneAustria(str, Enum):
     """Erdbebenzonen Österreich nach ÖNORM EN 1998"""
+
     ZONE_0 = "Zone 0"  # Vorarlberg, Tirol West
     ZONE_1 = "Zone 1"  # Rest Tirol, Salzburg, OÖ, NÖ Nord
     ZONE_2 = "Zone 2"  # Wien, NÖ Süd, Burgenland Nord
@@ -74,6 +78,7 @@ class SeismicZoneAustria(str, Enum):
 
 class StructuralElement(str, Enum):
     """Tragende Bauteile"""
+
     COLUMN = "Stütze"
     BEAM = "Träger"
     SLAB = "Decke"
@@ -87,16 +92,18 @@ class StructuralElement(str, Enum):
 # Data Classes
 # ============================================================================
 
+
 @dataclass
 class LoadCase:
     """Lastfall nach ÖNORM B 4700"""
+
     load_case_id: str
     name: str
     load_type: str  # "Eigenlast", "Nutzlast", "Schnee", "Wind", "Erdbeben"
 
     # Teilsicherheitsbeiwerte (γ)
     gamma_g: float = 1.35  # Ständige Lasten
-    gamma_q: float = 1.5   # Veränderliche Lasten
+    gamma_q: float = 1.5  # Veränderliche Lasten
 
     # Kombinationsbeiwerte (ψ)
     psi_0: float = 0.7  # Hauptwert
@@ -107,6 +114,7 @@ class LoadCase:
 @dataclass
 class Material:
     """Baustoff-Eigenschaften nach ÖNORM B 4700"""
+
     material_id: str
     material_type: str  # "Beton", "Betonstahl", "Baustahl"
 
@@ -128,6 +136,7 @@ class Material:
 @dataclass
 class CrossSection:
     """Querschnitt für tragende Bauteile"""
+
     section_id: str
     element_type: StructuralElement
 
@@ -141,7 +150,9 @@ class CrossSection:
     steel: Material
 
     # Bewehrung
-    reinforcement_top: List[Tuple[int, float]] = field(default_factory=list)  # [(Anzahl, Durchmesser)]
+    reinforcement_top: List[Tuple[int, float]] = field(
+        default_factory=list
+    )  # [(Anzahl, Durchmesser)]
     reinforcement_bottom: List[Tuple[int, float]] = field(default_factory=list)
     stirrups: Optional[Tuple[float, float]] = None  # (Durchmesser, Abstand)
 
@@ -153,6 +164,7 @@ class CrossSection:
 @dataclass
 class StructuralNode:
     """Knoten im Tragwerksmodell"""
+
     node_id: str
     x: float  # [m]
     y: float  # [m]
@@ -163,6 +175,7 @@ class StructuralNode:
 @dataclass
 class StructuralMember:
     """Tragglied (Stab) im System"""
+
     member_id: str
     element_type: StructuralElement
     start_node: str
@@ -174,22 +187,23 @@ class StructuralMember:
 
     # Ergebnisse (aus FEM-Analyse)
     max_moment: Optional[float] = None  # [kNm]
-    max_shear: Optional[float] = None   # [kN]
-    max_axial: Optional[float] = None   # [kN]
+    max_shear: Optional[float] = None  # [kN]
+    max_axial: Optional[float] = None  # [kN]
     max_deflection: Optional[float] = None  # [m]
 
 
 @dataclass
 class SeismicParameters:
     """Erdbebenparameter nach ÖNORM EN 1998"""
+
     zone: SeismicZoneAustria
     soil_class: str  # A, B, C, D, E
     building_importance_class: int  # I, II, III, IV
 
     # Bemessungswerte
     ag: float  # Bemessungswert Bodenbeschleunigung [m/s²]
-    s: float   # Bodenparameter
-    q: float   # Verhaltensbeiwert
+    s: float  # Bodenparameter
+    q: float  # Verhaltensbeiwert
 
     # Spektralwerte
     sd_t: Optional[float] = None  # Bemessungsspektrum
@@ -198,6 +212,7 @@ class SeismicParameters:
 @dataclass
 class ReinforcementDesign:
     """Bewehrungsbemessung nach ÖNORM B 4700"""
+
     member_id: str
     cross_section: CrossSection
 
@@ -218,9 +233,9 @@ class ReinforcementDesign:
 
     # Nachweise
     utilization_bending: float  # Ausnutzungsgrad Biegung [%]
-    utilization_shear: float    # Ausnutzungsgrad Querkraft [%]
-    deflection_check: bool      # Durchbiegungsnachweis
-    crack_width_check: bool     # Rissbreitennachweis
+    utilization_shear: float  # Ausnutzungsgrad Querkraft [%]
+    deflection_check: bool  # Durchbiegungsnachweis
+    crack_width_check: bool  # Rissbreitennachweis
 
     # Detailinfo
     calculation_log: List[str] = field(default_factory=list)
@@ -229,6 +244,7 @@ class ReinforcementDesign:
 # ============================================================================
 # ÖNORM B 4700 Calculations
 # ============================================================================
+
 
 def get_concrete_properties(grade: ConcreteGrade) -> Dict[str, float]:
     """
@@ -279,9 +295,7 @@ def get_steel_properties(grade: SteelGrade) -> Dict[str, float]:
 
 
 def calculate_minimum_concrete_cover(
-    exposure_class: ExposureClass,
-    bar_diameter: float,
-    aggregate_size: float = 20.0
+    exposure_class: ExposureClass, bar_diameter: float, aggregate_size: float = 20.0
 ) -> float:
     """
     Mindestbetondeckung nach ÖNORM B 4700
@@ -324,10 +338,7 @@ def calculate_minimum_concrete_cover(
     return c_nom
 
 
-def calculate_self_weight(
-    cross_section: CrossSection,
-    length: float
-) -> float:
+def calculate_self_weight(cross_section: CrossSection, length: float) -> float:
     """
     Eigenlast berechnen
 
@@ -350,7 +361,7 @@ def design_rectangular_beam_flexure(
     height: float,
     concrete_grade: ConcreteGrade,
     steel_grade: SteelGrade,
-    concrete_cover: float = 0.03
+    concrete_cover: float = 0.03,
 ) -> ReinforcementDesign:
     """
     Rechteckquerschnitt Biegebemessung nach ÖNORM B 4700
@@ -373,7 +384,7 @@ def design_rectangular_beam_flexure(
     steel_props = get_steel_properties(steel_grade)
 
     fcd = concrete_props["fcd"]  # [MPa]
-    fyd = steel_props["fyd"]     # [MPa]
+    fyd = steel_props["fyd"]  # [MPa]
 
     calc_log.append(f"Beton: {concrete_grade.value}, fcd = {fcd:.1f} MPa")
     calc_log.append(f"Stahl: {steel_grade.value}, fyd = {fyd:.1f} MPa")
@@ -436,16 +447,14 @@ def design_rectangular_beam_flexure(
         utilization_shear=0,
         deflection_check=True,  # vereinfacht
         crack_width_check=True,
-        calculation_log=calc_log
+        calculation_log=calc_log,
     )
 
     return result
 
 
 def get_seismic_parameters(
-    bundesland: str,
-    soil_class: str = "B",
-    importance_class: int = 2
+    bundesland: str, soil_class: str = "B", importance_class: int = 2
 ) -> SeismicParameters:
     """
     Erdbebenparameter nach ÖNORM EN 1998 für Österreich
@@ -503,13 +512,14 @@ def get_seismic_parameters(
         building_importance_class=importance_class,
         ag=ag,
         s=s,
-        q=q
+        q=q,
     )
 
 
 # ============================================================================
 # IFC Integration
 # ============================================================================
+
 
 def extract_structural_model_from_ifc(ifc_file_path: str) -> Dict[str, Any]:
     """
@@ -534,7 +544,9 @@ def extract_structural_model_from_ifc(ifc_file_path: str) -> Dict[str, Any]:
 
     # Simulierte Extraktion
     nodes = [
-        StructuralNode("N1", 0, 0, 0, {"ux": True, "uy": True, "uz": True, "rx": True, "ry": True, "rz": True}),
+        StructuralNode(
+            "N1", 0, 0, 0, {"ux": True, "uy": True, "uz": True, "rx": True, "ry": True, "rz": True}
+        ),
         StructuralNode("N2", 5, 0, 0),
         StructuralNode("N3", 5, 0, 3),
         StructuralNode("N4", 0, 0, 3),
@@ -548,7 +560,7 @@ def extract_structural_model_from_ifc(ifc_file_path: str) -> Dict[str, Any]:
         concrete_grade=ConcreteGrade.C30_37,
         fck=c30_properties["fck"],
         fcd=c30_properties["fcd"],
-        e_modulus=c30_properties["Ecm"]
+        e_modulus=c30_properties["Ecm"],
     )
 
     steel_properties = get_steel_properties(SteelGrade.BSt_500S)
@@ -558,7 +570,7 @@ def extract_structural_model_from_ifc(ifc_file_path: str) -> Dict[str, Any]:
         steel_grade=SteelGrade.BSt_500S,
         fyk=steel_properties["fyk"],
         fyd=steel_properties["fyd"],
-        e_modulus=steel_properties["Es"]
+        e_modulus=steel_properties["Es"],
     )
 
     beam_section = CrossSection(
@@ -568,7 +580,7 @@ def extract_structural_model_from_ifc(ifc_file_path: str) -> Dict[str, Any]:
         height=0.50,
         length=5.0,
         concrete=concrete,
-        steel=steel
+        steel=steel,
     )
 
     column_section = CrossSection(
@@ -578,7 +590,7 @@ def extract_structural_model_from_ifc(ifc_file_path: str) -> Dict[str, Any]:
         height=0.40,
         length=3.0,
         concrete=concrete,
-        steel=steel
+        steel=steel,
     )
 
     members = [
@@ -592,7 +604,7 @@ def extract_structural_model_from_ifc(ifc_file_path: str) -> Dict[str, Any]:
         "nodes": nodes,
         "members": members,
         "ifc_file": ifc_file_path,
-        "extracted_at": datetime.now().isoformat()
+        "extracted_at": datetime.now().isoformat(),
     }
 
 
@@ -646,7 +658,7 @@ if __name__ == "__main__":
         width=0.30,
         height=0.50,
         concrete_grade=ConcreteGrade.C30_37,
-        steel_grade=SteelGrade.BSt_500S
+        steel_grade=SteelGrade.BSt_500S,
     )
 
     print(f"Träger b/h = 30/50 cm, MEd = 50 kNm")
@@ -663,9 +675,11 @@ if __name__ == "__main__":
     print(f"✓ {len(structural_model['members'])} Tragwerksglieder extrahiert")
 
     print("\nTragwerksglieder:")
-    for member in structural_model['members']:
-        print(f"  • {member.member_id}: {member.element_type.value} "
-              f"({member.cross_section.width*100:.0f}x{member.cross_section.height*100:.0f} cm)")
+    for member in structural_model["members"]:
+        print(
+            f"  • {member.member_id}: {member.element_type.value} "
+            f"({member.cross_section.width*100:.0f}x{member.cross_section.height*100:.0f} cm)"
+        )
 
     print("\n" + "=" * 80)
     print("✓ Structural Engineering Integration Module - Funktional!")

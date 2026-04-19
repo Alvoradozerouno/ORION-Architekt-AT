@@ -2,91 +2,111 @@
 Building Calculations Router
 U-Wert, Stellplätze, Flächenberechnung, etc.
 """
-from fastapi import APIRouter, HTTPException
-from pydantic import BaseModel, Field, field_validator
-from typing import List, Dict, Optional
+
 import math
+import os
 import re
 import sys
-import os
+from typing import Dict, List, Optional
+
+from fastapi import APIRouter, HTTPException
+from pydantic import BaseModel, Field, field_validator
 
 # Add parent directory to path
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
 
 router = APIRouter()
 
+
 # Models
 class Schicht(BaseModel):
     """Layer in construction"""
+
     material: str = Field(..., min_length=1, max_length=200)
     dicke_mm: float = Field(..., gt=0, le=5000)
     lambda_wert: float = Field(..., gt=0, le=10)
 
-    @field_validator('material')
+    @field_validator("material")
     @classmethod
     def validate_material(cls, v: str) -> str:
         """Sanitize material name to prevent injection attacks"""
         # Remove null bytes
-        v = v.replace('\x00', '')
+        v = v.replace("\x00", "")
         # Reject strings with script/injection patterns (SQL keywords, HTML tags, URLs)
         dangerous_patterns = [
-            r'<[^>]+>',                          # HTML/XML tags
-            r'--\s',                             # SQL comment injection
-            r';\s*(DROP|DELETE|INSERT|UPDATE|SELECT|CREATE|ALTER|EXEC)\b',  # SQL DML/DDL
-            r'https?://',                        # HTTP URLs (SSRF)
-            r'file://',                          # Local file access
-            r'ftp://',                           # FTP access
+            r"<[^>]+>",  # HTML/XML tags
+            r"--\s",  # SQL comment injection
+            r";\s*(DROP|DELETE|INSERT|UPDATE|SELECT|CREATE|ALTER|EXEC)\b",  # SQL DML/DDL
+            r"https?://",  # HTTP URLs (SSRF)
+            r"file://",  # Local file access
+            r"ftp://",  # FTP access
         ]
         for pattern in dangerous_patterns:
             if re.search(pattern, v, re.IGNORECASE):
-                raise ValueError("Invalid material name: contains disallowed characters or patterns")
+                raise ValueError(
+                    "Invalid material name: contains disallowed characters or patterns"
+                )
         return v.strip()
+
 
 class UWertRequest(BaseModel):
     """U-value calculation request"""
+
     schichten: List[Schicht] = Field(..., min_length=1)
     innen_uebergang: float = Field(0.13, description="Internal heat transfer coefficient")
     aussen_uebergang: float = Field(0.04, description="External heat transfer coefficient")
 
+
 class UWertResult(BaseModel):
     """U-value calculation result"""
+
     uwert: float
     gesamtdicke_mm: float
     r_gesamt: float
     oib_rl6_compliant: bool
     energy_class: str
 
+
 class StellplatzRequest(BaseModel):
     """Parking space calculation request"""
+
     bundesland: str
     wohnungen: int = Field(..., gt=0)
     building_type: str = Field("mehrfamilienhaus")
 
+
 class StellplatzResult(BaseModel):
     """Parking space calculation result"""
+
     required_stellplaetze: int
     factor: float
     bundesland: str
     regulation: str
 
+
 class FlaecheRequest(BaseModel):
     """Area calculation request (ÖNORM B 1800)"""
+
     raumtyp: str
     laenge_m: float = Field(..., gt=0, le=1000)
     breite_m: float = Field(..., gt=0, le=1000)
     hoehe_m: float = Field(..., gt=0, le=100)
 
+
 class FlaecheResult(BaseModel):
     """Area calculation result"""
+
     bgf_m2: float
     ngf_m2: float
     nrf_m2: float
     vgf_m2: float
     standard: str = "ÖNORM B 1800"
 
+
 # Request models for endpoints that previously used query parameters
 class BarrierefreiheitRequest(BaseModel):
     """Accessibility check request"""
+
     tuer_breite_cm: float = Field(..., ge=50, le=300)
     rampe_vorhanden: bool
     rampe_steigung_prozent: Optional[float] = None
@@ -96,6 +116,7 @@ class BarrierefreiheitRequest(BaseModel):
 
 class FluchtwegRequest(BaseModel):
     """Emergency exit check request"""
+
     max_entfernung_m: float = Field(..., ge=0, le=200)
     treppenhaus_breite_m: float = Field(..., ge=0.5, le=10)
     geschosse: int = Field(..., ge=1, le=200)
@@ -104,12 +125,14 @@ class FluchtwegRequest(BaseModel):
 
 class SchallschutzRequest(BaseModel):
     """Sound insulation check request"""
+
     wandaufbau: List[Schicht] = Field(..., min_length=1)
     gebaudetyp: str = Field("mehrfamilienhaus")
 
 
 class HeizlastRequest(BaseModel):
     """Heating load calculation request"""
+
     bgf_m2: float = Field(..., gt=0, le=1000000)
     uwert_wand: float = Field(..., gt=0, le=5)
     uwert_dach: float = Field(..., gt=0, le=5)
@@ -134,8 +157,7 @@ async def berechne_uwert(request: UWertRequest):
     r_aussen = request.aussen_uebergang
 
     r_schichten = sum(
-        schicht.dicke_mm / 1000 / schicht.lambda_wert
-        for schicht in request.schichten
+        schicht.dicke_mm / 1000 / schicht.lambda_wert for schicht in request.schichten
     )
 
     r_gesamt = r_innen + r_schichten + r_aussen
@@ -164,8 +186,9 @@ async def berechne_uwert(request: UWertRequest):
         gesamtdicke_mm=gesamtdicke_mm,
         r_gesamt=round(r_gesamt, 3),
         oib_rl6_compliant=oib_rl6_compliant,
-        energy_class=energy_class
+        energy_class=energy_class,
     )
+
 
 @router.post("/stellplaetze", response_model=StellplatzResult)
 async def berechne_stellplaetze(request: StellplatzRequest):
@@ -190,16 +213,13 @@ async def berechne_stellplaetze(request: StellplatzRequest):
         "kaernten": 1.2,
         "steiermark": 1.3,
         "oberoesterreich": 1.3,
-        "niederoesterreich": 1.2
+        "niederoesterreich": 1.2,
     }
 
     bundesland_lower = request.bundesland.lower()
 
     if bundesland_lower not in stellplatz_factors:
-        raise HTTPException(
-            status_code=400,
-            detail=f"Invalid Bundesland: {request.bundesland}"
-        )
+        raise HTTPException(status_code=400, detail=f"Invalid Bundesland: {request.bundesland}")
 
     factor = stellplatz_factors[bundesland_lower]
     required = int(request.wohnungen * factor)
@@ -208,8 +228,9 @@ async def berechne_stellplaetze(request: StellplatzRequest):
         required_stellplaetze=required,
         factor=factor,
         bundesland=request.bundesland,
-        regulation=f"{request.bundesland.title()} Bauordnung"
+        regulation=f"{request.bundesland.title()} Bauordnung",
     )
+
 
 @router.post("/flaeche", response_model=FlaecheResult)
 async def berechne_flaeche(request: FlaecheRequest):
@@ -241,8 +262,9 @@ async def berechne_flaeche(request: FlaecheRequest):
         bgf_m2=round(bgf_m2, 2),
         ngf_m2=round(ngf_m2, 2),
         nrf_m2=round(nrf_m2, 2),
-        vgf_m2=round(vgf_m2, 2)
+        vgf_m2=round(vgf_m2, 2),
     )
+
 
 @router.post("/barrierefreiheit-check")
 async def check_barrierefreiheit(request: BarrierefreiheitRequest):
@@ -278,8 +300,9 @@ async def check_barrierefreiheit(request: BarrierefreiheitRequest):
         "compliant": len(mangel) == 0,
         "standard": "ÖNORM B 1600",
         "mangel": mangel,
-        "status": "pass" if len(mangel) == 0 else "fail"
+        "status": "pass" if len(mangel) == 0 else "fail",
     }
+
 
 @router.post("/fluchtweg-check")
 async def check_fluchtweg(request: FluchtwegRequest):
@@ -308,7 +331,9 @@ async def check_fluchtweg(request: FluchtwegRequest):
     if treppenhaus_breite_m < min_breite:
         mangel.append(f"Treppenhaus {treppenhaus_breite_m}m zu schmal (minimum: {min_breite}m)")
     elif treppenhaus_breite_m < min_breite + 0.1:
-        warnings.append(f"Treppenhaus {treppenhaus_breite_m}m knapp bemessen (empfohlen: >{min_breite}m)")
+        warnings.append(
+            f"Treppenhaus {treppenhaus_breite_m}m knapp bemessen (empfohlen: >{min_breite}m)"
+        )
 
     # High-rise requirements
     if geschosse >= 5:
@@ -319,8 +344,13 @@ async def check_fluchtweg(request: FluchtwegRequest):
         "standard": "OIB-RL 4",
         "mangel": mangel,
         "warnings": warnings,
-        "status": "pass" if len(mangel) == 0 and len(warnings) == 0 else ("warning" if len(mangel) == 0 else "fail")
+        "status": (
+            "pass"
+            if len(mangel) == 0 and len(warnings) == 0
+            else ("warning" if len(mangel) == 0 else "fail")
+        ),
     }
+
 
 @router.post("/schallschutz-berechnung")
 async def berechne_schallschutz(request: SchallschutzRequest):
@@ -350,8 +380,9 @@ async def berechne_schallschutz(request: SchallschutzRequest):
         "compliant": rw_estimated >= required_rw,
         "standard": "ÖNORM B 8115-2",
         "wandmasse_kg_m2": round(gesamtmasse_kg_m2, 1),
-        "status": "pass" if rw_estimated >= required_rw else "fail"
+        "status": "pass" if rw_estimated >= required_rw else "fail",
     }
+
 
 @router.post("/heizlast-berechnung")
 async def berechne_heizlast(request: HeizlastRequest):
@@ -378,7 +409,7 @@ async def berechne_heizlast(request: HeizlastRequest):
         "steiermark": 1.05,
         "oberoesterreich": 1.05,
         "niederoesterreich": 0.95,
-        "burgenland": 0.9
+        "burgenland": 0.9,
     }
 
     klima_faktor = klima_faktoren.get(bundesland.lower(), 1.0)
@@ -409,8 +440,9 @@ async def berechne_heizlast(request: HeizlastRequest):
         "q_ventilation_w": round(q_ventilation, 0),
         "klima_faktor": klima_faktor,
         "bundesland": bundesland,
-        "standard": "ÖNORM EN 12831"
+        "standard": "ÖNORM EN 12831",
     }
+
 
 @router.get("/materialdatenbank")
 async def get_materialdatenbank(material_typ: Optional[str] = None):

@@ -5,13 +5,12 @@ Provides centralized logging with proper configuration for production,
 development, and testing environments.
 """
 
+import json
 import logging
 import logging.handlers
 import sys
-from pathlib import Path
 from datetime import datetime
-import json
-
+from pathlib import Path
 
 # Default log directory
 LOG_DIR = Path("logs")
@@ -30,7 +29,7 @@ class JSONFormatter(logging.Formatter):
             "message": record.getMessage(),
             "module": record.module,
             "function": record.funcName,
-            "line": record.lineno
+            "line": record.lineno,
         }
 
         if record.exc_info:
@@ -52,7 +51,7 @@ def setup_logging(
     console=True,
     json_format=False,
     max_bytes=10485760,  # 10MB
-    backup_count=5
+    backup_count=5,
 ):
     """
     Setup logging configuration for ORION Architekt-AT.
@@ -79,8 +78,7 @@ def setup_logging(
         formatter = JSONFormatter()
     else:
         formatter = logging.Formatter(
-            fmt="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
-            datefmt="%Y-%m-%d %H:%M:%S"
+            fmt="%(asctime)s - %(name)s - %(levelname)s - %(message)s", datefmt="%Y-%m-%d %H:%M:%S"
         )
 
     # Console handler
@@ -95,10 +93,7 @@ def setup_logging(
         log_file.parent.mkdir(parents=True, exist_ok=True)
 
         file_handler = logging.handlers.RotatingFileHandler(
-            log_file,
-            maxBytes=max_bytes,
-            backupCount=backup_count,
-            encoding='utf-8'
+            log_file, maxBytes=max_bytes, backupCount=backup_count, encoding="utf-8"
         )
         file_handler.setFormatter(formatter)
         root_logger.addHandler(file_handler)
@@ -160,15 +155,12 @@ class LogContext:
 
 # Convenience functions for common logging patterns
 
+
 def log_calculation(logger, calc_type, input_data, result):
     """Log a calculation with input and output"""
     logger.info(
         f"Berechnung: {calc_type}",
-        extra={
-            "calculation_type": calc_type,
-            "input": input_data,
-            "result": result
-        }
+        extra={"calculation_type": calc_type, "input": input_data, "result": result},
     )
 
 
@@ -179,8 +171,8 @@ def log_compliance_check(logger, check_type, bundesland, result):
         extra={
             "check_type": check_type,
             "bundesland": bundesland,
-            "passed": result.get("erfuellt", False)
-        }
+            "passed": result.get("erfuellt", False),
+        },
     )
 
 
@@ -188,11 +180,7 @@ def log_validation(logger, validation_type, status, details=None):
     """Log a validation result"""
     logger.info(
         f"Validierung: {validation_type} - Status: {status}",
-        extra={
-            "validation_type": validation_type,
-            "status": status,
-            "details": details
-        }
+        extra={"validation_type": validation_type, "status": status, "details": details},
     )
 
 
@@ -200,12 +188,8 @@ def log_error(logger, error_type, error_message, **kwargs):
     """Log an error with context"""
     logger.error(
         f"Error: {error_type} - {error_message}",
-        extra={
-            "error_type": error_type,
-            "error_message": error_message,
-            **kwargs
-        },
-        exc_info=True
+        extra={"error_type": error_type, "error_message": error_message, **kwargs},
+        exc_info=True,
     )
 
 
@@ -217,7 +201,7 @@ def setup_default_logging():
         level=logging.INFO,
         log_file=LOG_DIR / f"orion_architekt_{datetime.now().strftime('%Y%m%d')}.log",
         console=True,
-        json_format=False
+        json_format=False,
     )
 
     # Configure module loggers
@@ -243,11 +227,7 @@ def log_performance(logger):
                 elapsed = time.time() - start_time
                 logger.debug(
                     f"Function {func.__name__} completed in {elapsed:.3f}s",
-                    extra={
-                        "function": func.__name__,
-                        "elapsed_seconds": elapsed,
-                        "success": True
-                    }
+                    extra={"function": func.__name__, "elapsed_seconds": elapsed, "success": True},
                 )
                 return result
             except Exception as e:
@@ -258,12 +238,14 @@ def log_performance(logger):
                         "function": func.__name__,
                         "elapsed_seconds": elapsed,
                         "success": False,
-                        "error": str(e)
+                        "error": str(e),
                     },
-                    exc_info=True
+                    exc_info=True,
                 )
                 raise
+
         return wrapper
+
     return decorator
 
 
@@ -287,6 +269,7 @@ if __name__ == "__main__":
     @log_performance(logger)
     def slow_calculation():
         import time
+
         time.sleep(0.1)
         return 42
 

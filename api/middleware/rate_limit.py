@@ -2,14 +2,16 @@
 Rate Limiting Middleware
 Prevents API abuse and ensures fair usage
 """
-from fastapi import Request, HTTPException, status
-from starlette.middleware.base import BaseHTTPMiddleware
-from typing import Dict, Optional
+
+import logging
+import os
 import time
 from datetime import datetime, timedelta
+from typing import Dict, Optional
+
 import redis
-import os
-import logging
+from fastapi import HTTPException, Request, status
+from starlette.middleware.base import BaseHTTPMiddleware
 
 # Redis connection for distributed rate limiting
 REDIS_URL = os.getenv("REDIS_URL", "redis://localhost:6379")
@@ -25,6 +27,7 @@ except Exception as e:
 
 # In-memory rate limit storage (fallback)
 rate_limit_storage: Dict[str, Dict] = {}
+
 
 class RateLimitMiddleware(BaseHTTPMiddleware):
     """
@@ -52,8 +55,8 @@ class RateLimitMiddleware(BaseHTTPMiddleware):
                     "Retry-After": str(retry_after),
                     "X-RateLimit-Limit": str(tier["limit"]),
                     "X-RateLimit-Remaining": "0",
-                    "X-RateLimit-Reset": str(int(time.time() + retry_after))
-                }
+                    "X-RateLimit-Reset": str(int(time.time() + retry_after)),
+                },
             )
 
         # Process request
@@ -96,24 +99,15 @@ class RateLimitMiddleware(BaseHTTPMiddleware):
         # Check if premium user (would check database in production)
         api_key = request.headers.get("X-API-Key")
         if api_key and api_key.startswith("orion_premium_"):
-            return {
-                "limit": 10000,  # 10k requests per hour
-                "window": 3600
-            }
+            return {"limit": 10000, "window": 3600}  # 10k requests per hour
 
         # Check if authenticated
         auth_header = request.headers.get("Authorization")
         if auth_header:
-            return {
-                "limit": 1000,  # 1k requests per hour
-                "window": 3600
-            }
+            return {"limit": 1000, "window": 3600}  # 1k requests per hour
 
         # Anonymous users
-        return {
-            "limit": 100,  # 100 requests per hour
-            "window": 3600
-        }
+        return {"limit": 100, "window": 3600}  # 100 requests per hour
 
     def _check_rate_limit(self, client_id: str, tier: Dict) -> tuple[bool, int]:
         """Check if client has exceeded rate limit"""
@@ -161,18 +155,14 @@ class RateLimitMiddleware(BaseHTTPMiddleware):
         current_time = time.time()
 
         if client_id not in rate_limit_storage:
-            rate_limit_storage[client_id] = {
-                "requests": [],
-                "window_start": current_time
-            }
+            rate_limit_storage[client_id] = {"requests": [], "window_start": current_time}
 
         client_data = rate_limit_storage[client_id]
 
         # Remove old requests
         window_start = current_time - tier["window"]
         client_data["requests"] = [
-            req_time for req_time in client_data["requests"]
-            if req_time > window_start
+            req_time for req_time in client_data["requests"] if req_time > window_start
         ]
 
         # Check limit
@@ -230,6 +220,7 @@ def rate_limit(requests: int, window: int = 3600):
         async def expensive_calculation():
             ...
     """
+
     def decorator(func):
         async def wrapper(*args, **kwargs):
             # Get request from kwargs
@@ -244,9 +235,11 @@ def rate_limit(requests: int, window: int = 3600):
                 if not allowed:
                     raise HTTPException(
                         status_code=status.HTTP_429_TOO_MANY_REQUESTS,
-                        detail=f"Rate limit for this endpoint exceeded. Try again in {retry_after} seconds."
+                        detail=f"Rate limit for this endpoint exceeded. Try again in {retry_after} seconds.",
                     )
 
             return await func(*args, **kwargs)
+
         return wrapper
+
     return decorator

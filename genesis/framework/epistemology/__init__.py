@@ -12,9 +12,9 @@ from .state_taxonomy import (
     EpistemicState,
     KnowledgeType,
     VerificationLevel,
-    create_verified_state,
     create_estimated_state,
     create_unknown_state,
+    create_verified_state,
 )
 
 __all__ = [

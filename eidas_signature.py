@@ -26,21 +26,22 @@ Lizenz: Apache 2.0
 ═══════════════════════════════════════════════════════════════════════════
 """
 
-from dataclasses import dataclass, field
-from typing import Dict, List, Optional, Any
-from datetime import datetime, timezone
-from enum import Enum
+import base64
 import hashlib
 import json
-import base64
-
+from dataclasses import dataclass, field
+from datetime import datetime, timezone
+from enum import Enum
+from typing import Any, Dict, List, Optional
 
 # ═══════════════════════════════════════════════════════════════════════════
 # eIDAS Enums and Constants
 # ═══════════════════════════════════════════════════════════════════════════
 
+
 class SignatureType(str, Enum):
     """eIDAS Signature Types"""
+
     ELECTRONIC = "electronic"  # Simple electronic signature
     ADVANCED = "advanced"  # Advanced electronic signature (AdES)
     QUALIFIED = "qualified"  # Qualified electronic signature (QES)
@@ -48,6 +49,7 @@ class SignatureType(str, Enum):
 
 class SignatureFormat(str, Enum):
     """Signature format standards"""
+
     XADES = "XAdES"  # XML Advanced Electronic Signature
     PADES = "PAdES"  # PDF Advanced Electronic Signature
     CADES = "CAdES"  # CMS Advanced Electronic Signature
@@ -55,6 +57,7 @@ class SignatureFormat(str, Enum):
 
 class TrustServiceProvider(str, Enum):
     """Austrian Qualified Trust Service Providers"""
+
     A_TRUST = "a-trust"  # A-Trust (Bürgerkarte, Handy-Signatur)
     GLOBALSIGN = "globalsign"
     QUOVADIS = "quovadis"
@@ -63,6 +66,7 @@ class TrustServiceProvider(str, Enum):
 
 class SignatureStatus(str, Enum):
     """Signature verification status"""
+
     VALID = "valid"
     INVALID = "invalid"
     EXPIRED = "expired"
@@ -74,9 +78,11 @@ class SignatureStatus(str, Enum):
 # eIDAS Data Classes
 # ═══════════════════════════════════════════════════════════════════════════
 
+
 @dataclass
 class Signer:
     """Information about the person/entity signing"""
+
     name: str
     email: Optional[str] = None
     organization: Optional[str] = None
@@ -88,10 +94,13 @@ class Signer:
 @dataclass
 class SignatureMetadata:
     """Metadata for digital signature"""
+
     signature_type: SignatureType
     signature_format: SignatureFormat
     trust_service_provider: TrustServiceProvider
-    timestamp: str = field(default_factory=lambda: datetime.now(timezone.utc).isoformat().replace('+00:00', 'Z'))
+    timestamp: str = field(
+        default_factory=lambda: datetime.now(timezone.utc).isoformat().replace("+00:00", "Z")
+    )
     location: str = "Austria"
     reason: str = "Approval"
     contact_info: Optional[str] = None
@@ -104,6 +113,7 @@ class DigitalSignature:
 
     Represents a cryptographic signature on a document
     """
+
     document_id: str
     document_hash: str  # SHA-256 hash of document
     signature_value: str  # Base64 encoded signature
@@ -111,7 +121,9 @@ class DigitalSignature:
     metadata: SignatureMetadata
     certificate_chain: List[str] = field(default_factory=list)
     timestamp_token: Optional[str] = None
-    signature_id: str = field(default_factory=lambda: hashlib.sha256(str(datetime.now()).encode()).hexdigest()[:16])
+    signature_id: str = field(
+        default_factory=lambda: hashlib.sha256(str(datetime.now()).encode()).hexdigest()[:16]
+    )
 
     def to_dict(self) -> Dict[str, Any]:
         """Export signature to dictionary"""
@@ -146,6 +158,7 @@ class DigitalSignature:
 @dataclass
 class SignatureVerificationResult:
     """Result of signature verification"""
+
     valid: bool
     status: SignatureStatus
     signer_name: str
@@ -161,13 +174,14 @@ class SignatureVerificationResult:
 # eIDAS Functions
 # ═══════════════════════════════════════════════════════════════════════════
 
+
 def berechne_dokument_hash(dokument_inhalt: str) -> str:
     """
     Calculate SHA-256 hash of document content
 
     This hash is what gets signed, not the entire document
     """
-    return hashlib.sha256(dokument_inhalt.encode('utf-8')).hexdigest()
+    return hashlib.sha256(dokument_inhalt.encode("utf-8")).hexdigest()
 
 
 def erstelle_signatur_placeholder(
@@ -176,7 +190,7 @@ def erstelle_signatur_placeholder(
     signer_name: str,
     signer_email: str,
     organisation: str = "",
-    signatur_grund: str = "Genehmigung ÖNORM A 2063 LV"
+    signatur_grund: str = "Genehmigung ÖNORM A 2063 LV",
 ) -> DigitalSignature:
     """
     Creates a placeholder digital signature structure
@@ -196,7 +210,7 @@ def erstelle_signatur_placeholder(
     # For now: Create placeholder with hash
     signature_value = base64.b64encode(
         hashlib.sha256(f"{doc_hash}{signer_name}{datetime.now()}".encode()).digest()
-    ).decode('utf-8')
+    ).decode("utf-8")
 
     signer = Signer(
         name=signer_name,
@@ -223,8 +237,7 @@ def erstelle_signatur_placeholder(
 
 
 def verifiziere_signatur(
-    signatur: DigitalSignature,
-    dokument_inhalt: str
+    signatur: DigitalSignature, dokument_inhalt: str
 ) -> SignatureVerificationResult:
     """
     Verify digital signature
@@ -241,13 +254,13 @@ def verifiziere_signatur(
 
     # Check 1: Document integrity
     current_hash = berechne_dokument_hash(dokument_inhalt)
-    document_integrity = (current_hash == signatur.document_hash)
+    document_integrity = current_hash == signatur.document_hash
 
     if not document_integrity:
         errors.append("Document hash mismatch - document has been modified")
 
     # Check 2: Signature timestamp (not expired)
-    sig_time = datetime.fromisoformat(signatur.metadata.timestamp.replace('Z', '+00:00'))
+    sig_time = datetime.fromisoformat(signatur.metadata.timestamp.replace("Z", "+00:00"))
     time_diff = datetime.now(timezone.utc) - sig_time
 
     if time_diff.days > 3650:  # 10 years
@@ -284,11 +297,7 @@ def verifiziere_signatur(
 
 
 def signiere_oenorm_lv(
-    lv_json: str,
-    projekt_name: str,
-    verantwortlicher: str,
-    email: str,
-    firma: str = ""
+    lv_json: str, projekt_name: str, verantwortlicher: str, email: str, firma: str = ""
 ) -> Dict[str, Any]:
     """
     Sign ÖNORM A 2063 LV document with eIDAS qualified signature
@@ -306,7 +315,7 @@ def signiere_oenorm_lv(
         signer_name=verantwortlicher,
         signer_email=email,
         organisation=firma,
-        signatur_grund=f"Genehmigung Leistungsverzeichnis - {projekt_name}"
+        signatur_grund=f"Genehmigung Leistungsverzeichnis - {projekt_name}",
     )
 
     # Attach signature to LV
@@ -316,11 +325,7 @@ def signiere_oenorm_lv(
 
 
 def signiere_gaeb_xml(
-    gaeb_xml: str,
-    projekt_name: str,
-    verantwortlicher: str,
-    email: str,
-    firma: str = ""
+    gaeb_xml: str, projekt_name: str, verantwortlicher: str, email: str, firma: str = ""
 ) -> str:
     """
     Sign GAEB XML document with eIDAS qualified signature
@@ -338,7 +343,7 @@ def signiere_gaeb_xml(
         signer_name=verantwortlicher,
         signer_email=email,
         organisation=firma,
-        signatur_grund=f"Genehmigung GAEB Export - {projekt_name}"
+        signatur_grund=f"Genehmigung GAEB Export - {projekt_name}",
     )
 
     # Embed signature in XML (simplified - production would use XMLDSig)
@@ -361,7 +366,7 @@ def signiere_gaeb_xml(
 """
 
     # Insert before closing GAEB tag
-    signed_xml = gaeb_xml.replace('</GAEB>', signature_xml + '</GAEB>')
+    signed_xml = gaeb_xml.replace("</GAEB>", signature_xml + "</GAEB>")
 
     return signed_xml
 
@@ -375,7 +380,7 @@ def erstelle_signatur_protokoll(signaturen: List[DigitalSignature]) -> Dict[str,
 
     return {
         "protokoll_id": hashlib.sha256(str(datetime.now()).encode()).hexdigest()[:16],
-        "erstellt_am": datetime.now(timezone.utc).isoformat().replace('+00:00', 'Z'),
+        "erstellt_am": datetime.now(timezone.utc).isoformat().replace("+00:00", "Z"),
         "anzahl_signaturen": len(signaturen),
         "signaturen": [sig.to_dict() for sig in signaturen],
         "standard": "eIDAS (EU) No 910/2014",
@@ -386,6 +391,7 @@ def erstelle_signatur_protokoll(signaturen: List[DigitalSignature]) -> Dict[str,
 # ═══════════════════════════════════════════════════════════════════════════
 # Austrian Bürgerkarte Integration (Placeholder)
 # ═══════════════════════════════════════════════════════════════════════════
+
 
 class BuergerkarteConfig:
     """
@@ -401,10 +407,7 @@ class BuergerkarteConfig:
     HANDY_SIGNATUR_ENDPOINT = "https://www.handy-signatur.at/api/v1"
 
 
-def buergerkarte_signatur_erstellen(
-    dokument_hash: str,
-    pin: str
-) -> str:
+def buergerkarte_signatur_erstellen(dokument_hash: str, pin: str) -> str:
     """
     Create signature using Austrian Bürgerkarte
 
@@ -418,16 +421,12 @@ def buergerkarte_signatur_erstellen(
     # Placeholder: In production, call A-Trust API
     placeholder_signature = base64.b64encode(
         hashlib.sha256(f"{dokument_hash}{pin}".encode()).digest()
-    ).decode('utf-8')
+    ).decode("utf-8")
 
     return placeholder_signature
 
 
-def handy_signatur_erstellen(
-    dokument_hash: str,
-    telefonnummer: str,
-    tan: str
-) -> str:
+def handy_signatur_erstellen(dokument_hash: str, telefonnummer: str, tan: str) -> str:
     """
     Create signature using Austrian Handy-Signatur
 
@@ -441,7 +440,7 @@ def handy_signatur_erstellen(
     # Placeholder: In production, call A-Trust Handy-Signatur API
     placeholder_signature = base64.b64encode(
         hashlib.sha256(f"{dokument_hash}{telefonnummer}{tan}".encode()).digest()
-    ).decode('utf-8')
+    ).decode("utf-8")
 
     return placeholder_signature
 
@@ -450,13 +449,14 @@ def handy_signatur_erstellen(
 # Convenience Functions
 # ═══════════════════════════════════════════════════════════════════════════
 
+
 def erstelle_vollstaendiges_signatur_package(
     projekt_name: str,
     lv_json: str,
     gaeb_xml: str,
     verantwortlicher: str,
     email: str,
-    firma: str = ""
+    firma: str = "",
 ) -> Dict[str, Any]:
     """
     Creates complete signature package for ÖNORM A 2063 tendering
@@ -470,7 +470,7 @@ def erstelle_vollstaendiges_signatur_package(
         projekt_name=projekt_name,
         verantwortlicher=verantwortlicher,
         email=email,
-        firma=firma
+        firma=firma,
     )
 
     # Sign GAEB XML
@@ -479,7 +479,7 @@ def erstelle_vollstaendiges_signatur_package(
         projekt_name=projekt_name,
         verantwortlicher=verantwortlicher,
         email=email,
-        firma=firma
+        firma=firma,
     )
 
     # Extract signatures
@@ -489,15 +489,21 @@ def erstelle_vollstaendiges_signatur_package(
         signature_value=signed_lv["digital_signature"]["signature_value"],
         signer=Signer(**signed_lv["digital_signature"]["signer"]),
         metadata=SignatureMetadata(
-            signature_type=SignatureType(signed_lv["digital_signature"]["metadata"]["signature_type"]),
-            signature_format=SignatureFormat(signed_lv["digital_signature"]["metadata"]["signature_format"]),
-            trust_service_provider=TrustServiceProvider(signed_lv["digital_signature"]["metadata"]["trust_service_provider"]),
+            signature_type=SignatureType(
+                signed_lv["digital_signature"]["metadata"]["signature_type"]
+            ),
+            signature_format=SignatureFormat(
+                signed_lv["digital_signature"]["metadata"]["signature_format"]
+            ),
+            trust_service_provider=TrustServiceProvider(
+                signed_lv["digital_signature"]["metadata"]["trust_service_provider"]
+            ),
             timestamp=signed_lv["digital_signature"]["metadata"]["timestamp"],
             location=signed_lv["digital_signature"]["metadata"]["location"],
             reason=signed_lv["digital_signature"]["metadata"]["reason"],
             contact_info=signed_lv["digital_signature"]["metadata"]["contact_info"],
         ),
-        signature_id=signed_lv["digital_signature"]["signature_id"]
+        signature_id=signed_lv["digital_signature"]["signature_id"],
     )
 
     # Create signature protocol
@@ -509,6 +515,6 @@ def erstelle_vollstaendiges_signatur_package(
         "signed_gaeb": signed_gaeb,
         "signature_protocol": protokoll,
         "verantwortlicher": verantwortlicher,
-        "created_at": datetime.now(timezone.utc).isoformat().replace('+00:00', 'Z'),
+        "created_at": datetime.now(timezone.utc).isoformat().replace("+00:00", "Z"),
         "standard": "eIDAS (EU) No 910/2014",
     }

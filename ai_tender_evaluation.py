@@ -29,20 +29,21 @@ Lizenz: Apache 2.0
 ═══════════════════════════════════════════════════════════════════════════
 """
 
+import hashlib
+import re
 from dataclasses import dataclass, field
-from typing import Dict, List, Optional, Any, Tuple
 from datetime import datetime, timezone
 from enum import Enum
-import re
-import hashlib
-
+from typing import Any, Dict, List, Optional, Tuple
 
 # ═══════════════════════════════════════════════════════════════════════════
 # Risk Categories
 # ═══════════════════════════════════════════════════════════════════════════
 
+
 class RiskLevel(str, Enum):
     """Risiko-Stufen"""
+
     LOW = "niedrig"
     MEDIUM = "mittel"
     HIGH = "hoch"
@@ -51,6 +52,7 @@ class RiskLevel(str, Enum):
 
 class RiskCategory(str, Enum):
     """Risiko-Kategorien"""
+
     PRICE_ANOMALY = "Preis-Anomalie"
     TECHNICAL_COMPLIANCE = "Technische Konformität"
     TIMELINE = "Zeitplan"
@@ -64,9 +66,11 @@ class RiskCategory(str, Enum):
 # Data Classes
 # ═══════════════════════════════════════════════════════════════════════════
 
+
 @dataclass
 class RiskAssessment:
     """Risiko-Bewertung für ein Angebot"""
+
     category: str
     level: RiskLevel
     score: float  # 0-10 (10 = höchstes Risiko)
@@ -78,6 +82,7 @@ class RiskAssessment:
 @dataclass
 class ComplianceCheck:
     """Compliance-Prüfung"""
+
     requirement: str
     compliant: bool
     confidence: float  # 0-1
@@ -88,6 +93,7 @@ class ComplianceCheck:
 @dataclass
 class AIEvaluationResult:
     """Ergebnis der AI-Bewertung"""
+
     bid_id: str
     bidder_name: str
     evaluated_at: str
@@ -122,6 +128,7 @@ class AIEvaluationResult:
 @dataclass
 class BidDocument:
     """Angebots-Dokument für Analyse"""
+
     bid_id: str
     bidder_name: str
     bid_amount: float
@@ -142,6 +149,7 @@ class BidDocument:
 # NLP Functions (Simplified)
 # ═══════════════════════════════════════════════════════════════════════════
 
+
 def extract_technical_requirements(text: str) -> List[str]:
     """
     Extract technical requirements from text using NLP
@@ -151,10 +159,20 @@ def extract_technical_requirements(text: str) -> List[str]:
 
     # Simplified keyword extraction
     keywords = [
-        "ÖNORM", "DIN", "ISO", "CE-Kennzeichnung",
-        "Gewährleistung", "Wartung", "Garantie",
-        "Brandschutz", "Statik", "Energieausweis",
-        "BIM", "IFC", "LOD", "LOIN"
+        "ÖNORM",
+        "DIN",
+        "ISO",
+        "CE-Kennzeichnung",
+        "Gewährleistung",
+        "Wartung",
+        "Garantie",
+        "Brandschutz",
+        "Statik",
+        "Energieausweis",
+        "BIM",
+        "IFC",
+        "LOD",
+        "LOIN",
     ]
 
     found_requirements = []
@@ -183,7 +201,7 @@ def detect_compliance_issues(text: str, requirements: List[str]) -> List[str]:
         "ÖNORM A 2063": ["leistungsverzeichnis", "lv", "ausschreibung"],
         "Gewährleistung": ["garantie", "gewährleistung", "jahre"],
         "Zertifikate": ["zertifikat", "iso", "ce"],
-        "Referenzen": ["referenz", "projekt", "erfahrung"]
+        "Referenzen": ["referenz", "projekt", "erfahrung"],
     }
 
     missing = []
@@ -221,10 +239,8 @@ def calculate_text_similarity(text1: str, text2: str) -> float:
 # Risk Assessment Functions
 # ═══════════════════════════════════════════════════════════════════════════
 
-def assess_price_risk(
-    bid_amount: float,
-    reference_amounts: List[float]
-) -> RiskAssessment:
+
+def assess_price_risk(bid_amount: float, reference_amounts: List[float]) -> RiskAssessment:
     """
     Assess risk based on price anomaly detection
 
@@ -236,7 +252,7 @@ def assess_price_risk(
             category=RiskCategory.PRICE_ANOMALY.value,
             level=RiskLevel.MEDIUM,
             score=5.0,
-            description="Keine Vergleichsdaten verfügbar"
+            description="Keine Vergleichsdaten verfügbar",
         )
 
     avg_price = sum(reference_amounts) / len(reference_amounts)
@@ -255,9 +271,9 @@ def assess_price_risk(
             evidence=[
                 f"Angebotssumme: EUR {bid_amount:,.2f}",
                 f"Durchschnitt: EUR {avg_price:,.2f}",
-                f"Abweichung: {deviation_pct:.1f}%"
+                f"Abweichung: {deviation_pct:.1f}%",
             ],
-            mitigation="Nachkalkulation prüfen, finanzielle Absicherung verlangen"
+            mitigation="Nachkalkulation prüfen, finanzielle Absicherung verlangen",
         )
     elif bid_amount < avg_price - std_dev:
         # Niedrig
@@ -266,7 +282,7 @@ def assess_price_risk(
             level=RiskLevel.MEDIUM,
             score=5.0,
             description=f"Angebot {abs(deviation_pct):.1f}% unter Durchschnitt",
-            evidence=[f"Abweichung: {deviation_pct:.1f}%"]
+            evidence=[f"Abweichung: {deviation_pct:.1f}%"],
         )
     elif bid_amount > avg_price + 2 * std_dev:
         # Sehr hoch
@@ -275,7 +291,7 @@ def assess_price_risk(
             level=RiskLevel.MEDIUM,
             score=4.0,
             description=f"Angebot {deviation_pct:.1f}% über Durchschnitt - teuer",
-            evidence=[f"Abweichung: {deviation_pct:.1f}%"]
+            evidence=[f"Abweichung: {deviation_pct:.1f}%"],
         )
     else:
         # Normal
@@ -284,7 +300,7 @@ def assess_price_risk(
             level=RiskLevel.LOW,
             score=2.0,
             description="Preis im erwarteten Bereich",
-            evidence=[f"Abweichung: {deviation_pct:.1f}%"]
+            evidence=[f"Abweichung: {deviation_pct:.1f}%"],
         )
 
 
@@ -306,7 +322,7 @@ def assess_technical_risk(bid: BidDocument) -> RiskAssessment:
             score=7.5,
             description=f"{len(missing)} wichtige Anforderungen fehlen",
             evidence=missing,
-            mitigation="Nachforderung technischer Unterlagen"
+            mitigation="Nachforderung technischer Unterlagen",
         )
     elif len(missing) > 0:
         return RiskAssessment(
@@ -314,7 +330,7 @@ def assess_technical_risk(bid: BidDocument) -> RiskAssessment:
             level=RiskLevel.MEDIUM,
             score=4.0,
             description=f"{len(missing)} Anforderungen fehlen",
-            evidence=missing
+            evidence=missing,
         )
     else:
         return RiskAssessment(
@@ -322,7 +338,7 @@ def assess_technical_risk(bid: BidDocument) -> RiskAssessment:
             level=RiskLevel.LOW,
             score=1.5,
             description="Alle technischen Anforderungen erfüllt",
-            evidence=requirements[:3]
+            evidence=requirements[:3],
         )
 
 
@@ -347,7 +363,7 @@ def assess_timeline_risk(execution_days: int, reference_days: List[int]) -> Risk
             level=RiskLevel.HIGH,
             score=7.0,
             description=f"Ausführungszeit {abs(deviation_pct):.0f}% kürzer als üblich - unrealistisch",
-            evidence=[f"Angebot: {execution_days} Tage", f"Üblich: {avg_days:.0f} Tage"]
+            evidence=[f"Angebot: {execution_days} Tage", f"Üblich: {avg_days:.0f} Tage"],
         )
     elif execution_days > avg_days * 1.5:
         # Sehr lang
@@ -356,7 +372,7 @@ def assess_timeline_risk(execution_days: int, reference_days: List[int]) -> Risk
             level=RiskLevel.MEDIUM,
             score=4.0,
             description=f"Ausführungszeit {deviation_pct:.0f}% länger als üblich",
-            evidence=[f"{execution_days} Tage"]
+            evidence=[f"{execution_days} Tage"],
         )
     else:
         return RiskAssessment(
@@ -364,13 +380,14 @@ def assess_timeline_risk(execution_days: int, reference_days: List[int]) -> Risk
             level=RiskLevel.LOW,
             score=2.0,
             description="Ausführungszeit realistisch",
-            evidence=[f"{execution_days} Tage"]
+            evidence=[f"{execution_days} Tage"],
         )
 
 
 # ═══════════════════════════════════════════════════════════════════════════
 # Scoring Functions
 # ═══════════════════════════════════════════════════════════════════════════
+
 
 def calculate_price_score(bid_amount: float, lowest_amount: float) -> float:
     """
@@ -442,10 +459,9 @@ def calculate_technical_score(bid: BidDocument) -> float:
 # Main AI Evaluation
 # ═══════════════════════════════════════════════════════════════════════════
 
+
 def ai_evaluate_bid(
-    bid: BidDocument,
-    all_bids: List[BidDocument],
-    evaluation_criteria: Dict[str, float] = None
+    bid: BidDocument, all_bids: List[BidDocument], evaluation_criteria: Dict[str, float] = None
 ) -> AIEvaluationResult:
     """
     Complete AI-powered bid evaluation
@@ -457,12 +473,7 @@ def ai_evaluate_bid(
     """
 
     if evaluation_criteria is None:
-        evaluation_criteria = {
-            "price": 0.40,
-            "quality": 0.30,
-            "technical": 0.20,
-            "timeline": 0.10
-        }
+        evaluation_criteria = {"price": 0.40, "quality": 0.30, "technical": 0.20, "timeline": 0.10}
 
     # Calculate scores
     bid_amounts = [b.bid_amount for b in all_bids]
@@ -475,17 +486,17 @@ def ai_evaluate_bid(
 
     # Overall score (weighted)
     overall_score = (
-        price_score * evaluation_criteria["price"] +
-        quality_score * evaluation_criteria["quality"] +
-        technical_score * evaluation_criteria["technical"] +
-        timeline_score * evaluation_criteria["timeline"]
+        price_score * evaluation_criteria["price"]
+        + quality_score * evaluation_criteria["quality"]
+        + technical_score * evaluation_criteria["technical"]
+        + timeline_score * evaluation_criteria["timeline"]
     )
 
     # Risk assessments
     risks = [
         assess_price_risk(bid.bid_amount, bid_amounts),
         assess_technical_risk(bid),
-        assess_timeline_risk(bid.execution_time_days, [b.execution_time_days for b in all_bids])
+        assess_timeline_risk(bid.execution_time_days, [b.execution_time_days for b in all_bids]),
     ]
 
     total_risk = sum(r.score for r in risks) / len(risks)
@@ -507,28 +518,26 @@ def ai_evaluate_bid(
             compliant="leistungsverzeichnis" in bid.technical_proposal.lower(),
             confidence=0.8,
             evidence="LV-Bezug im Angebot",
-            category="technical"
+            category="technical",
         ),
         ComplianceCheck(
             requirement="Gewährleistung mind. 3 Jahre",
             compliant=bid.warranty_years >= 3,
             confidence=1.0,
             evidence=f"{bid.warranty_years} Jahre angeboten",
-            category="legal"
-        )
+            category="legal",
+        ),
     ]
 
     compliance_rate = sum(1 for c in compliance_checks if c.compliant) / len(compliance_checks)
 
     # Recommendation
-    recommended = (
-        overall_score >= 70 and
-        total_risk < 6 and
-        compliance_rate >= 0.8
-    )
+    recommended = overall_score >= 70 and total_risk < 6 and compliance_rate >= 0.8
 
     if recommended:
-        reason = f"Sehr gutes Angebot: Score {overall_score:.1f}, niedriges Risiko ({risk_level.value})"
+        reason = (
+            f"Sehr gutes Angebot: Score {overall_score:.1f}, niedriges Risiko ({risk_level.value})"
+        )
     else:
         reasons = []
         if overall_score < 70:
@@ -556,7 +565,7 @@ def ai_evaluate_bid(
         compliance_rate=compliance_rate,
         recommended=recommended,
         recommendation_reason=reason,
-        confidence=0.85
+        confidence=0.85,
     )
 
 
@@ -581,7 +590,7 @@ if __name__ == "__main__":
             technical_proposal="Ausführung gemäß ÖNORM A 2063 Leistungsverzeichnis. BIM Level 3 konform. Energieausweis A+. Brandschutz nach TRVB. Gewährleistung 5 Jahre.",
             company_profile="Seit 1985 im Hochbau tätig. ISO 9001 zertifiziert. 45 Mitarbeiter.",
             references=["Projekt Wien 2024", "Projekt Graz 2023", "Projekt Linz 2022"],
-            certificates=["ISO 9001", "ISO 14001", "OHSAS 18001", "CE"]
+            certificates=["ISO 9001", "ISO 14001", "OHSAS 18001", "CE"],
         ),
         BidDocument(
             bid_id="BID-002",
@@ -592,7 +601,7 @@ if __name__ == "__main__":
             technical_proposal="Ausführung nach Stand der Technik.",
             company_profile="Kleiner Baumeister.",
             references=["Ein Projekt"],
-            certificates=["Gewerbeschein"]
+            certificates=["Gewerbeschein"],
         ),
         BidDocument(
             bid_id="BID-003",
@@ -603,8 +612,8 @@ if __name__ == "__main__":
             technical_proposal="ÖNORM A 2063 Ausführung. BIM-basierte Planung. ISO 19650 konform. Statik geprüft. Brandschutz zertifiziert.",
             company_profile="Großes Bauunternehmen seit 1970. 200 Mitarbeiter. Spezialist für Wohnbau.",
             references=["Großprojekt Wien", "Projekt Salzburg", "Projekt Innsbruck"],
-            certificates=["ISO 9001", "ISO 14001", "BIM Zertifikat"]
-        )
+            certificates=["ISO 9001", "ISO 14001", "BIM Zertifikat"],
+        ),
     ]
 
     print("Test: AI-Evaluation von 3 Angeboten...")
@@ -650,7 +659,9 @@ if __name__ == "__main__":
     ranked = sorted(results, key=lambda r: r.overall_score, reverse=True)
     for i, r in enumerate(ranked, 1):
         star = "★" if r.recommended else " "
-        print(f"  {i}. {star} {r.bidder_name:30s} Score: {r.overall_score:5.1f}  Risiko: {r.total_risk_score:.1f}/10")
+        print(
+            f"  {i}. {star} {r.bidder_name:30s} Score: {r.overall_score:5.1f}  Risiko: {r.total_risk_score:.1f}/10"
+        )
 
     print()
     print("✓ AI Tender Evaluation FUNKTIONIERT")

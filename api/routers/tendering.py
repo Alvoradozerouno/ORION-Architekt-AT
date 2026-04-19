@@ -2,38 +2,40 @@
 ÖNORM A 2063 Tendering & Bid Management Router
 Complete API for Austrian construction tendering
 """
-from fastapi import APIRouter, HTTPException, BackgroundTasks, Depends, status
-from pydantic import BaseModel, Field, field_validator, ConfigDict
-from typing import List, Dict, Optional, Any
+
+import os
+import sys
 from datetime import datetime
 from enum import Enum
-import sys
-import os
+from typing import Any, Dict, List, Optional
+
+from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, status
+from pydantic import BaseModel, ConfigDict, Field, field_validator
 
 # Add parent directory to path
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
 
 from orion_oenorm_a2063 import (
-    LVPosition,
-    LVAenderung,
-    generiere_beispiel_lv_einfamilienhaus,
-    exportiere_lv_oenorm_json,
-    exportiere_gaeb_xml,
-    vergleiche_angebote_detailliert,
-    berechne_regionale_anpassung,
-    berechne_phasen_kosten,
-    erstelle_lv_aenderung,
-    vergleiche_lv_versionen,
-    erstelle_template_erdarbeiten,
-    erstelle_template_betondecke,
-    erstelle_template_mauerwerk,
-    erstelle_template_dacheindeckung,
-    erstelle_template_estrich,
-    erstelle_template_fenster,
-    WASTE_FACTORS_AT,
-    REGIONALE_FAKTOREN_AT,
     BAUPHASEN_AT,
     GEWERKE_KATALOG_AT,
+    REGIONALE_FAKTOREN_AT,
+    WASTE_FACTORS_AT,
+    LVAenderung,
+    LVPosition,
+    berechne_phasen_kosten,
+    berechne_regionale_anpassung,
+    erstelle_lv_aenderung,
+    erstelle_template_betondecke,
+    erstelle_template_dacheindeckung,
+    erstelle_template_erdarbeiten,
+    erstelle_template_estrich,
+    erstelle_template_fenster,
+    erstelle_template_mauerwerk,
+    exportiere_gaeb_xml,
+    exportiere_lv_oenorm_json,
+    generiere_beispiel_lv_einfamilienhaus,
+    vergleiche_angebote_detailliert,
+    vergleiche_lv_versionen,
 )
 
 router = APIRouter(
@@ -46,8 +48,10 @@ router = APIRouter(
 # Pydantic Models
 # ═══════════════════════════════════════════════════════════════════════════
 
+
 class Bundesland(str, Enum):
     """Austrian Bundesländer"""
+
     WIEN = "wien"
     TIROL = "tirol"
     VORARLBERG = "vorarlberg"
@@ -61,6 +65,7 @@ class Bundesland(str, Enum):
 
 class ExportFormat(str, Enum):
     """Export formats"""
+
     OENORM_JSON = "oenorm_json"
     GAEB_XML = "gaeb_xml"
     BOTH = "both"
@@ -68,6 +73,7 @@ class ExportFormat(str, Enum):
 
 class LVPositionModel(BaseModel):
     """LV Position API model"""
+
     oz: str = Field(..., description="Ordnungszahl (e.g. 01.001)")
     kurztext: str = Field(..., description="Short description")
     langtext: str = Field(..., description="Detailed description")
@@ -80,7 +86,8 @@ class LVPositionModel(BaseModel):
     stlb_code: Optional[str] = Field(None, description="StLB-BAU code")
     version: str = Field("1.0", description="Version number")
 
-    model_config = ConfigDict(json_schema_extra={
+    model_config = ConfigDict(
+        json_schema_extra={
             "example": {
                 "oz": "01.001",
                 "kurztext": "Erdarbeiten Aushub",
@@ -91,30 +98,35 @@ class LVPositionModel(BaseModel):
                 "gewerk": "01",
                 "kostengruppe": 300,
             }
-        })
+        }
+    )
 
 
 class LVGenerateRequest(BaseModel):
     """Request to generate LV"""
+
     projekt_typ: str = Field("einfamilienhaus", description="Project type")
     bgf_m2: float = Field(..., gt=0, description="Gross floor area in m²")
     geschosse: int = Field(2, ge=1, le=10, description="Number of floors")
     bundesland: Bundesland = Field(Bundesland.NIEDEROESTERREICH, description="Austrian Bundesland")
     apply_regional_factors: bool = Field(True, description="Apply regional cost factors")
 
-    model_config = ConfigDict(json_schema_extra={
+    model_config = ConfigDict(
+        json_schema_extra={
             "example": {
                 "projekt_typ": "einfamilienhaus",
                 "bgf_m2": 150,
                 "geschosse": 2,
                 "bundesland": "tirol",
-                "apply_regional_factors": True
+                "apply_regional_factors": True,
             }
-        })
+        }
+    )
 
 
 class LVGenerateResponse(BaseModel):
     """Response with generated LV"""
+
     lv_id: str
     positionen: List[LVPositionModel]
     anzahl_positionen: int
@@ -127,6 +139,7 @@ class LVGenerateResponse(BaseModel):
 
 class ProjektInfo(BaseModel):
     """Project information"""
+
     name: str = Field(..., description="Project name")
     adresse: str = Field("", description="Project address")
     bundesland: Bundesland = Field(Bundesland.NIEDEROESTERREICH)
@@ -136,6 +149,7 @@ class ProjektInfo(BaseModel):
 
 class Auftraggeber(BaseModel):
     """Client/Owner information"""
+
     name: str
     adresse: str = ""
     kontakt: str = ""
@@ -143,6 +157,7 @@ class Auftraggeber(BaseModel):
 
 class ExportRequest(BaseModel):
     """Request to export LV"""
+
     positionen: List[LVPositionModel]
     projekt_info: ProjektInfo
     auftraggeber: Auftraggeber
@@ -152,6 +167,7 @@ class ExportRequest(BaseModel):
 
 class BidPosition(BaseModel):
     """Bid position"""
+
     oz: str
     menge: float
     ep: float
@@ -159,6 +175,7 @@ class BidPosition(BaseModel):
 
 class BidSubmission(BaseModel):
     """Bid submission"""
+
     firma: str = Field(..., description="Company name")
     positionen: List[BidPosition]
     submission_date: Optional[str] = None
@@ -166,19 +183,24 @@ class BidSubmission(BaseModel):
 
 class BidComparisonRequest(BaseModel):
     """Request to compare bids"""
+
     angebote: List[BidSubmission] = Field(..., min_length=1)
     lv_positionen: List[LVPositionModel]
 
 
 class ParametricTemplateRequest(BaseModel):
     """Request for parametric template"""
-    template_type: str = Field(..., description="erdarbeiten, betondecke, mauerwerk, dacheindeckung, estrich, fenster")
+
+    template_type: str = Field(
+        ..., description="erdarbeiten, betondecke, mauerwerk, dacheindeckung, estrich, fenster"
+    )
     parameters: Dict[str, Any]
 
 
 # ═══════════════════════════════════════════════════════════════════════════
 # Helper Functions
 # ═══════════════════════════════════════════════════════════════════════════
+
 
 def convert_to_lv_position(pos_model: LVPositionModel) -> LVPosition:
     """Convert API model to internal LVPosition"""
@@ -218,6 +240,7 @@ def convert_from_lv_position(pos: LVPosition) -> LVPositionModel:
 # API Endpoints
 # ═══════════════════════════════════════════════════════════════════════════
 
+
 @router.post("/lv/generate", response_model=LVGenerateResponse, status_code=status.HTTP_201_CREATED)
 async def generate_lv(request: LVGenerateRequest):
     """
@@ -234,22 +257,19 @@ async def generate_lv(request: LVGenerateRequest):
     try:
         # Generate LV
         positionen = generiere_beispiel_lv_einfamilienhaus(
-            bgf_m2=request.bgf_m2,
-            geschosse=request.geschosse
+            bgf_m2=request.bgf_m2, geschosse=request.geschosse
         )
 
         # Apply regional factors if requested
         regional_factor = None
         if request.apply_regional_factors:
-            regional_result = berechne_regionale_anpassung(
-                positionen,
-                request.bundesland.value
-            )
+            regional_result = berechne_regionale_anpassung(positionen, request.bundesland.value)
             positionen = regional_result["positionen_angepasst"]
             regional_factor = regional_result["faktor"]
 
         # Generate LV ID
         import uuid
+
         lv_id = str(uuid.uuid4())
 
         # Convert to API models
@@ -268,13 +288,13 @@ async def generate_lv(request: LVGenerateRequest):
                 "bgf_m2": request.bgf_m2,
                 "geschosse": request.geschosse,
                 "standard": "ÖNORM A 2063-1:2024",
-            }
+            },
         )
 
     except Exception as e:
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"Error generating LV: {str(e)}"
+            detail=f"Error generating LV: {str(e)}",
         )
 
 
@@ -302,7 +322,7 @@ async def export_lv(request: ExportRequest):
                 positionen=positionen,
                 projekt_info=request.projekt_info.dict(),
                 auftraggeber=request.auftraggeber.dict(),
-                bundesland=request.projekt_info.bundesland.value
+                bundesland=request.projekt_info.bundesland.value,
             )
             result["oenorm_json"] = oenorm_json
 
@@ -310,7 +330,7 @@ async def export_lv(request: ExportRequest):
             gaeb_xml = exportiere_gaeb_xml(
                 lv_positionen=positionen,
                 projekt_info=request.projekt_info.dict(),
-                version=request.version
+                version=request.version,
             )
             result["gaeb_xml"] = gaeb_xml
 
@@ -319,7 +339,7 @@ async def export_lv(request: ExportRequest):
     except Exception as e:
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"Error exporting LV: {str(e)}"
+            detail=f"Error exporting LV: {str(e)}",
         )
 
 
@@ -350,7 +370,7 @@ async def compare_bids(request: BidComparisonRequest):
     except Exception as e:
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"Error comparing bids: {str(e)}"
+            detail=f"Error comparing bids: {str(e)}",
         )
 
 
@@ -369,7 +389,7 @@ async def calculate_phase_costs(lv_id: str):
     # For now, return example
     raise HTTPException(
         status_code=status.HTTP_501_NOT_IMPLEMENTED,
-        detail="Phase cost calculation requires LV storage implementation"
+        detail="Phase cost calculation requires LV storage implementation",
     )
 
 
@@ -395,41 +415,41 @@ async def create_parametric_position(request: ParametricTemplateRequest):
         if template_type == "erdarbeiten":
             position = erstelle_template_erdarbeiten(
                 grundflaeche_m2=params.get("grundflaeche_m2", 150),
-                tiefe_m=params.get("tiefe_m", 3.0)
+                tiefe_m=params.get("tiefe_m", 3.0),
             )
         elif template_type == "betondecke":
             position = erstelle_template_betondecke(
                 flaeche_m2=params.get("flaeche_m2", 150),
                 dicke_cm=params.get("dicke_cm", 20),
-                betonfestigkeitsklasse=params.get("betonfestigkeitsklasse", "C25/30")
+                betonfestigkeitsklasse=params.get("betonfestigkeitsklasse", "C25/30"),
             )
         elif template_type == "mauerwerk":
             position = erstelle_template_mauerwerk(
                 umfang_m=params.get("umfang_m", 40),
                 hoehe_m=params.get("hoehe_m", 2.5),
-                dicke_cm=params.get("dicke_cm", 25)
+                dicke_cm=params.get("dicke_cm", 25),
             )
         elif template_type == "dacheindeckung":
             position = erstelle_template_dacheindeckung(
                 dachflaeche_m2=params.get("dachflaeche_m2", 100),
-                material=params.get("material", "Tondachziegel")
+                material=params.get("material", "Tondachziegel"),
             )
         elif template_type == "estrich":
             position = erstelle_template_estrich(
                 nutzflaeche_m2=params.get("nutzflaeche_m2", 120),
                 typ=params.get("typ", "Heizestrich"),
-                dicke_cm=params.get("dicke_cm", 6)
+                dicke_cm=params.get("dicke_cm", 6),
             )
         elif template_type == "fenster":
             position = erstelle_template_fenster(
                 anzahl=params.get("anzahl", 15),
                 flaeche_m2_pro_stueck=params.get("flaeche_m2_pro_stueck", 1.5),
-                u_wert=params.get("u_wert", 0.9)
+                u_wert=params.get("u_wert", 0.9),
             )
         else:
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
-                detail=f"Unknown template type: {template_type}"
+                detail=f"Unknown template type: {template_type}",
             )
 
         return convert_from_lv_position(position)
@@ -439,7 +459,7 @@ async def create_parametric_position(request: ParametricTemplateRequest):
     except Exception as e:
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"Error creating parametric position: {str(e)}"
+            detail=f"Error creating parametric position: {str(e)}",
         )
 
 
@@ -457,7 +477,7 @@ async def get_waste_factors():
     """
     return {
         "waste_factors": WASTE_FACTORS_AT,
-        "source": "Österreichische Baupraxis, BKI-Baukosten 2024"
+        "source": "Österreichische Baupraxis, BKI-Baukosten 2024",
     }
 
 
@@ -473,7 +493,7 @@ async def get_regional_factors():
     """
     return {
         "regional_factors": REGIONALE_FAKTOREN_AT,
-        "reference": "Niederösterreich = 1.00 (baseline)"
+        "reference": "Niederösterreich = 1.00 (baseline)",
     }
 
 
@@ -484,10 +504,7 @@ async def get_trades():
 
     Returns 12 standardized Austrian construction trades from ÖNORM.
     """
-    return {
-        "gewerke": GEWERKE_KATALOG_AT,
-        "standard": "ÖNORM A 2063, StLB-BAU"
-    }
+    return {"gewerke": GEWERKE_KATALOG_AT, "standard": "ÖNORM A 2063, StLB-BAU"}
 
 
 @router.get("/metadata/construction-phases")
@@ -500,10 +517,7 @@ async def get_construction_phases():
     - Ausbau: 40%
     - Fertigstellung: 15%
     """
-    return {
-        "bauphasen": BAUPHASEN_AT,
-        "standard": "ÖNORM B 1801-1:2009"
-    }
+    return {"bauphasen": BAUPHASEN_AT, "standard": "ÖNORM B 1801-1:2009"}
 
 
 @router.get("/health")
@@ -517,6 +531,6 @@ async def health_check():
             "ÖNORM A 2063-1:2024",
             "ÖNORM A 2063-2:2021",
             "ÖNORM B 2110:2013",
-            "ÖNORM B 1801-1:2009"
-        ]
+            "ÖNORM B 1801-1:2009",
+        ],
     }

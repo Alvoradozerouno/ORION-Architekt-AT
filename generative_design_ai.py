@@ -27,20 +27,21 @@ Author: ORION Architekt AT Team
 Date: 2026-04-09
 """
 
-from dataclasses import dataclass, field
-from typing import List, Dict, Tuple, Optional, Callable, Any
-from enum import Enum
-import random
-import math
 import copy
-
+import math
+import random
+from dataclasses import dataclass, field
+from enum import Enum
+from typing import Any, Callable, Dict, List, Optional, Tuple
 
 # ==============================================================================
 # ENUMS
 # ==============================================================================
 
+
 class OptimizationObjective(str, Enum):
     """Optimization objectives"""
+
     MINIMIZE_COST = "minimize_cost"
     MINIMIZE_WEIGHT = "minimize_weight"
     MINIMIZE_CO2 = "minimize_co2"
@@ -51,9 +52,10 @@ class OptimizationObjective(str, Enum):
 
 class StructuralSystem(str, Enum):
     """Structural system types"""
+
     FRAME = "frame"  # Rahmensystem
-    WALL = "wall"    # Wandsystem
-    SLAB = "slab"    # Plattensystem
+    WALL = "wall"  # Wandsystem
+    SLAB = "slab"  # Plattensystem
     TRUSS = "truss"  # Fachwerk
     SHELL = "shell"  # Schale
     HYBRID = "hybrid"  # Hybrid
@@ -61,6 +63,7 @@ class StructuralSystem(str, Enum):
 
 class MaterialType(str, Enum):
     """Material types for optimization"""
+
     CONCRETE = "concrete"
     STEEL = "steel"
     TIMBER = "timber"
@@ -71,9 +74,11 @@ class MaterialType(str, Enum):
 # DATACLASSES
 # ==============================================================================
 
+
 @dataclass
 class DesignParameter:
     """Single design parameter for optimization"""
+
     name: str
     min_value: float
     max_value: float
@@ -131,6 +136,7 @@ class DesignGenome:
 
     A genome represents one candidate solution with all design parameters.
     """
+
     parameters: Dict[str, DesignParameter]
     fitness_scores: Dict[str, float] = field(default_factory=dict)
     total_fitness: float = 0.0
@@ -140,7 +146,7 @@ class DesignGenome:
     is_feasible: bool = True
     constraint_violations: List[str] = field(default_factory=list)
 
-    def clone(self) -> 'DesignGenome':
+    def clone(self) -> "DesignGenome":
         """Deep copy of genome"""
         return copy.deepcopy(self)
 
@@ -161,6 +167,7 @@ class DesignGenome:
 @dataclass
 class OptimizationObjectiveConfig:
     """Configuration for one optimization objective"""
+
     objective: OptimizationObjective
     weight: float  # Importance weight (0-1)
     minimize: bool = True  # True = minimize, False = maximize
@@ -173,6 +180,7 @@ class OptimizationObjectiveConfig:
 @dataclass
 class ConstraintFunction:
     """Design constraint (e.g., ÖNORM compliance)"""
+
     name: str
     function: Callable[[DesignGenome], bool]
     description: str
@@ -181,6 +189,7 @@ class ConstraintFunction:
 @dataclass
 class OptimizationResult:
     """Result of generative design optimization"""
+
     best_genome: DesignGenome
     pareto_front: List[DesignGenome]  # Non-dominated solutions
     all_generations: List[List[DesignGenome]]
@@ -239,7 +248,7 @@ class BeamDesignGenome(DesignGenome):
         height = self.get_parameter_value("height_mm")
 
         # Section modulus W = b*h²/6
-        w = (width * height ** 2) / 6  # mm³
+        w = (width * height**2) / 6  # mm³
 
         # Approximate load capacity (moment resistance)
         # M = W * f (simplified)
@@ -261,6 +270,7 @@ class BeamDesignGenome(DesignGenome):
 # GENETIC ALGORITHM ENGINE
 # ==============================================================================
 
+
 class GenerativeDesignEngine:
     """
     Genetic Algorithm engine for multi-objective optimization
@@ -274,7 +284,7 @@ class GenerativeDesignEngine:
         n_generations: int = 50,
         mutation_rate: float = 0.1,
         crossover_rate: float = 0.8,
-        elitism_rate: float = 0.1
+        elitism_rate: float = 0.1,
     ):
         self.population_size = population_size
         self.n_generations = n_generations
@@ -333,21 +343,23 @@ class GenerativeDesignEngine:
                 objective_name = obj_config.objective.value
 
                 # Get objective value
-                if hasattr(genome, 'calculate_cost'):
+                if hasattr(genome, "calculate_cost"):
                     # Specialized genome
                     if obj_config.objective == OptimizationObjective.MINIMIZE_COST:
                         cost, weight, co2 = genome.calculate_cost()
-                        genome.fitness_scores['cost'] = cost
-                        genome.fitness_scores['weight'] = weight
-                        genome.fitness_scores['co2'] = co2
+                        genome.fitness_scores["cost"] = cost
+                        genome.fitness_scores["weight"] = weight
+                        genome.fitness_scores["co2"] = co2
                     elif obj_config.objective == OptimizationObjective.MAXIMIZE_EFFICIENCY:
                         efficiency = genome.calculate_structural_efficiency()
-                        genome.fitness_scores['efficiency'] = efficiency
+                        genome.fitness_scores["efficiency"] = efficiency
 
             # Calculate total fitness (weighted sum, normalized)
             total = 0.0
             for obj_config in self.objectives:
-                obj_name = obj_config.objective.value.replace("minimize_", "").replace("maximize_", "")
+                obj_name = obj_config.objective.value.replace("minimize_", "").replace(
+                    "maximize_", ""
+                )
                 if obj_name in genome.fitness_scores:
                     value = genome.fitness_scores[obj_name]
 
@@ -385,7 +397,9 @@ class GenerativeDesignEngine:
 
         return parent1, parent2
 
-    def crossover(self, parent1: DesignGenome, parent2: DesignGenome) -> Tuple[DesignGenome, DesignGenome]:
+    def crossover(
+        self, parent1: DesignGenome, parent2: DesignGenome
+    ) -> Tuple[DesignGenome, DesignGenome]:
         """
         Crossover two parents to create offspring
 
@@ -398,8 +412,12 @@ class GenerativeDesignEngine:
             for param_name in child1.parameters.keys():
                 if random.random() < 0.5:
                     # Swap parameter values
-                    child1.parameters[param_name].current_value = parent2.parameters[param_name].current_value
-                    child2.parameters[param_name].current_value = parent1.parameters[param_name].current_value
+                    child1.parameters[param_name].current_value = parent2.parameters[
+                        param_name
+                    ].current_value
+                    child2.parameters[param_name].current_value = parent1.parameters[
+                        param_name
+                    ].current_value
 
         return child1, child2
 
@@ -454,6 +472,7 @@ class GenerativeDesignEngine:
             OptimizationResult with best solutions
         """
         import time
+
         start_time = time.time()
 
         # Evolution loop
@@ -466,8 +485,10 @@ class GenerativeDesignEngine:
             # Progress
             if (generation + 1) % 10 == 0:
                 best = self.population[0]
-                print(f"  Generation {generation+1}/{self.n_generations}: "
-                      f"Best fitness = {best.total_fitness:.2f}")
+                print(
+                    f"  Generation {generation+1}/{self.n_generations}: "
+                    f"Best fitness = {best.total_fitness:.2f}"
+                )
 
         # Final evaluation
         self.evaluate_population()
@@ -487,7 +508,7 @@ class GenerativeDesignEngine:
             n_generations=self.n_generations,
             population_size=self.population_size,
             convergence_history=self.convergence_history,
-            computation_time_seconds=end_time - start_time
+            computation_time_seconds=end_time - start_time,
         )
 
 
@@ -495,9 +516,9 @@ class GenerativeDesignEngine:
 # HELPER FUNCTIONS
 # ==============================================================================
 
+
 def create_beam_optimization_problem(
-    span_m: float = 6.0,
-    load_kn_m: float = 20.0
+    span_m: float = 6.0, load_kn_m: float = 20.0
 ) -> Tuple[BeamDesignGenome, List[OptimizationObjectiveConfig], List[ConstraintFunction]]:
     """
     Create beam optimization problem
@@ -520,7 +541,9 @@ def create_beam_optimization_problem(
         "width_mm": DesignParameter("width_mm", 200, 500, step=50, unit="mm"),
         "height_mm": DesignParameter("height_mm", 300, 800, step=50, unit="mm"),
         "length_mm": DesignParameter("length_mm", span_m * 1000, span_m * 1000, unit="mm"),  # Fixed
-        "material_type": DesignParameter("material_type", 0, 2, step=1, unit="")  # 0=concrete, 1=steel, 2=timber
+        "material_type": DesignParameter(
+            "material_type", 0, 2, step=1, unit=""
+        ),  # 0=concrete, 1=steel, 2=timber
     }
 
     # Create template genome
@@ -529,20 +552,14 @@ def create_beam_optimization_problem(
     # Define objectives
     objectives = [
         OptimizationObjectiveConfig(
-            objective=OptimizationObjective.MINIMIZE_COST,
-            weight=0.4,
-            minimize=True
+            objective=OptimizationObjective.MINIMIZE_COST, weight=0.4, minimize=True
         ),
         OptimizationObjectiveConfig(
-            objective=OptimizationObjective.MINIMIZE_CO2,
-            weight=0.3,
-            minimize=True
+            objective=OptimizationObjective.MINIMIZE_CO2, weight=0.3, minimize=True
         ),
         OptimizationObjectiveConfig(
-            objective=OptimizationObjective.MAXIMIZE_EFFICIENCY,
-            weight=0.3,
-            minimize=False
-        )
+            objective=OptimizationObjective.MAXIMIZE_EFFICIENCY, weight=0.3, minimize=False
+        ),
     ]
 
     # Define constraints
@@ -553,7 +570,7 @@ def create_beam_optimization_problem(
         span = genome.get_parameter_value("length_mm")
 
         # Section modulus
-        w = (width * height ** 2) / 6  # mm³
+        w = (width * height**2) / 6  # mm³
 
         # Required moment (uniformly distributed load)
         m_ed = (load_kn_m * (span / 1000) ** 2) / 8  # kNm
@@ -571,14 +588,14 @@ def create_beam_optimization_problem(
         span = genome.get_parameter_value("length_mm")
 
         # Moment of inertia
-        i = (width * height ** 3) / 12  # mm⁴
+        i = (width * height**3) / 12  # mm⁴
 
         # E-modulus (concrete)
         e = 33000  # N/mm²
 
         # Deflection for uniform load: δ = 5*q*L⁴/(384*E*I)
         load_n_mm = load_kn_m * 1000 / 1000  # N/mm
-        delta = (5 * load_n_mm * span ** 4) / (384 * e * i)  # mm
+        delta = (5 * load_n_mm * span**4) / (384 * e * i)  # mm
 
         # Limit: L/250
         limit = span / 250
@@ -589,13 +606,13 @@ def create_beam_optimization_problem(
         ConstraintFunction(
             name="min_strength",
             function=constraint_min_strength,
-            description="Minimum bending strength per ÖNORM B 4700"
+            description="Minimum bending strength per ÖNORM B 4700",
         ),
         ConstraintFunction(
             name="deflection_limit",
             function=constraint_deflection,
-            description="Deflection limit L/250 per ÖNORM B 1990"
-        )
+            description="Deflection limit L/250 per ÖNORM B 1990",
+        ),
     ]
 
     return template, objectives, constraints
@@ -604,6 +621,7 @@ def create_beam_optimization_problem(
 # ==============================================================================
 # TESTING
 # ==============================================================================
+
 
 def test_generative_design():
     """Comprehensive test of generative design AI"""
@@ -622,10 +640,7 @@ def test_generative_design():
     print("  • ÖNORM B 1990 deflection limit (L/250)")
 
     # Create optimization problem
-    template, objectives, constraints = create_beam_optimization_problem(
-        span_m=6.0,
-        load_kn_m=20.0
-    )
+    template, objectives, constraints = create_beam_optimization_problem(span_m=6.0, load_kn_m=20.0)
 
     # Create optimization engine
     engine = GenerativeDesignEngine(
@@ -633,7 +648,7 @@ def test_generative_design():
         n_generations=30,
         mutation_rate=0.15,
         crossover_rate=0.85,
-        elitism_rate=0.1
+        elitism_rate=0.1,
     )
 
     engine.objectives = objectives
@@ -666,7 +681,7 @@ def test_generative_design():
     print(f"  Height:   {best.get_parameter_value('height_mm'):.0f} mm")
     print(f"  Length:   {best.get_parameter_value('length_mm'):.0f} mm")
 
-    material_code = best.get_parameter_value('material_type')
+    material_code = best.get_parameter_value("material_type")
     material_name = {0.0: "Beton", 1.0: "Stahl", 2.0: "Holz"}.get(material_code, "Unknown")
     print(f"  Material: {material_name}")
 
@@ -685,21 +700,25 @@ def test_generative_design():
     print("PARETO FRONT (Top 5 Solutions)")
     print("=" * 80)
 
-    print(f"\n{'#':<4} {'Width':>8} {'Height':>8} {'Material':>10} "
-          f"{'Cost':>12} {'CO₂':>12} {'Efficiency':>12}")
+    print(
+        f"\n{'#':<4} {'Width':>8} {'Height':>8} {'Material':>10} "
+        f"{'Cost':>12} {'CO₂':>12} {'Efficiency':>12}"
+    )
     print("-" * 80)
 
     for i, genome in enumerate(result.pareto_front[:5], 1):
-        w = genome.get_parameter_value('width_mm')
-        h = genome.get_parameter_value('height_mm')
-        m_code = genome.get_parameter_value('material_type')
+        w = genome.get_parameter_value("width_mm")
+        h = genome.get_parameter_value("height_mm")
+        m_code = genome.get_parameter_value("material_type")
         m_name = {0.0: "Beton", 1.0: "Stahl", 2.0: "Holz"}.get(m_code, "?")
 
         c, wt, co2 = genome.calculate_cost()
         eff = genome.calculate_structural_efficiency()
 
-        print(f"{i:<4} {w:>6.0f} mm {h:>6.0f} mm {m_name:>10} "
-              f"EUR {c:>8,.0f} {co2:>+8,.0f} kg {eff:>11.3f}")
+        print(
+            f"{i:<4} {w:>6.0f} mm {h:>6.0f} mm {m_name:>10} "
+            f"EUR {c:>8,.0f} {co2:>+8,.0f} kg {eff:>11.3f}"
+        )
 
     print(f"\n{'='*80}")
     print("CONVERGENCE")
@@ -707,7 +726,9 @@ def test_generative_design():
 
     print(f"\nInitial best fitness: {result.convergence_history[0]:.2f}")
     print(f"Final best fitness:   {result.convergence_history[-1]:.2f}")
-    print(f"Improvement:          {result.convergence_history[-1] - result.convergence_history[0]:.2f}")
+    print(
+        f"Improvement:          {result.convergence_history[-1] - result.convergence_history[0]:.2f}"
+    )
     print(f"Computation time:     {result.computation_time_seconds:.2f} seconds")
 
     print(f"\n{'='*80}")

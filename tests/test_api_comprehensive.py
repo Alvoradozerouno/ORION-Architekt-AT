@@ -11,12 +11,13 @@ Status: PRODUCTION
 Coverage Target: 80%+
 """
 
-import pytest
-import sys
-import os
-from fastapi.testclient import TestClient
-from typing import Dict, Any
 import json
+import os
+import sys
+from typing import Any, Dict
+
+import pytest
+from fastapi.testclient import TestClient
 
 # Add parent directory to path
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
@@ -24,11 +25,11 @@ sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 # Import app
 from api.main import app
 from api.validation import (
-    Bundesland,
     BuildingType,
+    Bundesland,
+    sanitize_string,
     validate_api_key,
     validate_jwt_format,
-    sanitize_string
 )
 
 # Create test client
@@ -39,6 +40,7 @@ client = TestClient(app)
 # FIXTURES
 # ============================================================================
 
+
 @pytest.fixture
 def valid_uwert_request():
     """Valid U-value calculation request"""
@@ -46,32 +48,23 @@ def valid_uwert_request():
         "schichten": [
             {"material": "Beton C30/37", "dicke_mm": 200, "lambda_wert": 2.3},
             {"material": "EPS Dämmung", "dicke_mm": 160, "lambda_wert": 0.035},
-            {"material": "Kalkzementputz", "dicke_mm": 15, "lambda_wert": 0.70}
+            {"material": "Kalkzementputz", "dicke_mm": 15, "lambda_wert": 0.70},
         ],
         "innen_uebergang": 0.13,
-        "aussen_uebergang": 0.04
+        "aussen_uebergang": 0.04,
     }
 
 
 @pytest.fixture
 def valid_stellplatz_request():
     """Valid parking space request"""
-    return {
-        "bundesland": "wien",
-        "wohnungen": 10,
-        "building_type": "mehrfamilienhaus"
-    }
+    return {"bundesland": "wien", "wohnungen": 10, "building_type": "mehrfamilienhaus"}
 
 
 @pytest.fixture
 def valid_flaeche_request():
     """Valid area calculation request"""
-    return {
-        "raumtyp": "wohnung",
-        "laenge_m": 15.5,
-        "breite_m": 10.2,
-        "hoehe_m": 2.7
-    }
+    return {"raumtyp": "wohnung", "laenge_m": 15.5, "breite_m": 10.2, "hoehe_m": 2.7}
 
 
 @pytest.fixture
@@ -83,6 +76,7 @@ def valid_auth_token():
 # ============================================================================
 # HEALTH CHECK TESTS
 # ============================================================================
+
 
 class TestHealthChecks:
     """Test health and monitoring endpoints"""
@@ -117,6 +111,7 @@ class TestHealthChecks:
 # CALCULATION ENDPOINT TESTS
 # ============================================================================
 
+
 class TestCalculations:
     """Test building calculation endpoints"""
 
@@ -139,21 +134,13 @@ class TestCalculations:
 
     def test_uwert_calculation_negative_thickness(self):
         """Test U-value with negative thickness - should fail"""
-        request = {
-            "schichten": [
-                {"material": "Beton", "dicke_mm": -100, "lambda_wert": 2.3}
-            ]
-        }
+        request = {"schichten": [{"material": "Beton", "dicke_mm": -100, "lambda_wert": 2.3}]}
         response = client.post("/api/v1/calculations/uwert", json=request)
         assert response.status_code == 422
 
     def test_uwert_calculation_zero_lambda(self):
         """Test U-value with zero lambda - should fail"""
-        request = {
-            "schichten": [
-                {"material": "Invalid", "dicke_mm": 100, "lambda_wert": 0}
-            ]
-        }
+        request = {"schichten": [{"material": "Invalid", "dicke_mm": 100, "lambda_wert": 0}]}
         response = client.post("/api/v1/calculations/uwert", json=request)
         assert response.status_code == 422
 
@@ -181,8 +168,17 @@ class TestCalculations:
 
     def test_stellplaetze_all_bundeslaender(self):
         """Test parking calculation for all Bundesländer"""
-        bundeslaender = ["wien", "tirol", "salzburg", "vorarlberg", "burgenland",
-                        "kaernten", "steiermark", "oberoesterreich", "niederoesterreich"]
+        bundeslaender = [
+            "wien",
+            "tirol",
+            "salzburg",
+            "vorarlberg",
+            "burgenland",
+            "kaernten",
+            "steiermark",
+            "oberoesterreich",
+            "niederoesterreich",
+        ]
 
         for bl in bundeslaender:
             request = {"bundesland": bl, "wohnungen": 10}
@@ -224,7 +220,7 @@ class TestCalculations:
             "rampe_vorhanden": True,
             "rampe_steigung_prozent": 5,
             "aufzug_vorhanden": False,
-            "geschosse": 3
+            "geschosse": 3,
         }
         response = client.post("/api/v1/calculations/barrierefreiheit-check", json=request)
         assert response.status_code == 200
@@ -235,11 +231,7 @@ class TestCalculations:
 
     def test_barrierefreiheit_door_too_narrow(self):
         """Test accessibility check with narrow door"""
-        request = {
-            "tuer_breite_cm": 80,
-            "rampe_vorhanden": False,
-            "geschosse": 2
-        }
+        request = {"tuer_breite_cm": 80, "rampe_vorhanden": False, "geschosse": 2}
         response = client.post("/api/v1/calculations/barrierefreiheit-check", json=request)
         assert response.status_code == 200
         data = response.json()
@@ -252,7 +244,7 @@ class TestCalculations:
             "tuer_breite_cm": 95,
             "rampe_vorhanden": False,
             "aufzug_vorhanden": False,
-            "geschosse": 4
+            "geschosse": 4,
         }
         response = client.post("/api/v1/calculations/barrierefreiheit-check", json=request)
         assert response.status_code == 200
@@ -266,7 +258,7 @@ class TestCalculations:
             "max_entfernung_m": 35,
             "treppenhaus_breite_m": 1.25,
             "geschosse": 3,
-            "gebaudetyp": "wohngebaeude"
+            "gebaudetyp": "wohngebaeude",
         }
         response = client.post("/api/v1/calculations/fluchtweg-check", json=request)
         assert response.status_code == 200
@@ -281,7 +273,7 @@ class TestCalculations:
             "max_entfernung_m": 50,
             "treppenhaus_breite_m": 1.25,
             "geschosse": 2,
-            "gebaudetyp": "wohngebaeude"
+            "gebaudetyp": "wohngebaeude",
         }
         response = client.post("/api/v1/calculations/fluchtweg-check", json=request)
         assert response.status_code == 200
@@ -291,10 +283,8 @@ class TestCalculations:
     def test_schallschutz_berechnung_valid(self):
         """Test valid sound insulation calculation"""
         request = {
-            "wandaufbau": [
-                {"material": "Ziegel 25cm", "dicke_mm": 250, "lambda_wert": 0.65}
-            ],
-            "gebaudetyp": "mehrfamilienhaus"
+            "wandaufbau": [{"material": "Ziegel 25cm", "dicke_mm": 250, "lambda_wert": 0.65}],
+            "gebaudetyp": "mehrfamilienhaus",
         }
         response = client.post("/api/v1/calculations/schallschutz-berechnung", json=request)
         assert response.status_code == 200
@@ -311,7 +301,7 @@ class TestCalculations:
             "uwert_wand": 0.20,
             "uwert_dach": 0.15,
             "uwert_fenster": 0.90,
-            "bundesland": "wien"
+            "bundesland": "wien",
         }
         response = client.post("/api/v1/calculations/heizlast-berechnung", json=request)
         assert response.status_code == 200
@@ -344,6 +334,7 @@ class TestCalculations:
 # ============================================================================
 # VALIDATION HELPER TESTS
 # ============================================================================
+
 
 class TestValidationHelpers:
     """Test validation utility functions"""
@@ -395,6 +386,7 @@ class TestValidationHelpers:
 # RATE LIMITING TESTS
 # ============================================================================
 
+
 class TestRateLimiting:
     """Test rate limiting middleware"""
 
@@ -419,6 +411,7 @@ class TestRateLimiting:
 # ERROR HANDLING TESTS
 # ============================================================================
 
+
 class TestErrorHandling:
     """Test error handling and edge cases"""
 
@@ -432,7 +425,7 @@ class TestErrorHandling:
         response = client.post(
             "/api/v1/calculations/uwert",
             data="invalid json",
-            headers={"Content-Type": "application/json"}
+            headers={"Content-Type": "application/json"},
         )
         assert response.status_code == 422
 
@@ -444,10 +437,7 @@ class TestErrorHandling:
 
     def test_wrong_data_type(self):
         """Test validation with wrong data type"""
-        request = {
-            "bundesland": "wien",
-            "wohnungen": "not_a_number"  # Should be int
-        }
+        request = {"bundesland": "wien", "wohnungen": "not_a_number"}  # Should be int
         response = client.post("/api/v1/calculations/stellplaetze", json=request)
         assert response.status_code == 422
 
@@ -455,6 +445,7 @@ class TestErrorHandling:
 # ============================================================================
 # INTEGRATION TESTS
 # ============================================================================
+
 
 class TestIntegration:
     """Test multi-step workflows"""
@@ -465,7 +456,7 @@ class TestIntegration:
         uwert_request = {
             "schichten": [
                 {"material": "Beton", "dicke_mm": 200, "lambda_wert": 2.3},
-                {"material": "Dämmung", "dicke_mm": 160, "lambda_wert": 0.035}
+                {"material": "Dämmung", "dicke_mm": 160, "lambda_wert": 0.035},
             ]
         }
         response1 = client.post("/api/v1/calculations/uwert", json=uwert_request)
@@ -483,9 +474,11 @@ class TestIntegration:
             "tuer_breite_cm": 95,
             "rampe_vorhanden": True,
             "rampe_steigung_prozent": 5,
-            "geschosse": 3
+            "geschosse": 3,
         }
-        response3 = client.post("/api/v1/calculations/barrierefreiheit-check", json=barrierefreiheit_request)
+        response3 = client.post(
+            "/api/v1/calculations/barrierefreiheit-check", json=barrierefreiheit_request
+        )
         assert response3.status_code == 200
         barrierefreiheit_data = response3.json()
 
@@ -499,12 +492,14 @@ class TestIntegration:
 # PERFORMANCE TESTS
 # ============================================================================
 
+
 class TestPerformance:
     """Test API performance"""
 
     def test_response_time_health_check(self):
         """Test health check responds quickly"""
         import time
+
         start = time.time()
         response = client.get("/health")
         duration = time.time() - start
@@ -531,6 +526,7 @@ class TestPerformance:
 # PYTEST CONFIGURATION
 # ============================================================================
 
+
 @pytest.fixture(scope="session", autouse=True)
 def setup_test_environment():
     """Setup test environment before running tests"""
@@ -548,18 +544,18 @@ def pytest_configure(config):
     config.addinivalue_line(
         "markers", "slow: marks tests as slow (deselect with '-m \"not slow\"')"
     )
-    config.addinivalue_line(
-        "markers", "integration: marks tests as integration tests"
-    )
+    config.addinivalue_line("markers", "integration: marks tests as integration tests")
 
 
 if __name__ == "__main__":
     # Run tests with coverage
-    pytest.main([
-        __file__,
-        "-v",
-        "--cov=api",
-        "--cov-report=html",
-        "--cov-report=term-missing",
-        "--cov-fail-under=80"
-    ])
+    pytest.main(
+        [
+            __file__,
+            "-v",
+            "--cov=api",
+            "--cov-report=html",
+            "--cov-report=term-missing",
+            "--cov-fail-under=80",
+        ]
+    )

@@ -34,10 +34,8 @@ def setup_database():
     # Remove SQLite test database file if it was created
     db_url = os.environ.get("DATABASE_URL", "")
     if "sqlite" in db_url and "test_orion.db" in db_url:
-        import os as _os
-
-        if _os.path.exists("test_orion.db"):
-            _os.remove("test_orion.db")
+        if os.path.exists("test_orion.db"):
+            os.remove("test_orion.db")
 
 
 @pytest.fixture

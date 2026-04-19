@@ -315,7 +315,7 @@ async def export_lv(request: ExportRequest):
         # Convert API models to internal format
         positionen = [convert_to_lv_position(p) for p in request.positionen]
 
-        result = {}
+        result: Dict[str, Any] = {}
 
         if request.format in [ExportFormat.OENORM_JSON, ExportFormat.BOTH]:
             oenorm_json = exportiere_lv_oenorm_json(

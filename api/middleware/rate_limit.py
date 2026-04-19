@@ -7,7 +7,7 @@ import logging
 import os
 import time
 from datetime import datetime, timedelta
-from typing import Dict, Optional
+from typing import Any, Dict, Optional
 
 import redis
 from fastapi import HTTPException, Request, status
@@ -16,14 +16,13 @@ from starlette.middleware.base import BaseHTTPMiddleware
 # Redis connection for distributed rate limiting
 REDIS_URL = os.getenv("REDIS_URL", "redis://localhost:6379")
 
+redis_client: Optional[redis.Redis] = None
 try:
-    redis_client = redis.from_url(REDIS_URL, decode_responses=True)
+    redis_client = redis.from_url(REDIS_URL, decode_responses=True)  # type: ignore[assignment]
 except redis.RedisError as e:
     logging.warning(f"Redis connection failed, falling back to in-memory rate limiting: {e}")
-    redis_client = None  # Fall back to in-memory
 except Exception as e:
     logging.error(f"Unexpected error connecting to Redis: {type(e).__name__}: {e}")
-    redis_client = None
 
 # In-memory rate limit storage (fallback)
 rate_limit_storage: Dict[str, Dict] = {}
@@ -88,9 +87,9 @@ class RateLimitMiddleware(BaseHTTPMiddleware):
         # Fall back to IP address
         forwarded = request.headers.get("X-Forwarded-For")
         if forwarded:
-            ip = forwarded.split(",")[0].strip()
+            ip = str(forwarded).split(",")[0].strip()
         else:
-            ip = request.client.host
+            ip = str(request.client.host) if request.client else "unknown"
 
         return f"ip:{ip}"
 
@@ -126,23 +125,23 @@ class RateLimitMiddleware(BaseHTTPMiddleware):
             key = f"rate_limit:{client_id}"
 
             # Remove old entries
-            redis_client.zremrangebyscore(key, 0, window_start)
+            redis_client.zremrangebyscore(key, 0, window_start)  # type: ignore[union-attr]
 
             # Count requests in current window
-            count = redis_client.zcard(key)
+            count = redis_client.zcard(key)  # type: ignore[union-attr]
 
             if count >= tier["limit"]:
                 # Get oldest request time to calculate retry_after
-                oldest = redis_client.zrange(key, 0, 0, withscores=True)
+                oldest = redis_client.zrange(key, 0, 0, withscores=True)  # type: ignore[union-attr]
                 if oldest:
-                    oldest_time = int(oldest[0][1])
+                    oldest_time = int(oldest[0][1])  # type: ignore[index]
                     retry_after = oldest_time + tier["window"] - current_time
                     return False, retry_after
                 return False, tier["window"]
 
             # Add current request
-            redis_client.zadd(key, {str(current_time): current_time})
-            redis_client.expire(key, tier["window"])
+            redis_client.zadd(key, {str(current_time): current_time})  # type: ignore[union-attr]
+            redis_client.expire(key, tier["window"])  # type: ignore[union-attr]
 
             return True, 0
 
@@ -182,25 +181,25 @@ class RateLimitMiddleware(BaseHTTPMiddleware):
             try:
                 key = f"rate_limit:{client_id}"
                 count = redis_client.zcard(key)
-                return max(0, tier["limit"] - count)
+                return int(max(0, tier["limit"] - count))
             except redis.RedisError as e:
                 logging.warning(f"Redis query failed in rate limit check: {e}")
-                return tier["limit"]  # Fail open on Redis error
+                return int(tier["limit"])  # Fail open on Redis error
         else:
             if client_id in rate_limit_storage:
                 count = len(rate_limit_storage[client_id]["requests"])
-                return max(0, tier["limit"] - count)
-            return tier["limit"]
+                return int(max(0, tier["limit"] - count))
+            return int(tier["limit"])
 
     def _get_reset_time(self, client_id: str) -> int:
         """Get timestamp when rate limit resets"""
         if redis_client:
             try:
                 key = f"rate_limit:{client_id}"
-                oldest = redis_client.zrange(key, 0, 0, withscores=True)
+                oldest = redis_client.zrange(key, 0, 0, withscores=True)  # type: ignore[union-attr]
                 if oldest:
                     # Get window from tier (assume 3600 for now)
-                    return int(oldest[0][1]) + 3600
+                    return int(oldest[0][1]) + 3600  # type: ignore[index]
             except redis.RedisError as e:
                 logging.debug(f"Redis query failed getting reset time: {e}")
             except (IndexError, ValueError) as e:

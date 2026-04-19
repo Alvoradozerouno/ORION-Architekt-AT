@@ -86,13 +86,13 @@ async def check_redis() -> Dict[str, Any]:
         redis_client.ping()
         latency = time.time() - start
 
-        info = redis_client.info("server")
+        info = redis_client.info("server")  # type: ignore[assignment]
 
         return {
             "status": "healthy",
             "latency_ms": round(latency * 1000, 2),
-            "version": info.get("redis_version", "unknown"),
-            "uptime_days": round(info.get("uptime_in_seconds", 0) / 86400, 1),
+            "version": info.get("redis_version", "unknown"),  # type: ignore[union-attr]
+            "uptime_days": round(info.get("uptime_in_seconds", 0) / 86400, 1),  # type: ignore[union-attr]
             "details": "Redis connection successful",
         }
     except ImportError:

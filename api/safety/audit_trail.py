@@ -320,8 +320,8 @@ class AuditTrail:
                 "success_rate": 0.0,
             }
 
-        event_types = {}
-        actors = {}
+        event_types: Dict[str, int] = {}
+        actors: Dict[str, int] = {}
         success_count = 0
 
         for entry in self.entries:

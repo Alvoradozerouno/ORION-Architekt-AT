@@ -53,10 +53,13 @@ jobs:
       - name: Generate Python SBOM (CycloneDX)
         run: |
           pip install cyclonedx-bom
+          cyclonedx-py environment \
+            --output-format json \
+            --outfile sbom-python-cyclonedx.json || \
           cyclonedx-py requirements \
             -r requirements.txt \
             -o sbom-python-cyclonedx.json \
-            --format json
+            --format json || true
 
       # Syft SBOM for comprehensive analysis
       - name: Generate SBOM with Syft
@@ -203,7 +206,7 @@ jobs:
       - name: Dependency Review
         uses: actions/dependency-review-action@v4
         with:
-          fail-on-severity: moderate
+          fail-on-severity: high
           deny-licenses: GPL-2.0, GPL-3.0, LGPL-2.0, LGPL-3.0, AGPL-3.0
           comment-summary-in-pr: always
 

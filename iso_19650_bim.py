@@ -408,7 +408,7 @@ def validiere_iso_19650_compliance(
 
     Returns compliance report
     """
-    compliance = {"compliant": True, "issues": [], "warnings": []}
+    compliance: Dict[str, Any] = {"compliant": True, "issues": [], "warnings": []}
 
     # Check if file format matches requirements
     required_formats = [ir.format for ir in eir.information_requirements]

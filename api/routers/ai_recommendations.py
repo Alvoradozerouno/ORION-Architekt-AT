@@ -59,10 +59,11 @@ async def optimize_building(building: BuildingInput):
 
     # Bundesland-specific recommendations
     if building.bundesland == "wien":
+        wohnungen = building.wohnungen or 0
         recommendations.append(
             {
                 "category": "Stellplätze",
-                "recommendation": f"Bei {building.wohnungen} Wohnungen: Mindestens {int(building.wohnungen * 1.2)} Stellplätze erforderlich",
+                "recommendation": f"Bei {wohnungen} Wohnungen: Mindestens {int(wohnungen * 1.2)} Stellplätze erforderlich",
                 "priority": "high",
                 "savings_potential": "5000 EUR",
             }
@@ -134,11 +135,11 @@ async def optimize_building(building: BuildingInput):
         )
 
     # Calculate estimated savings
-    estimated_savings = {
-        "construction_cost_savings": 15000,
-        "annual_energy_savings": 3000,
-        "maintenance_savings_10y": 8000,
-        "total_lifecycle_savings": 15000 + 3000 * 20 + 8000,
+    estimated_savings: Dict[str, float] = {
+        "construction_cost_savings": 15000.0,
+        "annual_energy_savings": 3000.0,
+        "maintenance_savings_10y": 8000.0,
+        "total_lifecycle_savings": float(15000 + 3000 * 20 + 8000),
     }
 
     energy_optimization = {
@@ -188,7 +189,7 @@ async def predict_costs(building: BuildingInput):
         "burgenland": 2550,
     }
 
-    base_cost = base_costs.get(building.bundesland, 2700)
+    base_cost: float = float(base_costs.get(building.bundesland, 2700))
 
     # Adjustments
     if building.gebaudetyp == "hochhaus":

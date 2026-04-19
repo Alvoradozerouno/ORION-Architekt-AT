@@ -327,7 +327,7 @@ GEWERKE_KATALOG_AT = {
 # BAUPHASEN-STRUKTUR (Österreich-spezifisch)
 # ═══════════════════════════════════════════════════════════════════════════
 
-BAUPHASEN_AT = {
+BAUPHASEN_AT: Dict[str, Any] = {
     "01_rohbau": {
         "name": "Rohbau",
         "beschreibung": "Erdarbeiten, Fundamente, Mauerwerk, Decken, Dach",
@@ -353,7 +353,7 @@ BAUPHASEN_AT = {
 # REGIONALE KOSTENFAKTOREN (9 Bundesländer Österreichs)
 # ═══════════════════════════════════════════════════════════════════════════
 
-REGIONALE_FAKTOREN_AT = {
+REGIONALE_FAKTOREN_AT: Dict[str, Any] = {
     "wien": {
         "name": "Wien",
         "faktor": 1.15,  # 15% höher als Durchschnitt
@@ -879,7 +879,7 @@ def exportiere_lv_oenorm_json(
         ÖNORM A 2063-konformes Dict
     """
     # Gruppiere Positionen nach Gewerk
-    gewerke_dict = {}
+    gewerke_dict: Dict[str, Any] = {}
     for pos in positionen:
         gewerk_nr = pos.gewerk
         if gewerk_nr not in gewerke_dict:

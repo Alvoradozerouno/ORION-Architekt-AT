@@ -132,8 +132,8 @@ class LoggingMiddleware(BaseHTTPMiddleware):
         """Get client IP address"""
         forwarded = request.headers.get("X-Forwarded-For")
         if forwarded:
-            return forwarded.split(",")[0].strip()
-        return request.client.host if request.client else "unknown"
+            return str(forwarded).split(",")[0].strip()
+        return str(request.client.host) if request.client else "unknown"
 
     async def _get_user_info(self, request: Request) -> dict:
         """Extract user info from request"""
@@ -190,8 +190,8 @@ class AccessLogMiddleware(BaseHTTPMiddleware):
         """Get client IP address"""
         forwarded = request.headers.get("X-Forwarded-For")
         if forwarded:
-            return forwarded.split(",")[0].strip()
-        return request.client.host if request.client else "-"
+            return str(forwarded).split(",")[0].strip()
+        return str(request.client.host) if request.client else "-"
 
     async def _get_username(self, request: Request) -> str:
         """Get username from token"""
@@ -205,11 +205,11 @@ class AccessLogMiddleware(BaseHTTPMiddleware):
                 token = auth_header.split(" ")[1]
                 SECRET_KEY = os.getenv("JWT_SECRET_KEY", "your-secret-key-change-in-production")
                 payload = jwt.decode(token, SECRET_KEY, algorithms=["HS256"])
-                return payload.get("sub", "-")
+                return str(payload.get("sub", "-"))
             except jwt.InvalidTokenError:
                 # Token invalid - anonymous user
                 return "-"
             except (IndexError, KeyError):
                 # Malformed header - anonymous user
                 return "-"
-        return None
+        return "-"

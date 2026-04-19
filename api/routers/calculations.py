@@ -464,6 +464,6 @@ async def get_materialdatenbank(material_typ: Optional[str] = None):
     ]
 
     if material_typ:
-        materials = [m for m in materials if m["kategorie"].lower() == material_typ.lower()]
+        materials = [m for m in materials if str(m["kategorie"]).lower() == material_typ.lower()]
 
     return {"materials": materials, "total": len(materials)}

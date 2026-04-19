@@ -55,7 +55,7 @@ class ConnectionManager:
                 del self.active_connections[project_id]
                 del self.project_users[project_id]
 
-    async def broadcast_to_project(self, project_id: str, message: dict, exclude: WebSocket = None):
+    async def broadcast_to_project(self, project_id: str, message: dict, exclude: Optional[WebSocket] = None):
         """Broadcast message to all users in a project"""
         if project_id not in self.active_connections:
             return

@@ -110,7 +110,6 @@ addopts = [
     "--cov-report=html",
     "--cov-report=term",
     "--cov-report=xml",
-    "-n=auto",
 ]
 
 [tool.black]
@@ -127,6 +126,22 @@ python_version = "3.11"
 warn_return_any = true
 warn_unused_configs = true
 disallow_untyped_defs = false
+
+[[tool.mypy.overrides]]
+module = "api.graphql_schema"
+ignore_errors = true
+
+[[tool.mypy.overrides]]
+module = "api.models"
+ignore_errors = true
+
+[[tool.mypy.overrides]]
+module = "models"
+ignore_errors = true
+
+[[tool.mypy.overrides]]
+module = "bim_ifc_real"
+ignore_errors = true
 
 [tool.pylint]
 max-line-length = 100

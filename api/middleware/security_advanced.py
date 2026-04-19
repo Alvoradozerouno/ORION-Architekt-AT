@@ -18,7 +18,7 @@ import hashlib
 import logging
 import re
 import secrets
-from typing import Callable
+from typing import Any, Callable, List, Optional
 
 from fastapi import HTTPException, Request, status
 from fastapi.responses import JSONResponse
@@ -256,7 +256,7 @@ class CSRFProtectionMiddleware(BaseHTTPMiddleware):
 
     SAFE_METHODS = {"GET", "HEAD", "OPTIONS", "TRACE"}
 
-    def __init__(self, app, exempt_paths: list = None):
+    def __init__(self, app, exempt_paths: Optional[List[Any]] = None):
         super().__init__(app)
         self.exempt_paths = exempt_paths or ["/docs", "/redoc", "/openapi.json"]
 

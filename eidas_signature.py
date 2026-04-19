@@ -305,8 +305,8 @@ def signiere_oenorm_lv(
     Returns LV with attached digital signature
     """
 
-    lv_data = json.loads(lv_json)
-    dokument_id = lv_data.get("meta", {}).get("dokument_id", "unknown")
+    lv_data: Dict[str, Any] = json.loads(lv_json)
+    dokument_id = str(lv_data.get("meta", {}).get("dokument_id", "unknown"))
 
     # Create signature
     signatur = erstelle_signatur_placeholder(

@@ -59,7 +59,7 @@ jobs:
           curl -f http://localhost/health || (docker compose -f docker-compose.production.yml logs && exit 1)
 
       - name: ZAP Baseline Scan
-        uses: zaproxy/action-baseline@v0.10.0
+        uses: zaproxy/action-baseline@v0.15.0
         with:
           target: 'http://localhost'
           rules_file_name: '.zap/rules.tsv'

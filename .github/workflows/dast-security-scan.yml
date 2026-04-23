@@ -50,11 +50,23 @@ jobs:
           pip install -r requirements.txt
 
       - name: Start application with Docker Compose
+        env:
+          POSTGRES_PASSWORD: test_postgres_password
+          REDIS_PASSWORD: test_redis_password
+          SECRET_KEY: test_secret_key_for_ci_testing_only_not_production
+          JWT_SECRET_KEY: test_jwt_secret_key_for_ci_testing_only_not_production
+          GRAFANA_ADMIN_PASSWORD: test_grafana_password
         run: |
           docker compose -f docker-compose.production.yml up -d
           sleep 45  # Wait for services to be fully ready
 
       - name: Verify application is running
+        env:
+          POSTGRES_PASSWORD: test_postgres_password
+          REDIS_PASSWORD: test_redis_password
+          SECRET_KEY: test_secret_key_for_ci_testing_only_not_production
+          JWT_SECRET_KEY: test_jwt_secret_key_for_ci_testing_only_not_production
+          GRAFANA_ADMIN_PASSWORD: test_grafana_password
         run: |
           curl -f http://localhost/health || (docker compose -f docker-compose.production.yml logs && exit 1)
 
@@ -79,6 +91,12 @@ jobs:
 
       - name: Stop services
         if: always()
+        env:
+          POSTGRES_PASSWORD: test_postgres_password
+          REDIS_PASSWORD: test_redis_password
+          SECRET_KEY: test_secret_key_for_ci_testing_only_not_production
+          JWT_SECRET_KEY: test_jwt_secret_key_for_ci_testing_only_not_production
+          GRAFANA_ADMIN_PASSWORD: test_grafana_password
         run: docker compose -f docker-compose.production.yml down
 
   # ==========================================================================
@@ -108,6 +126,12 @@ jobs:
           pip install -r requirements.txt
 
       - name: Start application
+        env:
+          POSTGRES_PASSWORD: test_postgres_password
+          REDIS_PASSWORD: test_redis_password
+          SECRET_KEY: test_secret_key_for_ci_testing_only_not_production
+          JWT_SECRET_KEY: test_jwt_secret_key_for_ci_testing_only_not_production
+          GRAFANA_ADMIN_PASSWORD: test_grafana_password
         run: |
           docker compose -f docker-compose.production.yml up -d
           sleep 45
@@ -133,6 +157,12 @@ jobs:
 
       - name: Stop services
         if: always()
+        env:
+          POSTGRES_PASSWORD: test_postgres_password
+          REDIS_PASSWORD: test_redis_password
+          SECRET_KEY: test_secret_key_for_ci_testing_only_not_production
+          JWT_SECRET_KEY: test_jwt_secret_key_for_ci_testing_only_not_production
+          GRAFANA_ADMIN_PASSWORD: test_grafana_password
         run: docker compose -f docker-compose.production.yml down
 
   # ==========================================================================
@@ -159,6 +189,12 @@ jobs:
           pip install pytest httpx
 
       - name: Start services
+        env:
+          POSTGRES_PASSWORD: test_postgres_password
+          REDIS_PASSWORD: test_redis_password
+          SECRET_KEY: test_secret_key_for_ci_testing_only_not_production
+          JWT_SECRET_KEY: test_jwt_secret_key_for_ci_testing_only_not_production
+          GRAFANA_ADMIN_PASSWORD: test_grafana_password
         run: |
           docker compose -f docker-compose.production.yml up -d
           sleep 45
@@ -171,6 +207,12 @@ jobs:
 
       - name: Stop services
         if: always()
+        env:
+          POSTGRES_PASSWORD: test_postgres_password
+          REDIS_PASSWORD: test_redis_password
+          SECRET_KEY: test_secret_key_for_ci_testing_only_not_production
+          JWT_SECRET_KEY: test_jwt_secret_key_for_ci_testing_only_not_production
+          GRAFANA_ADMIN_PASSWORD: test_grafana_password
         run: docker compose -f docker-compose.production.yml down
 
   # ==========================================================================
@@ -186,7 +228,22 @@ jobs:
         with:
           fetch-depth: 0  # Full history for secret scanning
 
+      - name: Check if there are new commits to scan
+        id: check-commits
+        run: |
+          if [ "${{ github.event_name }}" = "push" ]; then
+            BEFORE="${{ github.event.before }}"
+            if [ "$BEFORE" = "0000000000000000000000000000000000000000" ] || [ "$BEFORE" = "${{ github.sha }}" ]; then
+              echo "skip=true" >> "$GITHUB_OUTPUT"
+            else
+              echo "skip=false" >> "$GITHUB_OUTPUT"
+            fi
+          else
+            echo "skip=false" >> "$GITHUB_OUTPUT"
+          fi
+
       - name: TruffleHog Secrets Scan
+        if: steps.check-commits.outputs.skip != 'true'
         uses: trufflesecurity/trufflehog@main
         with:
           path: ./

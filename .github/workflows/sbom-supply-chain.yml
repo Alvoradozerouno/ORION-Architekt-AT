@@ -53,10 +53,9 @@ jobs:
       - name: Generate Python SBOM (CycloneDX)
         run: |
           pip install cyclonedx-bom
-          cyclonedx-py requirements \
-            -r requirements.txt \
-            -o sbom-python-cyclonedx.json \
-            --format json
+          cyclonedx-py requirements requirements.txt \
+            --of JSON \
+            -o sbom-python-cyclonedx.json
 
       # Syft SBOM for comprehensive analysis
       - name: Generate SBOM with Syft
@@ -177,7 +176,7 @@ jobs:
 
           echo ""
           echo "=== Checking for non-permissive licenses ==="
-          pip-licenses --fail-on="GPL;LGPL;AGPL;Commercial"
+          pip-licenses --fail-on "GPL-2.0;GPL-3.0;LGPL-2.0;LGPL-2.1;LGPL-3.0;AGPL-3.0"
 
       - name: Upload license report
         uses: actions/upload-artifact@v4

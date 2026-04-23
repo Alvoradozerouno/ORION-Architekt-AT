@@ -14,7 +14,8 @@ long_description = (this_directory / "README.md").read_text(encoding="utf-8")
 
 # Read requirements
 def read_requirements(filename):
-    with open(filename) as f:
+    filepath = Path(__file__).parent / filename
+    with open(filepath) as f:
         return [line.strip() for line in f if line.strip() and not line.startswith("#")]
 
 

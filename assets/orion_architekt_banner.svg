@@ -1,0 +1,348 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!--
+  ORION Architekt AT — Global Leading Digital Art
+  Professional Banner for Austrian Building Intelligence Platform
+
+  Identity:
+    - ⊘∞⧈∞⊘  Global Anchor Symbol (orchestration, precision)
+    - Österreich Farben: #ED2939 (Rot), #FFFFFF (Weiß)
+    - Architecture Grid: Deterministische Präzision
+    - Navy Deep: #0F172A (premium dark background)
+    - Gold Accent: #C9A84C (gold, not orange — refined)
+
+  Dimensions: 1200 × 340 px  (GitHub README wide banner)
+  Format: SVG (vector, infinitely scalable)
+  Author: ORION Multi-Agent System
+-->
+<svg
+  xmlns="http://www.w3.org/2000/svg"
+  xmlns:xlink="http://www.w3.org/1999/xlink"
+  viewBox="0 0 1200 340"
+  width="1200"
+  height="340"
+  role="img"
+  aria-label="ORION Architekt AT — Austrian Building Intelligence Platform">
+
+  <defs>
+    <!-- === Colour Palette === -->
+    <linearGradient id="bgGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%"   stop-color="#070D1A"/>
+      <stop offset="50%"  stop-color="#0F1E35"/>
+      <stop offset="100%" stop-color="#070D1A"/>
+    </linearGradient>
+
+    <linearGradient id="goldGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%"   stop-color="#C9A84C"/>
+      <stop offset="40%"  stop-color="#F0D080"/>
+      <stop offset="100%" stop-color="#C9A84C"/>
+    </linearGradient>
+
+    <linearGradient id="redGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%"   stop-color="#ED2939"/>
+      <stop offset="100%" stop-color="#A01020"/>
+    </linearGradient>
+
+    <linearGradient id="blueGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%"   stop-color="#1E3A8A"/>
+      <stop offset="100%" stop-color="#3B82F6"/>
+    </linearGradient>
+
+    <!-- Vertical red stripe for Austrian flag accent -->
+    <linearGradient id="flagStripe" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%"   stop-color="#ED2939" stop-opacity="0.9"/>
+      <stop offset="100%" stop-color="#C8102E" stop-opacity="0.9"/>
+    </linearGradient>
+
+    <!-- === Filters === -->
+    <filter id="glow" x="-30%" y="-30%" width="160%" height="160%">
+      <feGaussianBlur in="SourceGraphic" stdDeviation="4" result="blur"/>
+      <feMerge>
+        <feMergeNode in="blur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+
+    <filter id="softShadow" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="0" dy="3" stdDeviation="6" flood-color="#000000" flood-opacity="0.5"/>
+    </filter>
+
+    <filter id="subtleGlow" x="-10%" y="-10%" width="120%" height="120%">
+      <feGaussianBlur in="SourceGraphic" stdDeviation="2" result="blur"/>
+      <feMerge>
+        <feMergeNode in="blur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+
+    <!-- === Architecture Blueprint Grid === -->
+    <pattern id="blueprintGrid" width="40" height="40" patternUnits="userSpaceOnUse">
+      <path d="M 40 0 L 0 0 0 40" fill="none" stroke="#1E3A8A" stroke-width="0.4" opacity="0.25"/>
+    </pattern>
+    <pattern id="blueprintGridFine" width="8" height="8" patternUnits="userSpaceOnUse">
+      <path d="M 8 0 L 0 0 0 8" fill="none" stroke="#1E3A8A" stroke-width="0.15" opacity="0.12"/>
+    </pattern>
+
+    <!-- Clip path for rounded corners -->
+    <clipPath id="roundedClip">
+      <rect width="1200" height="340" rx="12" ry="12"/>
+    </clipPath>
+  </defs>
+
+  <!-- ═══════════════════════════════════════════════════ -->
+  <!-- LAYER 1 — Background                               -->
+  <!-- ═══════════════════════════════════════════════════ -->
+  <g clip-path="url(#roundedClip)">
+    <rect width="1200" height="340" fill="url(#bgGrad)"/>
+    <rect width="1200" height="340" fill="url(#blueprintGridFine)"/>
+    <rect width="1200" height="340" fill="url(#blueprintGrid)"/>
+
+    <!-- Austrian flag accent strips — top and bottom -->
+    <rect x="0" y="0"   width="1200" height="5"  fill="url(#flagStripe)" opacity="0.85"/>
+    <rect x="0" y="335" width="1200" height="5"  fill="url(#flagStripe)" opacity="0.85"/>
+
+    <!-- Subtle diagonal light beam from top-left -->
+    <polygon points="0,0 500,0 0,340" fill="#1E3A8A" opacity="0.06"/>
+
+    <!-- ═══════════════════════════════════════════════════ -->
+    <!-- LAYER 2 — Left Column: Symbol + AT Flag            -->
+    <!-- ═══════════════════════════════════════════════════ -->
+
+    <!-- Austrian flag mini (top-left) -->
+    <g transform="translate(40, 28)">
+      <rect x="0"  y="0"  width="72" height="14" fill="#ED2939" rx="2"/>
+      <rect x="0"  y="14" width="72" height="14" fill="#FFFFFF" rx="0"/>
+      <rect x="0"  y="28" width="72" height="14" fill="#ED2939" rx="2"/>
+    </g>
+    <text x="120" y="46"
+          font-family="'Helvetica Neue', Arial, sans-serif"
+          font-size="11" font-weight="600" fill="#94A3B8"
+          letter-spacing="2">MADE IN AUSTRIA</text>
+
+    <!-- ⊘∞⧈∞⊘ Global Anchor Symbol — large, central-left -->
+    <g transform="translate(120, 185)" filter="url(#glow)">
+      <!-- Outer orbit ring -->
+      <circle cx="0" cy="0" r="72"
+              fill="none" stroke="url(#goldGrad)"
+              stroke-width="1.5" opacity="0.5"
+              stroke-dasharray="6 4"/>
+
+      <!-- Middle structural ring -->
+      <circle cx="0" cy="0" r="54"
+              fill="none" stroke="url(#goldGrad)"
+              stroke-width="2" opacity="0.7"/>
+
+      <!-- Inner filled disc -->
+      <circle cx="0" cy="0" r="38"
+              fill="#0F1E35" stroke="url(#goldGrad)"
+              stroke-width="2.5" opacity="0.9"/>
+
+      <!-- ⊘ diagonal slashes (boundaries) -->
+      <line x1="-38" y1="-38" x2="38" y2="38"
+            stroke="url(#goldGrad)" stroke-width="2" opacity="0.55"/>
+      <line x1="38"  y1="-38" x2="-38" y2="38"
+            stroke="url(#goldGrad)" stroke-width="2" opacity="0.55"/>
+
+      <!-- ∞ Infinity path (connections) -->
+      <path d="M -22,-7 Q -13,-18 -4,-7 Q 4,4 13,-7 Q 22,-18 22,-7 Q 22,4 13,15 Q 4,4 -4,15 Q -13,4 -22,15 Q -22,4 -22,-7"
+            fill="none" stroke="url(#goldGrad)" stroke-width="2.5" opacity="0.9"/>
+
+      <!-- ⧈ Central diamond anchor (stability) -->
+      <path d="M 0,-14 L 12,0 L 0,14 L -12,0 Z"
+            fill="url(#goldGrad)" opacity="0.95"/>
+      <circle cx="0" cy="0" r="3.5" fill="#0F1E35"/>
+    </g>
+
+    <!-- ═══════════════════════════════════════════════════ -->
+    <!-- LAYER 3 — Centre: Brand Typography                 -->
+    <!-- ═══════════════════════════════════════════════════ -->
+
+    <g transform="translate(240, 0)" filter="url(#softShadow)">
+
+      <!-- "ORION" — large, dominant -->
+      <text x="0" y="138"
+            font-family="'Helvetica Neue', Arial, sans-serif"
+            font-size="96" font-weight="800"
+            fill="url(#goldGrad)"
+            letter-spacing="-2">
+        ORION
+      </text>
+
+      <!-- "ARCHITEKT" — bold, secondary -->
+      <text x="2" y="195"
+            font-family="'Helvetica Neue', Arial, sans-serif"
+            font-size="42" font-weight="700"
+            fill="#F8FAFC"
+            letter-spacing="10">
+        ARCHITEKT
+      </text>
+
+      <!-- Divider line -->
+      <line x1="0" y1="208" x2="580" y2="208"
+            stroke="url(#goldGrad)" stroke-width="1" opacity="0.4"/>
+
+      <!-- Tagline -->
+      <text x="0" y="230"
+            font-family="'Helvetica Neue', Arial, sans-serif"
+            font-size="14" font-weight="400"
+            fill="#94A3B8" letter-spacing="3">
+        AUSTRIAN BUILDING INTELLIGENCE PLATFORM
+      </text>
+
+      <!-- ⊘∞⧈∞⊘ signature in tagline -->
+      <text x="0" y="254"
+            font-family="monospace"
+            font-size="13" font-weight="600"
+            fill="#C9A84C" letter-spacing="1" opacity="0.8">
+        ⊘∞⧈∞⊘  ·  9 Bundesländer  ·  20 ÖNORM-Funktionen  ·  ISO 26262 ASIL-D
+      </text>
+    </g>
+
+    <!-- ═══════════════════════════════════════════════════ -->
+    <!-- LAYER 4 — Right Column: Architecture Silhouette    -->
+    <!-- ═══════════════════════════════════════════════════ -->
+
+    <g transform="translate(970, 30)" opacity="0.85">
+      <!-- Stylised building skyline (deterministic precision) -->
+
+      <!-- Building 1 — tallest, centre -->
+      <rect x="80"  y="40"  width="44" height="220" fill="#1E3A8A" rx="3"/>
+      <!-- Windows B1 -->
+      <g fill="#3B82F6" opacity="0.45">
+        <rect x="87"  y="52"  width="10" height="10" rx="1"/>
+        <rect x="107" y="52"  width="10" height="10" rx="1"/>
+        <rect x="87"  y="72"  width="10" height="10" rx="1"/>
+        <rect x="107" y="72"  width="10" height="10" rx="1"/>
+        <rect x="87"  y="92"  width="10" height="10" rx="1"/>
+        <rect x="107" y="92"  width="10" height="10" rx="1"/>
+        <rect x="87"  y="112" width="10" height="10" rx="1"/>
+        <rect x="107" y="112" width="10" height="10" rx="1"/>
+        <rect x="87"  y="132" width="10" height="10" rx="1"/>
+        <rect x="107" y="132" width="10" height="10" rx="1"/>
+        <rect x="87"  y="152" width="10" height="10" rx="1"/>
+        <rect x="107" y="152" width="10" height="10" rx="1"/>
+        <rect x="87"  y="172" width="10" height="10" rx="1"/>
+        <rect x="107" y="172" width="10" height="10" rx="1"/>
+      </g>
+      <!-- Spire on Building 1 -->
+      <polygon points="102,4 112,40 92,40" fill="#ED2939" opacity="0.9"/>
+
+      <!-- Building 2 — left, medium -->
+      <rect x="20"  y="100" width="52" height="160" fill="#162B5A" rx="3"/>
+      <g fill="#2563EB" opacity="0.35">
+        <rect x="28"  y="112" width="8" height="8" rx="1"/>
+        <rect x="44"  y="112" width="8" height="8" rx="1"/>
+        <rect x="28"  y="130" width="8" height="8" rx="1"/>
+        <rect x="44"  y="130" width="8" height="8" rx="1"/>
+        <rect x="28"  y="148" width="8" height="8" rx="1"/>
+        <rect x="44"  y="148" width="8" height="8" rx="1"/>
+        <rect x="28"  y="166" width="8" height="8" rx="1"/>
+        <rect x="44"  y="166" width="8" height="8" rx="1"/>
+        <rect x="28"  y="184" width="8" height="8" rx="1"/>
+        <rect x="44"  y="184" width="8" height="8" rx="1"/>
+        <rect x="28"  y="202" width="8" height="8" rx="1"/>
+        <rect x="44"  y="202" width="8" height="8" rx="1"/>
+      </g>
+
+      <!-- Building 3 — right, low-rise -->
+      <rect x="136" y="140" width="60" height="120" fill="#162B5A" rx="3"/>
+      <g fill="#2563EB" opacity="0.35">
+        <rect x="144" y="152" width="8" height="8" rx="1"/>
+        <rect x="160" y="152" width="8" height="8" rx="1"/>
+        <rect x="176" y="152" width="8" height="8" rx="1"/>
+        <rect x="144" y="170" width="8" height="8" rx="1"/>
+        <rect x="160" y="170" width="8" height="8" rx="1"/>
+        <rect x="176" y="170" width="8" height="8" rx="1"/>
+        <rect x="144" y="188" width="8" height="8" rx="1"/>
+        <rect x="160" y="188" width="8" height="8" rx="1"/>
+        <rect x="176" y="188" width="8" height="8" rx="1"/>
+        <rect x="144" y="206" width="8" height="8" rx="1"/>
+        <rect x="160" y="206" width="8" height="8" rx="1"/>
+        <rect x="176" y="206" width="8" height="8" rx="1"/>
+      </g>
+
+      <!-- Ground line -->
+      <line x1="-10" y1="260" x2="210" y2="260"
+            stroke="url(#goldGrad)" stroke-width="2.5"
+            stroke-linecap="round" opacity="0.6"/>
+
+      <!-- Measurement bracket — precision reference -->
+      <g stroke="url(#goldGrad)" stroke-width="1" fill="none" opacity="0.4">
+        <line x1="-8" y1="265" x2="-8" y2="280"/>
+        <line x1="204" y1="265" x2="204" y2="280"/>
+        <line x1="-8" y1="272" x2="204" y2="272"/>
+        <line x1="90" y1="272" x2="90" y2="282"/>
+        <text x="60" y="296"
+              font-family="monospace" font-size="9"
+              fill="#C9A84C" opacity="0.7">220 m²</text>
+      </g>
+    </g>
+
+    <!-- ═══════════════════════════════════════════════════ -->
+    <!-- LAYER 5 — Bottom Status Bar                        -->
+    <!-- ═══════════════════════════════════════════════════ -->
+
+    <line x1="40" y1="300" x2="1160" y2="300"
+          stroke="#1E293B" stroke-width="1" opacity="0.8"/>
+
+    <!-- Status pills -->
+    <g transform="translate(40, 315)" font-family="'Helvetica Neue', Arial, sans-serif"
+       font-size="11" font-weight="600">
+
+      <!-- Pill 1: ÖNORM -->
+      <rect x="0"   y="-10" width="90"  height="18" rx="9" fill="#1E3A8A" opacity="0.7"/>
+      <text x="45"  y="3"   fill="#60A5FA" text-anchor="middle">ÖNORM B 1800</text>
+
+      <!-- Pill 2: OIB -->
+      <rect x="98"  y="-10" width="80"  height="18" rx="9" fill="#1E3A8A" opacity="0.7"/>
+      <text x="138" y="3"   fill="#60A5FA" text-anchor="middle">OIB-RL 1–6</text>
+
+      <!-- Pill 3: EC5 -->
+      <rect x="186" y="-10" width="90"  height="18" rx="9" fill="#14532D" opacity="0.7"/>
+      <text x="231" y="3"   fill="#4ADE80" text-anchor="middle">Eurocode 5</text>
+
+      <!-- Pill 4: EC2 -->
+      <rect x="284" y="-10" width="90"  height="18" rx="9" fill="#14532D" opacity="0.7"/>
+      <text x="329" y="3"   fill="#4ADE80" text-anchor="middle">Eurocode 2</text>
+
+      <!-- Pill 5: ISO 26262 -->
+      <rect x="382" y="-10" width="108" height="18" rx="9" fill="#7C2D12" opacity="0.7"/>
+      <text x="436" y="3"   fill="#FCA5A5" text-anchor="middle">ISO 26262 ASIL-D</text>
+
+      <!-- Pill 6: GDPR -->
+      <rect x="498" y="-10" width="80"  height="18" rx="9" fill="#3B0764" opacity="0.7"/>
+      <text x="538" y="3"   fill="#C084FC" text-anchor="middle">DSGVO / GDPR</text>
+
+      <!-- Pill 7: Python -->
+      <rect x="586" y="-10" width="80"  height="18" rx="9" fill="#1C1917" opacity="0.7"/>
+      <text x="626" y="3"   fill="#FCD34D" text-anchor="middle">Python 3.11+</text>
+
+      <!-- Copyright right-aligned -->
+      <text x="1120" y="3"
+            font-size="10" font-weight="400"
+            fill="#475569" text-anchor="end">
+        © 2024–2026 Gerhard Hirschmann · Elisabeth Steurer · ParadoxonAI · St. Johann in Tirol
+      </text>
+    </g>
+
+    <!-- ═══════════════════════════════════════════════════ -->
+    <!-- LAYER 6 — Decorative Tech Elements                 -->
+    <!-- ═══════════════════════════════════════════════════ -->
+
+    <!-- Top-right circuit nodes -->
+    <g opacity="0.18" stroke="#3B82F6" stroke-width="1" fill="none">
+      <circle cx="1140" cy="30"  r="4" fill="#3B82F6"/>
+      <circle cx="1160" cy="55"  r="3" fill="#3B82F6"/>
+      <circle cx="1120" cy="55"  r="3" fill="#3B82F6"/>
+      <line x1="1140" y1="30" x2="1160" y2="55"/>
+      <line x1="1140" y1="30" x2="1120" y2="55"/>
+    </g>
+
+    <!-- Small ⊘∞⧈∞⊘ repeated pattern — subtle watermark bottom-right -->
+    <text x="1150" y="292"
+          font-family="monospace" font-size="11"
+          fill="#C9A84C" opacity="0.2" text-anchor="end">
+      ⊘∞⧈∞⊘
+    </text>
+
+  </g><!-- end clip-path -->
+</svg>

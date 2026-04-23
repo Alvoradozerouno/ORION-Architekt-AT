@@ -103,7 +103,7 @@ jobs:
       # Attach SBOM to release
       - name: Attach SBOM to Release
         if: github.event_name == 'release'
-        uses: softprops/action-gh-release@v1
+        uses: softprops/action-gh-release@v3
         with:
           files: |
             sbom-python-cyclonedx.json

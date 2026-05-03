@@ -9,20 +9,31 @@ import time
 from datetime import datetime, timedelta
 from typing import Dict, Optional
 
-import redis
+try:
+    import redis
+
+    REDIS_AVAILABLE = True
+except ImportError:
+    redis = None  # type: ignore[assignment]
+    REDIS_AVAILABLE = False
+    logging.warning("redis package not installed - rate limiting falls back to in-memory")
+
 from fastapi import HTTPException, Request, status
 from starlette.middleware.base import BaseHTTPMiddleware
 
 # Redis connection for distributed rate limiting
 REDIS_URL = os.getenv("REDIS_URL", "redis://localhost:6379")
 
-try:
-    redis_client = redis.from_url(REDIS_URL, decode_responses=True)
-except redis.RedisError as e:
-    logging.warning(f"Redis connection failed, falling back to in-memory rate limiting: {e}")
-    redis_client = None  # Fall back to in-memory
-except Exception as e:
-    logging.error(f"Unexpected error connecting to Redis: {type(e).__name__}: {e}")
+if REDIS_AVAILABLE:
+    try:
+        redis_client = redis.from_url(REDIS_URL, decode_responses=True)
+    except redis.RedisError as e:
+        logging.warning(f"Redis connection failed, falling back to in-memory rate limiting: {e}")
+        redis_client = None  # Fall back to in-memory
+    except Exception as e:
+        logging.error(f"Unexpected error connecting to Redis: {type(e).__name__}: {e}")
+        redis_client = None
+else:
     redis_client = None
 
 # In-memory rate limit storage (fallback)
@@ -183,7 +194,7 @@ class RateLimitMiddleware(BaseHTTPMiddleware):
                 key = f"rate_limit:{client_id}"
                 count = redis_client.zcard(key)
                 return max(0, tier["limit"] - count)
-            except redis.RedisError as e:
+            except Exception as e:
                 logging.warning(f"Redis query failed in rate limit check: {e}")
                 return tier["limit"]  # Fail open on Redis error
         else:
@@ -201,10 +212,8 @@ class RateLimitMiddleware(BaseHTTPMiddleware):
                 if oldest:
                     # Get window from tier (assume 3600 for now)
                     return int(oldest[0][1]) + 3600
-            except redis.RedisError as e:
+            except (IndexError, ValueError, Exception) as e:
                 logging.debug(f"Redis query failed getting reset time: {e}")
-            except (IndexError, ValueError) as e:
-                logging.warning(f"Invalid reset time data from Redis: {e}")
 
         return int(time.time()) + 3600
 

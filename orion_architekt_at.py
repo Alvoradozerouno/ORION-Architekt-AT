@@ -321,7 +321,7 @@ OIB_RICHTLINIEN_AT = {
     },
     "OIB-RL 7": {
         "titel": "Nachhaltige Nutzung der natürlichen Ressourcen",
-        "version": "Grundlagendokument 2023 (Verbindlichkeit je Bundesland in Übernahme)",
+        "version": "Grundlagendokument 2023 (Verbindlichkeit abhängig von Bundesland-Übernahme)",
         "kerninhalt": [
             "Kreislaufwirtschaft: Rückbaubarkeit und Materialwiederverwendung",
             "Ökobilanzierung (Global Warming Potential — GWP) über den Lebenszyklus",

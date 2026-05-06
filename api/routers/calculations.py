@@ -171,7 +171,7 @@ async def berechne_uwert(request: UWertRequest):
     # Check OIB-RL 6:2023 compliance for exterior wall (max 0.35 W/m²K for Neubau)
     oib_rl6_compliant = uwert <= 0.35
 
-    # Determine energy class
+    # Determine energy class based on U-value thresholds (OIB-RL 6:2023 Außenwand)
     if uwert <= 0.15:
         energy_class = "A+"
     elif uwert <= 0.20:
@@ -180,8 +180,10 @@ async def berechne_uwert(request: UWertRequest):
         energy_class = "B"
     elif uwert <= 0.35:
         energy_class = "C"
-    else:
+    elif uwert <= 0.50:
         energy_class = "D"
+    else:
+        energy_class = "E"
 
     return UWertResult(
         uwert=round(uwert, 3),

@@ -743,6 +743,164 @@ function appendMessage(from, text, dir) {
   box.scrollTop = box.scrollHeight;
 }
 
+// ── Wohnbauförderung ──────────────────────────────────────────────────────────
+
+async function checkFoerderung() {
+  showLoading('Förderung wird geprüft…');
+  try {
+    const data = await apiCall('/api/v1/wohnbaufoerderung/check', {
+      bundesland: document.getElementById('fo-bl').value,
+      wohnflaeche_m2: +document.getElementById('fo-flaeche').value,
+      baukosten_eur: +document.getElementById('fo-kosten').value,
+      personen_im_haushalt: +document.getElementById('fo-personen').value,
+      kinder: +document.getElementById('fo-kinder').value,
+      jahreseinkommen_eur: +document.getElementById('fo-einkommen').value,
+      energieklasse: document.getElementById('fo-ek').value,
+      gebaudetyp: document.getElementById('fo-typ').value,
+    });
+    const fmt = n => n != null ? n.toLocaleString('de-AT', {style:'currency',currency:'EUR',maximumFractionDigits:0}) : '—';
+    const foerderbar = data.foerderbar;
+    let html = `<h3>${esc(data.programm)}</h3>
+      <div class="result-grid">
+        ${kv('Förderfähig', badge(foerderbar ? 'JA ✓' : 'NEIN ✗', foerderbar ? 'success' : 'error'))}
+        ${kv('Max. Förderung', fmt(data.max_foerderung_eur))}
+        ${data.jahrliche_zinseinsparung_eur != null ? kv('Jährl. Zinseinsparung', fmt(data.jahrliche_zinseinsparung_eur)) : ''}
+        ${data.zinssatz_prozent != null ? kv('Zinssatz', data.zinssatz_prozent + ' %') : ''}
+        ${data.laufzeit_jahre ? kv('Laufzeit', data.laufzeit_jahre + ' Jahre') : ''}
+        ${kv('Förderart', esc(data.foerderart))}
+      </div>`;
+
+    if (data.ablehnungsgrund) {
+      html += `<div style="margin:.75rem 0;padding:.75rem;background:#fee2e2;border-radius:6px;color:#991b1b">
+        <b>Ablehnungsgrund:</b> ${esc(data.ablehnungsgrund)}</div>`;
+    }
+
+    const ek = data.einkommens_check;
+    const ekOk = ek.foerderbar;
+    html += `<h4 style="margin-top:1rem">Einkommens-Check (${esc(ek.einkommenstyp)})</h4>
+      <div class="result-grid">
+        ${kv('Ihr Einkommen', fmt(ek.ihr_einkommen_eur))}
+        ${kv('Einkommensgrenze', fmt(ek.einkommensgrenze_eur))}
+        ${kv('Differenz', (ek.differenz_eur >= 0 ? '+' : '') + ek.differenz_eur.toLocaleString('de-AT') + ' €')}
+        ${kv('Einkommens-Check', badge(ekOk ? 'OK' : 'ÜBERSCHRITTEN', ekOk ? 'success' : 'error'))}
+      </div>`;
+
+    const ezk = data.energieklasse_check;
+    html += `<h4 style="margin-top:1rem">Energieklassen-Check</h4>
+      <div class="result-grid">
+        ${kv('Ihre Klasse', esc(ezk.ihre_klasse))}
+        ${kv('Mindestanforderung', esc(ezk.mindest_klasse))}
+        ${kv('Energie-Check', badge(ezk.foerderbar ? 'OK' : 'UNTERSCHRITTEN', ezk.foerderbar ? 'success' : 'error'))}
+      </div>`;
+
+    if (data.besonderheiten?.length) {
+      html += '<h4 style="margin-top:1rem">⚠ Besonderheiten &amp; Hinweise</h4><ul>';
+      data.besonderheiten.forEach(b => { html += `<li>${esc(b)}</li>`; });
+      html += '</ul>';
+    }
+
+    html += `<div style="margin-top:1rem;padding:.75rem;background:#f0f9ff;border-radius:6px">
+      <b>Zuständige Behörde:</b> ${esc(data.behoerde)}<br>
+      <b>Antrag online:</b> ${data.antrag_online ? 'Ja' : 'Nein — persönlich'}<br>
+      <b>Hinweis:</b> ${esc(data.antragsfrist_hinweis)}<br>
+      <b>Infos:</b> <a href="${esc(data.url)}" target="_blank" rel="noopener">${esc(data.url)}</a>
+    </div>`;
+
+    showResult('foerderung-result', html, foerderbar ? 'success' : 'error');
+  } catch (e) {
+    showResult('foerderung-result', `<b>Fehler:</b> ${esc(e.message)}`, 'error');
+  } finally { hideLoading(); }
+}
+
+async function ladeFoerderungAlle() {
+  showLoading('Bundesländer-Übersicht laden…');
+  try {
+    const data = await fetch('/api/v1/wohnbaufoerderung/alle').then(r => r.json());
+    let html = `<h3>Wohnbauförderung — Alle 9 Bundesländer (Stand: ${esc(data.stand ?? '2025')})</h3>
+      <table class="result-table">
+        <thead><tr>
+          <th>Bundesland</th><th>Programm</th>
+          <th>Einkomm.-grenze (1P)</th><th>Max. Förderung</th>
+          <th>Zinssatz</th><th>Min. Eklasse</th><th>Online</th>
+        </tr></thead><tbody>`;
+    data.bundeslaender?.forEach(b => {
+      const fmt = n => n ? n.toLocaleString('de-AT', {style:'currency',currency:'EUR',maximumFractionDigits:0}) : '—';
+      html += `<tr>
+        <td><b>${esc(b.name)}</b></td>
+        <td>${esc(b.programm)}</td>
+        <td>${fmt(b.einkommensgrenze_1p_eur)} <small>(${esc(b.einkommenstyp)})</small></td>
+        <td>${fmt(b.max_foerderung_eur)}</td>
+        <td>${b.zinssatz_prozent != null ? b.zinssatz_prozent + ' %' : '—'}</td>
+        <td>${badge(b.min_energieklasse, 'success')}</td>
+        <td>${badge(b.antrag_online ? 'Online' : 'Persönlich', b.antrag_online ? 'success' : 'warning')}</td>
+      </tr>`;
+    });
+    html += '</tbody></table>';
+    showResult('foerderung-alle-result', html, 'success');
+  } catch (e) {
+    showResult('foerderung-alle-result', `<b>Fehler:</b> ${esc(e.message)}`, 'error');
+  } finally { hideLoading(); }
+}
+
+// ── Energieausweis PDF ────────────────────────────────────────────────────────
+
+async function erstelleEnergyausweisePDF() {
+  showLoading('Energieausweis PDF wird erstellt…');
+  const resultEl = document.getElementById('eaw-result');
+  try {
+    const body = {
+      projektname: document.getElementById('eaw-name').value,
+      adresse: document.getElementById('eaw-adresse').value,
+      bundesland: document.getElementById('eaw-bl').value,
+      gebaudetyp: document.getElementById('eaw-typ').value,
+      bgf_m2: +document.getElementById('eaw-bgf').value,
+      baujahr: +document.getElementById('eaw-baujahr').value || null,
+      bauherr: document.getElementById('eaw-bauherr').value,
+      hwb_kwh_m2a: +document.getElementById('eaw-hwb').value,
+      heb_kwh_m2a: +document.getElementById('eaw-heb').value || null,
+      peb_kwh_m2a: +document.getElementById('eaw-peb').value || null,
+      co2_kg_m2a: +document.getElementById('eaw-co2').value || null,
+      fgee: +document.getElementById('eaw-fgee').value || null,
+      u_wert_aussenwand: +document.getElementById('eaw-uw-wand').value || null,
+      u_wert_dach: +document.getElementById('eaw-uw-dach').value || null,
+      u_wert_fenster: +document.getElementById('eaw-uw-fenster').value || null,
+      heizungstyp: document.getElementById('eaw-heizung').value,
+      warmwasser: document.getElementById('eaw-ww').value,
+      belueftung: document.getElementById('eaw-lueftung').value,
+      aussteller_name: document.getElementById('eaw-aussteller').value,
+      aussteller_zahl: document.getElementById('eaw-ztkammer').value,
+    };
+    const r = await fetch('/api/v1/energieausweis/pdf', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(body),
+    });
+    if (!r.ok) {
+      const err = await r.json().catch(() => ({ detail: r.statusText }));
+      throw new Error(err.detail || r.statusText);
+    }
+    const blob = await r.blob();
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    const filename = r.headers.get('Content-Disposition')?.match(/filename="([^"]+)"/)?.[1]
+      || `Energieausweis_${body.projektname.replace(/\s+/g,'_')}.pdf`;
+    a.href = url;
+    a.download = filename;
+    a.click();
+    URL.revokeObjectURL(url);
+    resultEl.innerHTML = `<b style="color:var(--success)">✓ PDF erstellt und Download gestartet:</b> ${esc(filename)}<br>
+      <span style="color:var(--text-muted);font-size:.85rem">
+        Energieklasse: ${body.hwb_kwh_m2a <= 10 ? 'A++' : body.hwb_kwh_m2a <= 25 ? 'A+' :
+        body.hwb_kwh_m2a <= 50 ? 'A' : body.hwb_kwh_m2a <= 75 ? 'B' : body.hwb_kwh_m2a <= 100 ? 'C' : 'D+'} —
+        HWB: ${body.hwb_kwh_m2a} kWh/m²a
+      </span>`;
+    resultEl.className = 'result-box success';
+    resultEl.classList.remove('hidden');
+  } catch (e) {
+    showResult('eaw-result', `<b>Fehler:</b> ${esc(e.message)}`, 'error');
+  } finally { hideLoading(); }
+}
+
 // ── Init ──────────────────────────────────────────────────────────────────────
 
 document.addEventListener('DOMContentLoaded', () => {

@@ -3,15 +3,27 @@ ORION Architekt-AT — Echte ML-Modelle
 ======================================
 scikit-learn basierte Kostenprognose, Energieoptimierung, Materialempfehlung.
 Trainiert auf synthetischen österreichischen Baukostendaten (2020–2025).
+
+Persistenz:
+  - Modelle werden nach dem Training mit joblib auf Disk gespeichert.
+  - Bei erneutem Start wird das gespeicherte Modell geladen (kein Re-Training).
+  - Speicherpfad: Umgebungsvariable ORION_ML_MODEL_DIR (Standard: ./models)
 """
 
 import logging
+import os
+import pathlib
 from typing import Any, Dict, List, Optional, Tuple
 
+import joblib
 import numpy as np
 from sklearn.ensemble import GradientBoostingRegressor, RandomForestRegressor
 from sklearn.linear_model import Ridge
 from sklearn.preprocessing import LabelEncoder, StandardScaler
+
+# Verzeichnis für persistierte Modelle
+_MODEL_DIR = pathlib.Path(os.environ.get("ORION_ML_MODEL_DIR", "models"))
+_MODEL_DIR.mkdir(parents=True, exist_ok=True)
 
 logger = logging.getLogger(__name__)
 
@@ -94,13 +106,34 @@ class CostPredictionModel:
             subsample=0.85, min_samples_leaf=5, random_state=42
         )
         self.scaler = StandardScaler()
+        self._load_or_train()
+
+    def _model_path(self) -> pathlib.Path:
+        return _MODEL_DIR / "cost_model.joblib"
+
+    def _load_or_train(self):
+        path = self._model_path()
+        if path.exists():
+            try:
+                saved = joblib.load(path)
+                self.model = saved["model"]
+                self.scaler = saved["scaler"]
+                logger.info("CostPredictionModel geladen von %s", path)
+                return
+            except Exception as exc:
+                logger.warning("Laden des Cost-Modells fehlgeschlagen (%s) — Training neu", exc)
         self._train()
+        try:
+            joblib.dump({"model": self.model, "scaler": self.scaler}, path)
+            logger.info("CostPredictionModel gespeichert nach %s", path)
+        except Exception as exc:
+            logger.warning("Speichern des Cost-Modells fehlgeschlagen: %s", exc)
 
     def _train(self):
         X, y = _make_training_data(2000)
         Xs = self.scaler.fit_transform(X)
         self.model.fit(Xs, y)
-        logger.info("CostPredictionModel trained on %d samples", len(y))
+        logger.info("CostPredictionModel trainiert auf %d Samples", len(y))
 
     def predict(
         self,

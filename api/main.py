@@ -32,6 +32,7 @@ from api.routers import (
     calculations,
     collaboration,
     compliance,
+    energieausweis_pdf,
     fem_router,
     ml_router,
     norms_router,
@@ -39,6 +40,7 @@ from api.routers import (
     submission_router,
     tendering,
     validation,
+    wohnbaufoerderung,
 )
 from orion_logging import get_logger, setup_default_logging
 
@@ -114,6 +116,8 @@ app = FastAPI(
         {"name": "collaboration", "description": "👥 Real-time collaboration (UNIQUE)"},
         {"name": "auth", "description": "Authentication & authorization"},
         {"name": "health", "description": "Health & monitoring"},
+        {"name": "wohnbaufoerderung", "description": "🏘️ Wohnbauförderungs-Check (alle 9 BL)"},
+        {"name": "energieausweis", "description": "📄 Energieausweis PDF-Export"},
     ],
 )
 
@@ -151,6 +155,16 @@ app.include_router(ml_router.router, prefix="/api/v1/ml", tags=["ml"])
 app.include_router(fem_router.router, prefix="/api/v1/fem", tags=["fem"])
 app.include_router(norms_router.router, prefix="/api/v1/norms", tags=["norms"])
 app.include_router(submission_router.router, prefix="/api/v1/submission", tags=["submission"])
+app.include_router(
+    wohnbaufoerderung.router,
+    prefix="/api/v1/wohnbaufoerderung",
+    tags=["wohnbaufoerderung"],
+)
+app.include_router(
+    energieausweis_pdf.router,
+    prefix="/api/v1/energieausweis",
+    tags=["energieausweis"],
+)
 
 # Serve frontend static files
 _FRONTEND_DIR = Path(__file__).parent.parent / "frontend"

@@ -18,6 +18,8 @@
     <a href="#normen" class="nav-link" data-section="normen">Normen-Monitor</a>
     <a href="#einreichung" class="nav-link" data-section="einreichung">Einreichung</a>
     <a href="#kollaboration" class="nav-link" data-section="kollaboration">Kollaboration</a>
+    <a href="#foerderung" class="nav-link" data-section="foerderung">Förderung</a>
+    <a href="#energieausweis" class="nav-link" data-section="energieausweis">EAW PDF</a>
   </div>
   <div class="nav-status">
     <span id="api-status" class="status-dot offline"></span>
@@ -69,6 +71,16 @@
       <div class="card-icon">🤖</div>
       <h3>KI-Optimierung</h3>
       <p>ML Kostenprognose</p>
+    </div>
+    <div class="card" onclick="showSection('foerderung')">
+      <div class="card-icon">🏘️</div>
+      <h3>Wohnbauförderung</h3>
+      <p>Förderfähigkeit alle 9 BL</p>
+    </div>
+    <div class="card" onclick="showSection('energieausweis')">
+      <div class="card-icon">📄</div>
+      <h3>Energieausweis PDF</h3>
+      <p>OIB-RL 6:2023 druckfähig</p>
     </div>
     <div class="card" onclick="showSection('einreichung')">
       <div class="card-icon">📄</div>
@@ -457,6 +469,160 @@
     <button class="btn-primary" onclick="sendWSMsg()">Senden</button>
   </div>
   <div id="kol-messages" class="messages-box"></div>
+</section>
+
+<!-- WOHNBAUFÖRDERUNG -->
+<section id="section-foerderung" class="section hidden">
+  <h1>Wohnbauförderungs-Check</h1>
+  <p class="info-text">Automatische Prüfung der Förderfähigkeit nach dem jeweiligen Landesförderungsgesetz — Stand 2025</p>
+  <div class="tabs">
+    <button class="tab active" onclick="switchTab(this,'foerd-check')">Förder-Check</button>
+    <button class="tab" onclick="switchTab(this,'foerd-alle')">Alle Bundesländer</button>
+  </div>
+
+  <div id="tab-foerd-check" class="tab-content active">
+    <h2>Förderfähigkeit prüfen</h2>
+    <div class="form-grid">
+      <div class="form-group"><label>Bundesland</label>
+        <select id="fo-bl">
+          <option value="wien">Wien</option>
+          <option value="niederoesterreich">Niederösterreich</option>
+          <option value="oberoesterreich">Oberösterreich</option>
+          <option value="salzburg">Salzburg</option>
+          <option value="tirol" selected>Tirol</option>
+          <option value="vorarlberg">Vorarlberg</option>
+          <option value="steiermark">Steiermark</option>
+          <option value="kaernten">Kärnten</option>
+          <option value="burgenland">Burgenland</option>
+        </select>
+      </div>
+      <div class="form-group"><label>Wohnnutzfläche (m²)</label>
+        <input type="number" id="fo-flaeche" value="120" min="20" max="500">
+      </div>
+      <div class="form-group"><label>Geschätzte Baukosten (€)</label>
+        <input type="number" id="fo-kosten" value="450000" min="10000">
+      </div>
+      <div class="form-group"><label>Personen im Haushalt</label>
+        <input type="number" id="fo-personen" value="2" min="1" max="10">
+      </div>
+      <div class="form-group"><label>Kinder im Haushalt</label>
+        <input type="number" id="fo-kinder" value="1" min="0" max="10">
+      </div>
+      <div class="form-group"><label>Jahreseinkommen (€) <small>Netto oder Brutto je BL</small></label>
+        <input type="number" id="fo-einkommen" value="42000" min="1000">
+      </div>
+      <div class="form-group"><label>Erreichte Energieklasse</label>
+        <select id="fo-ek">
+          <option value="A++">A++</option>
+          <option value="A+">A+</option>
+          <option value="A" selected>A</option>
+          <option value="B">B</option>
+          <option value="C">C</option>
+          <option value="D">D</option>
+        </select>
+      </div>
+      <div class="form-group"><label>Gebäudetyp</label>
+        <select id="fo-typ">
+          <option value="mehrfamilienhaus" selected>Mehrfamilienhaus</option>
+          <option value="einfamilienhaus">Einfamilienhaus</option>
+          <option value="reihenhaus">Reihenhaus</option>
+        </select>
+      </div>
+    </div>
+    <button class="btn-primary" onclick="checkFoerderung()">🏘️ Förderung prüfen</button>
+    <div id="foerderung-result" class="result-box hidden"></div>
+  </div>
+
+  <div id="tab-foerd-alle" class="tab-content hidden">
+    <h2>Alle Bundesländer — Förderübersicht</h2>
+    <button class="btn-secondary" onclick="ladeFoerderungAlle()">📋 Übersicht laden</button>
+    <div id="foerderung-alle-result" class="result-box hidden"></div>
+  </div>
+</section>
+
+<!-- ENERGIEAUSWEIS PDF -->
+<section id="section-energieausweis" class="section hidden">
+  <h1>Energieausweis PDF</h1>
+  <p class="info-text">Erstellt einen druckfähigen österreichischen Energieausweis nach OIB-RL 6:2023 — inkl. Farbskala, fGEE-Check und U-Wert-Tabelle</p>
+  <div class="form-grid">
+    <div class="form-group"><label>Projektname</label>
+      <input type="text" id="eaw-name" value="Wohnhaus Tirol">
+    </div>
+    <div class="form-group"><label>Adresse</label>
+      <input type="text" id="eaw-adresse" value="Dorfstraße 1, 6380 St. Johann">
+    </div>
+    <div class="form-group"><label>Bundesland</label>
+      <select id="eaw-bl">
+        <option value="Wien">Wien</option>
+        <option value="Niederösterreich">Niederösterreich</option>
+        <option value="Oberösterreich">Oberösterreich</option>
+        <option value="Salzburg">Salzburg</option>
+        <option value="Tirol" selected>Tirol</option>
+        <option value="Vorarlberg">Vorarlberg</option>
+        <option value="Steiermark">Steiermark</option>
+        <option value="Kärnten">Kärnten</option>
+        <option value="Burgenland">Burgenland</option>
+      </select>
+    </div>
+    <div class="form-group"><label>Gebäudetyp</label>
+      <select id="eaw-typ">
+        <option value="Einfamilienhaus">Einfamilienhaus</option>
+        <option value="Mehrfamilienhaus" selected>Mehrfamilienhaus</option>
+        <option value="Reihenhaus">Reihenhaus</option>
+        <option value="Bürogebäude">Bürogebäude</option>
+      </select>
+    </div>
+    <div class="form-group"><label>BGF (m²)</label>
+      <input type="number" id="eaw-bgf" value="350" min="10">
+    </div>
+    <div class="form-group"><label>Baujahr</label>
+      <input type="number" id="eaw-baujahr" value="2025" min="1800" max="2030">
+    </div>
+    <div class="form-group"><label>Bauherr</label>
+      <input type="text" id="eaw-bauherr" value="Fam. Muster">
+    </div>
+    <div class="form-group"><label>HWB (kWh/m²a)</label>
+      <input type="number" id="eaw-hwb" value="32.5" step="0.1" min="1">
+    </div>
+    <div class="form-group"><label>HEB (kWh/m²a, optional)</label>
+      <input type="number" id="eaw-heb" value="37.4" step="0.1">
+    </div>
+    <div class="form-group"><label>PEB (kWh/m²a, optional)</label>
+      <input type="number" id="eaw-peb" value="41.1" step="0.1">
+    </div>
+    <div class="form-group"><label>CO₂ (kg/m²a, optional)</label>
+      <input type="number" id="eaw-co2" value="7.2" step="0.1">
+    </div>
+    <div class="form-group"><label>fGEE (optional, ≤0,75 Neubau)</label>
+      <input type="number" id="eaw-fgee" value="0.68" step="0.01">
+    </div>
+    <div class="form-group"><label>U-Wert Außenwand (W/m²K)</label>
+      <input type="number" id="eaw-uw-wand" value="0.18" step="0.01">
+    </div>
+    <div class="form-group"><label>U-Wert Dach (W/m²K)</label>
+      <input type="number" id="eaw-uw-dach" value="0.12" step="0.01">
+    </div>
+    <div class="form-group"><label>U-Wert Fenster (W/m²K)</label>
+      <input type="number" id="eaw-uw-fenster" value="0.80" step="0.01">
+    </div>
+    <div class="form-group"><label>Heizungstyp</label>
+      <input type="text" id="eaw-heizung" value="Wärmepumpe Luft/Wasser">
+    </div>
+    <div class="form-group"><label>Warmwasser</label>
+      <input type="text" id="eaw-ww" value="Thermische Solaranlage">
+    </div>
+    <div class="form-group"><label>Lüftung</label>
+      <input type="text" id="eaw-lueftung" value="Kontrollierte Wohnraumlüftung">
+    </div>
+    <div class="form-group"><label>Aussteller (Name)</label>
+      <input type="text" id="eaw-aussteller" value="ORION Architekt-AT">
+    </div>
+    <div class="form-group"><label>ZT-Kammer Nr. (optional)</label>
+      <input type="text" id="eaw-ztkammer" placeholder="z.B. ZT-12345">
+    </div>
+  </div>
+  <button class="btn-primary" onclick="erstelleEnergyausweisePDF()">📄 Energieausweis PDF erstellen &amp; downloaden</button>
+  <div id="eaw-result" class="result-box hidden"></div>
 </section>
 
 </main>

@@ -115,6 +115,11 @@ app = FastAPI(
 # Middleware
 _cors_origins_raw = os.getenv("ALLOWED_ORIGINS", "")
 _cors_origins = [o.strip() for o in _cors_origins_raw.split(",") if o.strip()] or ["*"]
+if _cors_origins == ["*"]:
+    logger.warning(
+        "CORS is configured with wildcard origin ('*'). "
+        "Set the ALLOWED_ORIGINS environment variable to restrict origins in production."
+    )
 app.add_middleware(
     CORSMiddleware,
     allow_origins=_cors_origins,

@@ -30,6 +30,7 @@ from api.routers import (
     calculations,
     collaboration,
     compliance,
+    monitoring,
     reports,
     tendering,
     validation,
@@ -112,9 +113,11 @@ app = FastAPI(
 )
 
 # Middleware
+_cors_origins_raw = os.getenv("ALLOWED_ORIGINS", "")
+_cors_origins = [o.strip() for o in _cors_origins_raw.split(",") if o.strip()] or ["*"]
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # In production, specify exact origins
+    allow_origins=_cors_origins,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -138,6 +141,7 @@ app.include_router(ai_recommendations.router, prefix="/api/v1/ai", tags=["ai"])
 app.include_router(bim_integration.router, prefix="/api/v1/bim", tags=["bim"])
 app.include_router(collaboration.router, prefix="/api/v1/collaboration", tags=["collaboration"])
 app.include_router(auth_router, prefix="/auth", tags=["auth"])
+app.include_router(monitoring.router, prefix="/monitoring", tags=["health"])
 
 
 # Health check endpoints

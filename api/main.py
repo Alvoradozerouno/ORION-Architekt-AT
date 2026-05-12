@@ -516,7 +516,7 @@ async function loadBpi() {
   const last5 = d.zeitreihe.slice(-5);
   const rows = last5.map(e =>
     '<tr><td style="padding:0.2rem 0.4rem;font-size:0.75rem">' + e.quartal + '</td>' +
-    '<td style="padding:0.2rem 0.4rem;font-size:0.75rem;text-align:right">' + e.index_gesamt + '</td></tr>'
+    '<td style="padding:0.2rem 0.4rem;font-size:0.75rem;text-align:right">' + e.index + '</td></tr>'
   ).join('');
   el.innerHTML = '<table style="width:100%;margin-top:0.5rem"><tr><th style="font-size:0.7rem;text-align:left">Quartal</th><th style="font-size:0.7rem;text-align:right">Index</th></tr>' + rows + '</table>';
 }

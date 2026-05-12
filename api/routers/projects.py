@@ -24,6 +24,12 @@ router = APIRouter()
 # In-memory project store (replace with DB in production)
 _projects: Dict[str, dict] = {}
 
+# Bundesländer with Radon risk zones (ÖNORM S 5280)
+RADON_VORSORGEGEBIETE = frozenset({
+    "tirol", "niederoesterreich", "oberoesterreich",
+    "steiermark", "salzburg", "kaernten", "vorarlberg",
+})
+
 
 # ---------------------------------------------------------------------------
 # Models
@@ -250,7 +256,7 @@ async def get_project_compliance_summary(project_id: str):
             ),
         })
 
-    if bl in {"tirol", "niederoesterreich", "oberoesterreich", "steiermark", "salzburg", "kaernten", "vorarlberg"}:
+    if bl in RADON_VORSORGEGEBIETE:
         flags.append({
             "typ": "warning",
             "bereich": "Radonschutz",

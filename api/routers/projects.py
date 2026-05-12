@@ -335,3 +335,140 @@ async def export_project(project_id: str, format: str = "json"):
             "Ziviltechniker zu erstellen und zu unterschreiben (ZTG 2019)."
         ),
     }
+
+
+# ---------------------------------------------------------------------------
+# Team / Büro-Verwaltung
+# ---------------------------------------------------------------------------
+
+# In-memory member store: { project_id: [member_dict, ...] }
+_project_members: Dict[str, list] = {}
+
+_VALID_ROLES = {"architekt", "ingenieur", "bauleiter", "sachverstaendiger", "auftraggeber", "gaest"}
+
+
+class TeamMemberAdd(BaseModel):
+    """Add a team member to a project"""
+
+    user_id: str = Field(..., min_length=1, max_length=100, description="Benutzer-ID oder E-Mail")
+    name: str = Field(..., min_length=1, max_length=200, description="Name der Person")
+    rolle: str = Field(
+        ...,
+        description=(
+            "Projektrolle: architekt, ingenieur, bauleiter, sachverstaendiger, "
+            "auftraggeber, gaest"
+        ),
+    )
+    email: Optional[str] = Field(None, max_length=200, description="E-Mail-Adresse")
+    berechtigungen: List[str] = Field(
+        default=["lesen"],
+        description="Berechtigungen: lesen, bearbeiten, einreichen, admin",
+    )
+
+    @field_validator("rolle")
+    @classmethod
+    def validate_rolle(cls, v: str) -> str:
+        v_lower = v.lower()
+        if v_lower not in _VALID_ROLES:
+            raise ValueError(
+                f"Ungültige Rolle '{v}'. Gültig: {sorted(_VALID_ROLES)}"
+            )
+        return v_lower
+
+    @field_validator("berechtigungen")
+    @classmethod
+    def validate_berechtigungen(cls, v: List[str]) -> List[str]:
+        valid = {"lesen", "bearbeiten", "einreichen", "admin"}
+        for b in v:
+            if b.lower() not in valid:
+                raise ValueError(f"Ungültige Berechtigung '{b}'. Gültig: {sorted(valid)}")
+        return [b.lower() for b in v]
+
+
+@router.post("/{project_id}/members", status_code=201)
+async def add_team_member(project_id: str, member: TeamMemberAdd):
+    """
+    👥 **Teammitglied hinzufügen**
+
+    Fügt einem Projekt ein Teammitglied mit einer Rolle und Berechtigungen hinzu.
+
+    **Rollen für österreichische Planungsbüros:**
+    - `architekt` — Befugter Architekt (ZTG 2019)
+    - `ingenieur` — Befugter Ingenieurkonsulent
+    - `bauleiter` — Örtliche Bauaufsicht
+    - `sachverstaendiger` — Fachsachverständiger
+    - `auftraggeber` — Bauherr / Auftraggeber
+    - `gaest` — Lesezugriff ohne Bearbeitungsrechte
+
+    **Berechtigungen:** lesen, bearbeiten, einreichen, admin
+    """
+    if project_id not in _projects:
+        raise HTTPException(status_code=404, detail=f"Projekt '{project_id}' nicht gefunden.")
+
+    members = _project_members.setdefault(project_id, [])
+
+    # Check duplicate
+    existing = next((m for m in members if m["user_id"] == member.user_id), None)
+    if existing:
+        raise HTTPException(
+            status_code=409,
+            detail=f"Benutzer '{member.user_id}' ist bereits Mitglied dieses Projekts.",
+        )
+
+    entry = {
+        "user_id": member.user_id,
+        "name": member.name,
+        "rolle": member.rolle,
+        "email": member.email,
+        "berechtigungen": member.berechtigungen,
+        "hinzugefuegt_am": datetime.now(timezone.utc).isoformat(),
+    }
+    members.append(entry)
+    _project_members[project_id] = members
+
+    return {
+        "projekt_id": project_id,
+        "mitglied": entry,
+        "team_groesse": len(members),
+    }
+
+
+@router.get("/{project_id}/members")
+async def list_team_members(project_id: str):
+    """
+    👥 **Teammitglieder auflisten**
+
+    Gibt alle Teammitglieder eines Projekts mit ihren Rollen und Berechtigungen zurück.
+    """
+    if project_id not in _projects:
+        raise HTTPException(status_code=404, detail=f"Projekt '{project_id}' nicht gefunden.")
+
+    members = _project_members.get(project_id, [])
+    return {
+        "projekt_id": project_id,
+        "projekt_name": _projects[project_id]["name"],
+        "mitglieder": members,
+        "team_groesse": len(members),
+    }
+
+
+@router.delete("/{project_id}/members/{user_id}", status_code=204)
+async def remove_team_member(project_id: str, user_id: str):
+    """
+    🗑️ **Teammitglied entfernen**
+
+    Entfernt ein Teammitglied aus dem Projekt.
+    """
+    if project_id not in _projects:
+        raise HTTPException(status_code=404, detail=f"Projekt '{project_id}' nicht gefunden.")
+
+    members = _project_members.get(project_id, [])
+    updated = [m for m in members if m["user_id"] != user_id]
+
+    if len(updated) == len(members):
+        raise HTTPException(
+            status_code=404,
+            detail=f"Benutzer '{user_id}' ist kein Mitglied von Projekt '{project_id}'.",
+        )
+
+    _project_members[project_id] = updated

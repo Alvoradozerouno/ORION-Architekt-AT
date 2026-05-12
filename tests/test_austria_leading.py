@@ -492,3 +492,259 @@ class TestProjectExport:
         ).json()["id"]
         r = client.get(f"/api/v1/projects/{pid}/export?format=pdf")
         assert r.status_code == 400
+
+
+# ---------------------------------------------------------------------------
+# Team member management (Bürofähigkeit)
+# ---------------------------------------------------------------------------
+
+
+class TestProjectTeamMembers:
+    def _make_project(self, name="Team-Projekt"):
+        return client.post(
+            "/api/v1/projects/",
+            json={
+                "name": name,
+                "bundesland": "wien",
+                "building_type": "buerogebaeude",
+                "bgf_m2": 800,
+                "geschosse": 4,
+            },
+        ).json()["id"]
+
+    def test_add_member_returns_201(self):
+        pid = self._make_project()
+        r = client.post(
+            f"/api/v1/projects/{pid}/members",
+            json={
+                "user_id": "arch-001",
+                "name": "Mag. Arch. Maria Müller",
+                "rolle": "architekt",
+                "email": "m.mueller@buero.at",
+                "berechtigungen": ["lesen", "bearbeiten"],
+            },
+        )
+        assert r.status_code == 201
+
+    def test_add_member_data_returned(self):
+        pid = self._make_project()
+        r = client.post(
+            f"/api/v1/projects/{pid}/members",
+            json={
+                "user_id": "ing-002",
+                "name": "DI Thomas Huber",
+                "rolle": "ingenieur",
+                "berechtigungen": ["lesen"],
+            },
+        )
+        data = r.json()
+        assert data["mitglied"]["user_id"] == "ing-002"
+        assert data["mitglied"]["rolle"] == "ingenieur"
+        assert data["team_groesse"] == 1
+
+    def test_list_members_returns_200(self):
+        pid = self._make_project()
+        client.post(
+            f"/api/v1/projects/{pid}/members",
+            json={"user_id": "u1", "name": "User One", "rolle": "bauleiter", "berechtigungen": ["lesen"]},
+        )
+        r = client.get(f"/api/v1/projects/{pid}/members")
+        assert r.status_code == 200
+        data = r.json()
+        assert data["team_groesse"] == 1
+        assert len(data["mitglieder"]) == 1
+
+    def test_list_empty_project_has_no_members(self):
+        pid = self._make_project("Leeres Projekt")
+        r = client.get(f"/api/v1/projects/{pid}/members")
+        assert r.status_code == 200
+        assert r.json()["team_groesse"] == 0
+
+    def test_duplicate_member_returns_409(self):
+        pid = self._make_project()
+        payload = {"user_id": "dup-001", "name": "Duplikat", "rolle": "gaest", "berechtigungen": ["lesen"]}
+        client.post(f"/api/v1/projects/{pid}/members", json=payload)
+        r = client.post(f"/api/v1/projects/{pid}/members", json=payload)
+        assert r.status_code == 409
+
+    def test_remove_member_returns_204(self):
+        pid = self._make_project()
+        client.post(
+            f"/api/v1/projects/{pid}/members",
+            json={"user_id": "del-001", "name": "To Delete", "rolle": "gaest", "berechtigungen": ["lesen"]},
+        )
+        r = client.delete(f"/api/v1/projects/{pid}/members/del-001")
+        assert r.status_code == 204
+        # Verify removed
+        members = client.get(f"/api/v1/projects/{pid}/members").json()["mitglieder"]
+        assert all(m["user_id"] != "del-001" for m in members)
+
+    def test_remove_nonexistent_member_returns_404(self):
+        pid = self._make_project()
+        r = client.delete(f"/api/v1/projects/{pid}/members/does-not-exist")
+        assert r.status_code == 404
+
+    def test_invalid_rolle_returns_422(self):
+        pid = self._make_project()
+        r = client.post(
+            f"/api/v1/projects/{pid}/members",
+            json={"user_id": "u-bad", "name": "Bad Role", "rolle": "ceo", "berechtigungen": ["lesen"]},
+        )
+        assert r.status_code == 422
+
+    def test_invalid_berechtigung_returns_422(self):
+        pid = self._make_project()
+        r = client.post(
+            f"/api/v1/projects/{pid}/members",
+            json={"user_id": "u-bad2", "name": "Bad Perm", "rolle": "architekt", "berechtigungen": ["superadmin"]},
+        )
+        assert r.status_code == 422
+
+    def test_add_member_to_unknown_project_returns_404(self):
+        r = client.post(
+            "/api/v1/projects/00000000-0000-0000-0000-000000000000/members",
+            json={"user_id": "u1", "name": "X", "rolle": "gaest", "berechtigungen": ["lesen"]},
+        )
+        assert r.status_code == 404
+
+    @pytest.mark.parametrize("rolle", ["architekt", "ingenieur", "bauleiter", "sachverstaendiger", "auftraggeber", "gaest"])
+    def test_all_valid_rollen(self, rolle):
+        pid = self._make_project(f"Rollen-Test-{rolle}")
+        r = client.post(
+            f"/api/v1/projects/{pid}/members",
+            json={"user_id": f"u-{rolle}", "name": f"Test {rolle}", "rolle": rolle, "berechtigungen": ["lesen"]},
+        )
+        assert r.status_code == 201
+
+
+# ---------------------------------------------------------------------------
+# AT data: changelog, at-kpis (Vertrauen & Erfolg messbar machen)
+# ---------------------------------------------------------------------------
+
+
+class TestChangelog:
+    def test_changelog_returns_200(self):
+        r = client.get("/api/v1/at-data/changelog")
+        assert r.status_code == 200
+
+    def test_changelog_has_entries(self):
+        data = client.get("/api/v1/at-data/changelog").json()
+        assert "changelog" in data
+        assert len(data["changelog"]) >= 1
+
+    def test_changelog_has_version_and_datum(self):
+        entry = client.get("/api/v1/at-data/changelog").json()["changelog"][0]
+        assert "version" in entry
+        assert "datum" in entry
+        assert "aenderungen" in entry
+
+    def test_changelog_aktuellste_version_matches_first_entry(self):
+        data = client.get("/api/v1/at-data/changelog").json()
+        assert data["aktuellste_version"] == data["changelog"][0]["version"]
+
+    def test_changelog_contains_oib_and_bundesland_items(self):
+        entries = client.get("/api/v1/at-data/changelog").json()["changelog"]
+        all_changes = " ".join(c for e in entries for c in e["aenderungen"])
+        assert "OIB" in all_changes or "Bundesland" in all_changes
+
+
+class TestATKPIs:
+    def test_at_kpis_returns_200(self):
+        r = client.get("/api/v1/at-data/at-kpis")
+        assert r.status_code == 200
+
+    def test_bundesland_abdeckung_100pct(self):
+        data = client.get("/api/v1/at-data/at-kpis").json()
+        assert data["bundesland_abdeckung"]["abdeckung_pct"] == 100.0
+        assert data["bundesland_abdeckung"]["implementiert"] == 9
+
+    def test_oib_abdeckung_100pct(self):
+        data = client.get("/api/v1/at-data/at-kpis").json()
+        assert data["oib_rl_abdeckung"]["abdeckung_pct"] == 100.0
+        assert data["oib_rl_abdeckung"]["implementiert"] == 7
+
+    def test_api_endpunkte_sections_present(self):
+        data = client.get("/api/v1/at-data/at-kpis").json()
+        assert "bundesland" in data["api_endpunkte"]
+        assert "at_daten" in data["api_endpunkte"]
+        assert "projekte" in data["api_endpunkte"]
+        assert "berechnungen" in data["api_endpunkte"]
+
+    def test_vertrauen_features_changelog_active(self):
+        data = client.get("/api/v1/at-data/at-kpis").json()
+        assert data["vertrauen_features"]["oeffentliches_changelog"] is True
+        assert data["vertrauen_features"]["audit_trail"] is True
+
+    def test_bim_support_present(self):
+        data = client.get("/api/v1/at-data/at-kpis").json()
+        assert "IFC4" in data["bim_unterstuetzung"]["formate"]
+
+    def test_has_messung_zeitpunkt(self):
+        data = client.get("/api/v1/at-data/at-kpis").json()
+        assert "messung_zeitpunkt" in data
+
+
+# ---------------------------------------------------------------------------
+# Austria-first Dashboard
+# ---------------------------------------------------------------------------
+
+
+class TestDashboard:
+    def test_dashboard_returns_200(self):
+        r = client.get("/dashboard")
+        assert r.status_code == 200
+
+    def test_dashboard_is_html(self):
+        r = client.get("/dashboard")
+        assert "text/html" in r.headers.get("content-type", "")
+
+    def test_dashboard_contains_austria_branding(self):
+        r = client.get("/dashboard")
+        assert "Österreich" in r.text or "Austria" in r.text or "ORION" in r.text
+
+    def test_dashboard_contains_9_bundeslaender(self):
+        r = client.get("/dashboard")
+        # Dashboard mentions all 9
+        text = r.text
+        assert "Wien" in text
+        assert "Tirol" in text
+        assert "Salzburg" in text
+
+    def test_dashboard_contains_oib_reference(self):
+        r = client.get("/dashboard")
+        assert "OIB" in r.text
+
+    def test_dashboard_contains_api_links(self):
+        r = client.get("/dashboard")
+        assert "/api/v1/bundesland/" in r.text
+        assert "/api/v1/at-data/oib-richtlinien" in r.text
+
+
+# ---------------------------------------------------------------------------
+# Auth endpoints
+# ---------------------------------------------------------------------------
+
+
+class TestAuthEndpoints:
+    def test_auth_me_without_token_returns_403(self):
+        """HTTPBearer raises 403 when no Authorization header is present"""
+        r = client.get("/auth/me")
+        assert r.status_code in [401, 403]
+
+    def test_auth_me_with_weak_token_returns_401(self):
+        r = client.get("/auth/me", headers={"Authorization": "Bearer 123"})
+        assert r.status_code == 401
+
+    def test_auth_me_with_none_alg_returns_401(self):
+        r = client.get(
+            "/auth/me",
+            headers={"Authorization": "Bearer eyJhbGciOiJub25lIn0.eyJzdWIiOiJ0ZXN0In0."},
+        )
+        assert r.status_code == 401
+
+    def test_auth_status_returns_200(self):
+        r = client.get("/auth/status")
+        assert r.status_code == 200
+        data = r.json()
+        assert data["auth_required"] is True
+        assert "algorithm" in data

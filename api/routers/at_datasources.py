@@ -529,3 +529,175 @@ async def get_at_data_sources():
         ),
         "stand": datetime.now(timezone.utc).isoformat(),
     }
+
+
+# ---------------------------------------------------------------------------
+# Changelog entries (audit-visible product changes)
+# ---------------------------------------------------------------------------
+_CHANGELOG = [
+    {
+        "version": "3.0.0",
+        "datum": "2026-05-12",
+        "aenderungen": [
+            "Alle 9 Bundesländer mit vollständigen Baurechts-Daten (Bauordnung, OIB-Status, Förderungen)",
+            "OIB-RL 1-7 (2023) vollständig implementiert — inkl. Salzburg-Sonderweg für OIB-RL 6",
+            "Neuer Bundesländer-Vergleich (GET /api/v1/bundesland/compare)",
+            "Bundesland-Förderungsübersicht (Bund + Land, GET /api/v1/bundesland/{bl}/foerderungen)",
+            "Baupreisindex Österreich Q1 2020 – Q4 2025 (Statistik Austria)",
+            "Kostenrichtwerte 2026 mit regionalen Faktoren für alle 9 Bundesländer",
+            "Lambda-Wert-Datenbank für U-Wert-Berechnungen nach ÖNORM EN ISO 10456",
+            "Projekt- und Büroverwaltung (GET/POST /api/v1/projects/)",
+            "Compliance-Schnellübersicht je Projekt (GET /api/v1/projects/{id}/compliance-summary)",
+            "Austria-first Dashboard (GET /dashboard)",
+            "AT-Erfolgsmessung (GET /api/v1/at-data/at-kpis)",
+            "Teamverwaltung in Projekten (POST /api/v1/projects/{id}/members)",
+            "Öffentliches Änderungsprotokoll (GET /api/v1/at-data/changelog)",
+        ],
+        "quellen_aktualisiert": [
+            "OIB-RL 1-7 Ausgabe 2023",
+            "Statistik Austria Baukostenindex Q4 2025",
+            "BKI/WKO Kostenrichtwerte 2026",
+        ],
+        "breaking_changes": [],
+    },
+    {
+        "version": "2.1.0",
+        "datum": "2026-04-13",
+        "aenderungen": [
+            "ÖNORM A 2063 Ausschreibung vollständig",
+            "BIM/IFC-Integration (IFC2x3, IFC4, IFC4.3)",
+            "Echtzeit-Zusammenarbeit (Collaboration-Router)",
+            "OIB-RL 6:2023 Energienachweis (fGEE ≤ 0.75, HWBRef,RK)",
+            "U-Wert-Berechnung nach ÖNORM EN ISO 6946",
+            "Barrierefreiheit nach ÖNORM B 1600",
+        ],
+        "quellen_aktualisiert": ["OIB-RL 6 Ausgabe 2023", "ÖNORM A 2063:2021"],
+        "breaking_changes": [],
+    },
+]
+
+
+@router.get("/changelog")
+async def get_changelog():
+    """
+    📋 **Öffentliches Änderungsprotokoll**
+
+    Nachvollziehbare, öffentliche Dokumentation aller Änderungen an der
+    ORION Architekt-AT API — für Vertrauen, Auditierbarkeit und DSGVO-Compliance.
+
+    Zeigt welche Datenquellen wann aktualisiert wurden und welche Features
+    hinzugekommen sind.
+    """
+    return {
+        "produkt": "ORION Architekt-AT API",
+        "hinweis": (
+            "Dieses Änderungsprotokoll dokumentiert alle fachlich relevanten Änderungen "
+            "an Datenquellen, Regelwerken und API-Funktionen. "
+            "Für Compliance-Nachweise und Audits verwendbar."
+        ),
+        "changelog": _CHANGELOG,
+        "aktuellste_version": _CHANGELOG[0]["version"],
+        "aktuellstes_datum": _CHANGELOG[0]["datum"],
+    }
+
+
+@router.get("/at-kpis")
+async def get_at_kpis():
+    """
+    📊 **Austria-leading Erfolgsmessung (KPIs)**
+
+    Gibt den aktuellen Stand der Qualitätsmetriken für den österreichischen Markt zurück.
+    Messgrößen: Bundesland-Abdeckung, OIB-RL-Vollständigkeit, API-Endpunkte, BIM-Unterstützung.
+
+    Entspricht dem Plan-Punkt: „Erfolg messbar machen — Ziele auf Österreich ausrichten."
+    """
+    return {
+        "messung_zeitpunkt": datetime.now(timezone.utc).isoformat(),
+        "bundesland_abdeckung": {
+            "gesamt": 9,
+            "implementiert": 9,
+            "mit_foerderungsdaten": 9,
+            "mit_digitaler_einreichung": 2,
+            "abdeckung_pct": 100.0,
+            "detail": "Alle 9 Bundesländer mit vollständigen Bauordnungs-, Förderungs- und Zonendaten",
+        },
+        "oib_rl_abdeckung": {
+            "gesamt_richtlinien": 7,
+            "implementiert": 7,
+            "mit_bundesland_abweichungen": 6,
+            "abdeckung_pct": 100.0,
+            "detail": "OIB-RL 1-7 (Ausgabe 2023), inkl. Salzburg-Sonderweg OIB-RL 6",
+        },
+        "api_endpunkte": {
+            "bundesland": [
+                "GET /api/v1/bundesland/ (alle 9)",
+                "GET /api/v1/bundesland/compare",
+                "GET /api/v1/bundesland/{bl}",
+                "GET /api/v1/bundesland/{bl}/stellplaetze",
+                "GET /api/v1/bundesland/{bl}/aufzug",
+                "GET /api/v1/bundesland/{bl}/foerderungen",
+            ],
+            "at_daten": [
+                "GET /api/v1/at-data/baupreisindex",
+                "GET /api/v1/at-data/kostenrichtwerte",
+                "GET /api/v1/at-data/oib-richtlinien",
+                "GET /api/v1/at-data/materialien",
+                "GET /api/v1/at-data/sources",
+                "GET /api/v1/at-data/changelog",
+                "GET /api/v1/at-data/at-kpis",
+            ],
+            "projekte": [
+                "POST /api/v1/projects/",
+                "GET /api/v1/projects/",
+                "GET /api/v1/projects/{id}",
+                "PUT /api/v1/projects/{id}",
+                "DELETE /api/v1/projects/{id}",
+                "GET /api/v1/projects/{id}/compliance-summary",
+                "GET /api/v1/projects/{id}/export",
+                "POST /api/v1/projects/{id}/members",
+                "GET /api/v1/projects/{id}/members",
+                "DELETE /api/v1/projects/{id}/members/{uid}",
+            ],
+            "berechnungen": [
+                "POST /api/v1/calculations/uwert",
+                "POST /api/v1/calculations/stellplaetze",
+                "POST /api/v1/calculations/barrierefreiheit-check",
+                "POST /api/v1/calculations/fluchtweg-check",
+                "POST /api/v1/calculations/schallschutz-berechnung",
+                "POST /api/v1/calculations/heizlast-berechnung",
+                "POST /api/v1/calculations/hwb-grenzwert-oib6",
+                "GET /api/v1/calculations/materialdatenbank",
+            ],
+        },
+        "bim_unterstuetzung": {
+            "formate": ["IFC2x3", "IFC4", "IFC4.3"],
+            "brise_wien_kompatibel": True,
+            "ifc_validierung": True,
+        },
+        "datenquellen": {
+            "statistik_austria_baupreisindex": True,
+            "oib_richtlinien_2023": True,
+            "wko_kostenrichtwerte_2026": True,
+            "ris_integration": False,
+            "hora_gv_at_integration": False,
+        },
+        "vertrauen_features": {
+            "oeffentliches_changelog": True,
+            "audit_trail": True,
+            "dsgvo_betrieb": True,
+            "quellennachweise": True,
+        },
+        "ziele_2026": {
+            "aktive_bueros_ziel": 50,
+            "aktive_bueros_aktuell": "Pilotbetrieb",
+            "bundesland_abdeckung_ziel_pct": 100,
+            "bundesland_abdeckung_aktuell_pct": 100.0,
+            "bim_faelle_ziel_monatlich": 100,
+            "api_antwortzeit_ziel_ms": 300,
+        },
+        "hinweis": (
+            "KPIs werden mit jeder API-Version aktualisiert. "
+            "Für Marktführerschaft in Österreich: ris.bka.gv.at und hora.gv.at Live-Integrationen "
+            "sind die wichtigsten nächsten Schritte."
+        ),
+    }

@@ -6,7 +6,7 @@
 - **Format**: PNG or JPG
 - **Max file size**: 1MB
 - **Location**: Repository settings → Social preview
-- **Prepared asset**: `/home/runner/work/Baumaster.at/Baumaster.at/assets/baumaster_repo_art.png`
+- **Prepared asset**: `assets/baumaster_repo_art.png`
 
 ## Design Elements
 

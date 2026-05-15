@@ -17,9 +17,9 @@
   - Gradient: Diagonal from top-left to bottom-right
 
 ### Logo/Branding
-- Use the prepared **Baumaster.at digital art** as base image
+- Use the prepared **BAUMASTER.AT digital art** as base image
 - Keep the wordmark **BAUMASTER.AT** centered and dominant
-- Subtitle: **Österreichische Bauintelligenz**
+- Subtitle: **Österreichische Bauintelligenz** (*Austrian Building Intelligence*)
 
 ### Text Elements
 
@@ -33,6 +33,7 @@ BAUMASTER.AT
 **Subtitle** (below title):
 ```
 Österreichische Bauintelligenz
+(Austrian Building Intelligence)
 ```
 - Font: Roboto Regular, 36px
 - Color: Light Gray (#E0E0E0)

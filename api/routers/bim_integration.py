@@ -21,6 +21,8 @@ TEXT_EXTRACTION_MAX_BYTES = 512 * 1024
 MIN_UTF8_TEXT_CHARS = 20
 DOCUMENT_CONFIDENCE_BASE_SCORES = {"PDF": 0.45, "DWG": 0.5, "DXF": 0.55}
 DOCUMENT_CONFIDENCE_PER_FIELD = 0.08
+PLAN_REQUIRED_FIELDS = ("bgf_m2", "geschosse", "wohnungen")
+PLAN_API_READY_FIELDS = ("bundesland", "building_type", "bgf_m2", "geschosse")
 
 
 class IFCAnalysisResult(BaseModel):
@@ -718,7 +720,7 @@ async def _import_plan_file(
         extracted_plan = _extract_ifc_plan_data(file_path, bundesland, building_type)
         extracted_fields = [key for key, value in extracted_plan.items() if value is not None]
         defaulted_fields: List[str] = []
-        missing_fields = [field for field in ("bgf_m2", "geschosse", "wohnungen") if extracted_plan.get(field) is None]
+        missing_fields = [field for field in PLAN_REQUIRED_FIELDS if extracted_plan.get(field) is None]
         confidence_score = 0.95
         epistemic_state = "VERIFIED"
         ingestion_mode = "native_ifc"
@@ -866,7 +868,7 @@ def _finalize_plan_fields(
 
     missing_fields = [
         field
-        for field in ("bundesland", "building_type", "bgf_m2", "geschosse", "wohnungen")
+        for field in ("bundesland", "building_type", *PLAN_REQUIRED_FIELDS)
         if finalized.get(field) is None
     ]
     return finalized, extracted_fields, defaulted_fields, missing_fields
@@ -892,7 +894,10 @@ def _extract_number(text: str, patterns: List[str]) -> Optional[float]:
     for pattern in patterns:
         match = re.search(pattern, text, re.IGNORECASE)
         if match:
-            return float(match.group(1).replace(",", "."))
+            try:
+                return float(match.group(1).replace(",", "."))
+            except ValueError:
+                continue
     return None
 
 
@@ -924,10 +929,7 @@ async def _run_plan_downstream_checks(extracted_plan: Dict[str, Any]) -> Dict[st
         "parking": {"checked": False, "reason": "Missing fields for parking calculation."},
     }
 
-    compliance_ready = all(
-        extracted_plan.get(field) is not None
-        for field in ("bundesland", "building_type", "bgf_m2", "geschosse")
-    )
+    compliance_ready = all(extracted_plan.get(field) is not None for field in PLAN_API_READY_FIELDS)
     if compliance_ready:
         compliance_request = ComplianceCheckRequest(
             bundesland=extracted_plan["bundesland"],

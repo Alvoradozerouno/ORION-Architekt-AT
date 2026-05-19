@@ -112,9 +112,7 @@ async def upload_ifc_file(
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"IFC parsing failed: {str(e)}")
     finally:
-        # Clean up temporary file
-        if os.path.exists(tmp_file_path):
-            os.unlink(tmp_file_path)
+        _cleanup_temp_file(tmp_file_path)
 
 
 @router.post("/upload-plan", response_model=PlanImportResult)
@@ -149,8 +147,7 @@ async def upload_plan_file(
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Plan import failed: {str(e)}")
     finally:
-        if os.path.exists(tmp_file_path):
-            os.unlink(tmp_file_path)
+        _cleanup_temp_file(tmp_file_path)
 
 
 @router.post("/validate-bim")
@@ -785,9 +782,13 @@ def _extract_text_from_plan_file(file_path: str) -> str:
     with open(file_path, "rb") as uploaded_file:
         raw = uploaded_file.read(TEXT_EXTRACTION_MAX_BYTES)
 
-    decoded = raw.decode("utf-8", errors="ignore")
-    if len(decoded.strip()) < MIN_UTF8_TEXT_CHARS:
-        decoded = raw.decode("latin1", errors="ignore")
+    utf8_decoded = raw.decode("utf-8", errors="ignore")
+    latin1_decoded = raw.decode("latin1", errors="ignore")
+    decoded = utf8_decoded
+    if len(utf8_decoded.strip()) < MIN_UTF8_TEXT_CHARS and len(latin1_decoded.strip()) > len(
+        utf8_decoded.strip()
+    ):
+        decoded = latin1_decoded
 
     return decoded.replace("\x00", " ")
 
@@ -916,10 +917,19 @@ def _calculate_document_confidence(source_type: str, extracted_fields: List[str]
     IFC remains the verified path. Heuristic document imports start from a lower
     source-specific base score and gain confidence per structured field found.
     """
-    confidence = DOCUMENT_CONFIDENCE_BASE_SCORES.get(source_type, 0.4) + (
+    if source_type not in DOCUMENT_CONFIDENCE_BASE_SCORES:
+        raise ValueError(f"Unsupported heuristic document source type: {source_type}")
+
+    confidence = DOCUMENT_CONFIDENCE_BASE_SCORES[source_type] + (
         DOCUMENT_CONFIDENCE_PER_FIELD * len(extracted_fields)
     )
     return round(min(confidence, 0.85), 2)
+
+
+def _cleanup_temp_file(file_path: str) -> None:
+    """Remove a temporary upload file if it still exists."""
+    if os.path.exists(file_path):
+        os.unlink(file_path)
 
 
 async def _run_plan_downstream_checks(extracted_plan: Dict[str, Any]) -> Dict[str, Any]:

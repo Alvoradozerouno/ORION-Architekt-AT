@@ -70,4 +70,4 @@ Office Building / Buerohaus
         )
 
         assert response.status_code == 400
-        assert "Supported plan formats" in response.json()["error"]
+        assert "Supported formats" in response.json()["error"]

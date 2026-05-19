@@ -23,6 +23,31 @@ DOCUMENT_CONFIDENCE_BASE_SCORES = {"PDF": 0.45, "DWG": 0.5, "DXF": 0.55}
 DOCUMENT_CONFIDENCE_PER_FIELD = 0.08
 PLAN_REQUIRED_FIELDS = ("bgf_m2", "geschosse", "wohnungen")
 PLAN_API_READY_FIELDS = ("bundesland", "building_type", "bgf_m2", "geschosse")
+BUILDING_TYPE_PATTERNS = {
+    "mehrfamilienhaus": re.compile(r"mehrfamilienhaus|mfh", re.IGNORECASE),
+    "wohngebaeude": re.compile(
+        r"wohngebaeude|wohngebaude|wohngebaeude|wohnhaus|wohnbau", re.IGNORECASE
+    ),
+    "einfamilienhaus": re.compile(r"einfamilienhaus|efh", re.IGNORECASE),
+    "buerogebaeude": re.compile(r"buerogebaeude|buerobau|buerohaus|office", re.IGNORECASE),
+}
+PLAN_NUMBER_PATTERNS = {
+    "bgf_m2": [
+        re.compile(r"bgf[^0-9]{0,20}(\d+(?:[.,]\d+)?)", re.IGNORECASE),
+        re.compile(r"brutto ?grundflaeche[^0-9]{0,20}(\d+(?:[.,]\d+)?)", re.IGNORECASE),
+        re.compile(r"gross floor area[^0-9]{0,20}(\d+(?:[.,]\d+)?)", re.IGNORECASE),
+    ],
+    "geschosse": [
+        re.compile(r"geschosse?[^0-9]{0,20}(\d+)", re.IGNORECASE),
+        re.compile(r"stockwerke?[^0-9]{0,20}(\d+)", re.IGNORECASE),
+        re.compile(r"etagen?[^0-9]{0,20}(\d+)", re.IGNORECASE),
+    ],
+    "wohnungen": [
+        re.compile(r"wohnungen?[^0-9]{0,20}(\d+)", re.IGNORECASE),
+        re.compile(r"wohneinheiten?[^0-9]{0,20}(\d+)", re.IGNORECASE),
+        re.compile(r"units?[^0-9]{0,20}(\d+)", re.IGNORECASE),
+    ],
+}
 
 
 class IFCAnalysisResult(BaseModel):
@@ -132,7 +157,7 @@ async def upload_plan_file(
     if extension not in supported_extensions:
         raise HTTPException(
             status_code=400,
-            detail="Supported plan formats: IFC, PDF, DWG, DXF",
+            detail=f"Unsupported file format '{extension or 'unknown'}'. Supported formats: IFC, PDF, DWG, DXF",
         )
 
     with tempfile.NamedTemporaryFile(delete=False, suffix=extension) as tmp_file:
@@ -728,7 +753,10 @@ async def _import_plan_file(
             parsed_fields, bundesland, building_type
         )
         ingestion_mode = "heuristic_text_scan"
-        confidence_score = _calculate_document_confidence(source_type, extracted_fields)
+        try:
+            confidence_score = _calculate_document_confidence(source_type, extracted_fields)
+        except ValueError as exc:
+            raise HTTPException(status_code=400, detail=str(exc)) from exc
         epistemic_state = "ESTIMATED" if extracted_fields else "UNKNOWN"
         if not extracted_fields:
             warnings.append("No structured plan attributes detected in uploaded document.")
@@ -784,10 +812,10 @@ def _extract_text_from_plan_file(file_path: str) -> str:
 
     utf8_decoded = raw.decode("utf-8", errors="ignore")
     latin1_decoded = raw.decode("latin1", errors="ignore")
+    utf8_stripped = utf8_decoded.strip()
+    latin1_stripped = latin1_decoded.strip()
     decoded = utf8_decoded
-    if len(utf8_decoded.strip()) < MIN_UTF8_TEXT_CHARS and len(latin1_decoded.strip()) > len(
-        utf8_decoded.strip()
-    ):
+    if len(utf8_stripped) < MIN_UTF8_TEXT_CHARS and len(latin1_stripped) > len(utf8_stripped):
         decoded = latin1_decoded
 
     return decoded.replace("\x00", " ")
@@ -808,44 +836,16 @@ def _parse_plan_text(plan_text: str) -> Dict[str, Any]:
         "oberoesterreich",
         "niederoesterreich",
     )
-    building_type_patterns = {
-        "mehrfamilienhaus": r"mehrfamilienhaus|mfh",
-        "wohngebaeude": r"wohngebaeude|wohngebaude|wohngebaeude|wohnhaus|wohnbau",
-        "einfamilienhaus": r"einfamilienhaus|efh",
-        "buerogebaeude": r"buerogebaeude|buerobau|buerohaus|office",
-    }
-
     parsed: Dict[str, Any] = {
         "bundesland": next((name for name in bundeslaender if re.search(rf"\b{name}\b", normalized_text)), None),
         "building_type": None,
-        "bgf_m2": _extract_number(
-            normalized_text,
-            [
-                r"bgf[^0-9]{0,20}(\d+(?:[.,]\d+)?)",
-                r"brutto ?grundflaeche[^0-9]{0,20}(\d+(?:[.,]\d+)?)",
-                r"gross floor area[^0-9]{0,20}(\d+(?:[.,]\d+)?)",
-            ],
-        ),
-        "geschosse": _extract_int(
-            normalized_text,
-            [
-                r"geschosse?[^0-9]{0,20}(\d+)",
-                r"stockwerke?[^0-9]{0,20}(\d+)",
-                r"etagen?[^0-9]{0,20}(\d+)",
-            ],
-        ),
-        "wohnungen": _extract_int(
-            normalized_text,
-            [
-                r"wohnungen?[^0-9]{0,20}(\d+)",
-                r"wohneinheiten?[^0-9]{0,20}(\d+)",
-                r"units?[^0-9]{0,20}(\d+)",
-            ],
-        ),
+        "bgf_m2": _extract_number(normalized_text, PLAN_NUMBER_PATTERNS["bgf_m2"]),
+        "geschosse": _extract_int(normalized_text, PLAN_NUMBER_PATTERNS["geschosse"]),
+        "wohnungen": _extract_int(normalized_text, PLAN_NUMBER_PATTERNS["wohnungen"]),
     }
 
-    for normalized_type, pattern in building_type_patterns.items():
-        if re.search(pattern, normalized_text):
+    for normalized_type, pattern in BUILDING_TYPE_PATTERNS.items():
+        if pattern.search(normalized_text):
             parsed["building_type"] = normalized_type
             break
 
@@ -890,10 +890,10 @@ def _normalize_plan_text(plan_text: str) -> str:
     return normalized
 
 
-def _extract_number(text: str, patterns: List[str]) -> Optional[float]:
+def _extract_number(text: str, patterns: List[re.Pattern[str]]) -> Optional[float]:
     """Extract a decimal number from text using the first matching pattern."""
     for pattern in patterns:
-        match = re.search(pattern, text, re.IGNORECASE)
+        match = pattern.search(text)
         if match:
             try:
                 return float(match.group(1).replace(",", "."))
@@ -902,10 +902,10 @@ def _extract_number(text: str, patterns: List[str]) -> Optional[float]:
     return None
 
 
-def _extract_int(text: str, patterns: List[str]) -> Optional[int]:
+def _extract_int(text: str, patterns: List[re.Pattern[str]]) -> Optional[int]:
     """Extract an integer from text using the first matching pattern."""
     for pattern in patterns:
-        match = re.search(pattern, text, re.IGNORECASE)
+        match = pattern.search(text)
         if match:
             return int(match.group(1))
     return None

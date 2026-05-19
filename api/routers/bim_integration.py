@@ -25,7 +25,7 @@ from api.routers.calculations import (
 )
 from api.routers.compliance import ComplianceCheckRequest, check_oib_rl_compliance
 from api.routers.reports import ReportRequest, generate_comprehensive_report
-from orion_kernel import supervise_work_step
+from orion_kernel import evaluate_runtime_readiness, supervise_work_step
 
 router = APIRouter()
 
@@ -195,6 +195,7 @@ class PlanImportResult(BaseModel):
     information_sources: List[Dict[str, Any]]
     epistemic_trace: Dict[str, Any]
     kernel_supervision: List[Dict[str, Any]]
+    elsa_runtime_decision: Dict[str, Any]
     derived_metrics: Dict[str, Any]
     downstream_results: Dict[str, Any]
     warnings: List[str]
@@ -1015,6 +1016,14 @@ async def _import_plan_file(
         epistemic_state=epistemic_state,
         downstream_results=downstream_results,
     )
+    elsa_runtime_decision = _build_elsa_runtime_decision(
+        source_type=source_type,
+        field_source_metadata=field_source_metadata,
+        epistemic_trace=epistemic_trace,
+        kernel_supervision=kernel_supervision,
+        derived_metrics=derived_metrics,
+        downstream_results=downstream_results,
+    )
 
     return PlanImportResult(
         file_name=filename,
@@ -1031,6 +1040,7 @@ async def _import_plan_file(
         information_sources=information_sources,
         epistemic_trace=epistemic_trace,
         kernel_supervision=kernel_supervision,
+        elsa_runtime_decision=elsa_runtime_decision,
         derived_metrics=derived_metrics,
         downstream_results=downstream_results,
         warnings=warnings,
@@ -1606,6 +1616,164 @@ def _build_epistemic_trace(
     }
 
 
+def _runtime_signal_to_value(time_decision: str) -> float:
+    """Map kernel work-step decisions to temporal validity scores."""
+    return {
+        "CONTINUE": 1.0,
+        "COMPLETE": 1.0,
+        "TIMEBOX": 0.65,
+        "ESCALATE_NOW": 0.35,
+        "FORCE_REVIEW": 0.1,
+    }.get(time_decision, 0.5)
+
+
+def _extract_regulatory_context(
+    field_source_metadata: Dict[str, Dict[str, Any]], derived_metrics: Dict[str, Any]
+) -> Dict[str, List[str]]:
+    """Summarize active and supported norm/authority sources for runtime validation."""
+    active_sources = set()
+    for metadata in field_source_metadata.values():
+        for standard in metadata.get("standards", []):
+            upper_standard = standard.upper()
+            if "ÖNORM" in upper_standard:
+                active_sources.add("ÖNORM")
+            if "OIB" in upper_standard:
+                active_sources.add("OIB")
+            if "LANDESBAUORDNUNG" in upper_standard or "STELLPLATZVERORDNUNG" in upper_standard:
+                active_sources.add("Behördenvorgaben")
+
+    thermal_inputs = derived_metrics.get("thermal_inputs") or {}
+    if thermal_inputs:
+        active_sources.add("Energieausweise")
+
+    supported_sources = [
+        "ÖNORM",
+        "OIB",
+        "BauKG",
+        "Energieausweise",
+        "Brandschutz",
+        "Behördenvorgaben",
+    ]
+    return {
+        "active_sources": sorted(active_sources),
+        "supported_sources": supported_sources,
+    }
+
+
+def _build_elsa_runtime_decision(
+    source_type: str,
+    field_source_metadata: Dict[str, Dict[str, Any]],
+    epistemic_trace: Dict[str, Any],
+    kernel_supervision: List[Dict[str, Any]],
+    derived_metrics: Dict[str, Any],
+    downstream_results: Dict[str, Any],
+) -> Dict[str, Any]:
+    """Evaluate whether runtime execution is sufficiently stable under uncertainty."""
+    field_scores = []
+    known_fields = 0
+    for field in PLAN_POLICY_FIELDS:
+        metadata = field_source_metadata.get(field)
+        if not metadata:
+            field_scores.append(0.0)
+            continue
+
+        knowledge_type = metadata.get("knowledge_type")
+        if knowledge_type == "verified":
+            field_scores.append(1.0)
+            known_fields += 1
+        elif knowledge_type == "estimated":
+            field_scores.append(float(metadata.get("confidence", 0.5)))
+            known_fields += 1
+        else:
+            field_scores.append(0.0)
+
+    information_consistency = round(sum(field_scores) / len(PLAN_POLICY_FIELDS), 6)
+    evidence_coverage = round(known_fields / len(PLAN_POLICY_FIELDS), 6)
+
+    policy_assessment = epistemic_trace.get("policy_assessment", {})
+    if policy_assessment.get("allowed") and source_type == "IFC":
+        approval_stability = 0.95
+    elif policy_assessment.get("allowed"):
+        approval_stability = 0.58
+    elif policy_assessment.get("mode") == "fallback":
+        approval_stability = 0.45
+    else:
+        approval_stability = 0.3
+
+    timeline_signals = [
+        _runtime_signal_to_value(step.get("time_decision", "TIMEBOX")) for step in kernel_supervision
+    ]
+    timeline_validity = round(
+        sum(timeline_signals) / len(timeline_signals) if timeline_signals else 1.0,
+        6,
+    )
+
+    compliance_results = downstream_results.get("compliance", {}).get("results", [])
+    total_checks = 0
+    weighted_risk = 0.0
+    for result in compliance_results:
+        for check in result.get("checks", []):
+            total_checks += 1
+            if check.get("status") == "fail":
+                weighted_risk += 1.0
+            elif check.get("status") == "warning":
+                weighted_risk += 0.4
+    collision_criticality = round(weighted_risk / total_checks, 6) if total_checks else 0.2
+
+    if source_type != "IFC":
+        evidence_coverage = round(min(evidence_coverage, information_consistency * 0.85), 6)
+
+    decision_confidence = round(
+        (
+            information_consistency
+            + approval_stability
+            + timeline_validity
+            + (1.0 - collision_criticality)
+            + evidence_coverage
+        )
+        / 5.0,
+        6,
+    )
+    audit_verified = bool(
+        epistemic_trace.get("audit_hash")
+        and all(step.get("audit_hash") for step in kernel_supervision)
+    )
+    regulatory_context = _extract_regulatory_context(field_source_metadata, derived_metrics)
+
+    return evaluate_runtime_readiness(
+        information_consistency=information_consistency,
+        approval_stability=approval_stability,
+        timeline_validity=timeline_validity,
+        collision_criticality=collision_criticality,
+        evidence_coverage=evidence_coverage,
+        decision_confidence=decision_confidence,
+        audit_verified=audit_verified,
+        metadata={
+            "kernel": "ELSA TEMPORAL KERNEL",
+            "active_input_sources": (
+                ["BIM / IFC", "Connector Layer", "Temporal Runtime", "AuditChain Runtime"]
+                if source_type == "IFC"
+                else ["Dokumentenfluss", "Connector Layer", "Temporal Runtime", "AuditChain Runtime"]
+            ),
+            "supported_connectors": [
+                "BIM / IFC",
+                "AVA / Ausschreibung",
+                "Sensorik",
+                "Zeitplanung",
+                "Freigaben / Audit",
+            ],
+            "supported_workflows": [
+                "BIM-Integration",
+                "Dokumentenfluss",
+                "mobile Baustellenruntime",
+                "ÖNORM-Workflows",
+                "AVA-Anbindung",
+            ],
+            "regulatory_context": regulatory_context,
+        },
+    )
+
+
 def _field_metadata_to_epistemic_state(field: str, metadata: Dict[str, Any]) -> EpistemicState:
     """Convert field provenance metadata into a GENESIS epistemic state."""
     knowledge_type = metadata.get("knowledge_type")
@@ -1666,6 +1834,7 @@ async def _generate_plan_report(ingestion: PlanImportResult) -> Dict[str, Any]:
     report["field_source_metadata"] = ingestion.field_source_metadata
     report["information_sources"] = ingestion.information_sources
     report["kernel_supervision"] = report_kernel_supervision
+    report["elsa_runtime_decision"] = ingestion.elsa_runtime_decision
     report["plan_metrics"] = ingestion.derived_metrics
     report["downstream_results"] = ingestion.downstream_results
 
@@ -1684,6 +1853,7 @@ async def _generate_plan_report(ingestion: PlanImportResult) -> Dict[str, Any]:
     report["executive_summary"]["decision_mode"] = ingestion.epistemic_trace["policy_assessment"]["mode"]
     report["executive_summary"]["information_sources"] = len(ingestion.information_sources)
     report["executive_summary"]["kernel_steps"] = len(report_kernel_supervision)
+    report["executive_summary"]["runtime_state"] = ingestion.elsa_runtime_decision["runtime_state"]
     report["governance"] = _build_report_governance(ingestion)
     return report
 
@@ -1739,4 +1909,7 @@ def _build_report_governance(ingestion: PlanImportResult) -> Dict[str, Any]:
         },
         "audit_hash": ingestion.epistemic_trace["audit_hash"],
         "human_review_required": decision_result["mode"] == DecisionMode.FALLBACK.value,
+        "elsa_runtime_state": ingestion.elsa_runtime_decision["runtime_state"],
+        "runtime_validation_rules": ingestion.elsa_runtime_decision["structured_validation_paths"],
+        "regulatory_context": ingestion.elsa_runtime_decision["metadata"]["regulatory_context"],
     }

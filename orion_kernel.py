@@ -289,6 +289,13 @@ _WORK_STEP_TIME_THRESHOLDS = {
     "critical_ratio": 1.0,
 }
 
+_ELSA_RUNTIME_STATES = {
+    "execute": "EXECUTE",
+    "abstain": "ABSTAIN",
+    "defer": "DEFER",
+    "require_more_evidence": "REQUIRE_MORE_EVIDENCE",
+}
+
 
 def _compute_item_deviation(plan_val, actual_val):
     """
@@ -510,6 +517,169 @@ def supervise_work_step(
                 "severity": severity,
                 "orion_state": orion_state,
                 "time_decision": time_decision,
+                "audit_hash": audit_hash,
+            },
+        )
+    except Exception:
+        pass
+
+    return result
+
+
+def _signal_status(value: float, *, warn_below: float = 0.6, fail_below: float = 0.4) -> str:
+    """Normalize positive signals into PASS/WARNING/FAIL labels."""
+    if value < fail_below:
+        return "FAIL"
+    if value < warn_below:
+        return "WARNING"
+    return "PASS"
+
+
+def _risk_status(value: float, *, warn_above: float = 0.4, fail_above: float = 0.7) -> str:
+    """Normalize risk signals into PASS/WARNING/FAIL labels."""
+    if value > fail_above:
+        return "FAIL"
+    if value > warn_above:
+        return "WARNING"
+    return "PASS"
+
+
+def evaluate_runtime_readiness(
+    information_consistency: float,
+    approval_stability: float,
+    timeline_validity: float,
+    collision_criticality: float,
+    evidence_coverage: float,
+    decision_confidence: float | None = None,
+    audit_verified: bool = True,
+    metadata: dict | None = None,
+) -> dict:
+    """
+    Deterministische ELSA-Laufzeitentscheidung für reale Ausführung unter Unsicherheit.
+
+    Bewertet, ob Informationen konsistent sind, Freigaben stabil bleiben,
+    Zeitabläufe tragfähig sind, Kollisionen kritisch werden und genügend Evidenz
+    für eine reale Ausführung vorliegt.
+    """
+    info = clamp(float(information_consistency), 0.0, 1.0)
+    approval = clamp(float(approval_stability), 0.0, 1.0)
+    timeline = clamp(float(timeline_validity), 0.0, 1.0)
+    collision = clamp(float(collision_criticality), 0.0, 1.0)
+    evidence = clamp(float(evidence_coverage), 0.0, 1.0)
+
+    if decision_confidence is None:
+        decision_confidence = (info + approval + timeline + (1.0 - collision) + evidence) / 5.0
+    decision = clamp(float(decision_confidence), 0.0, 1.0)
+
+    temporal_stabilization = round((approval + timeline) / 2.0, 6)
+    epistemic_confidence = round((info + evidence + decision) / 3.0, 6)
+    uncertainty_lower = round(max(0.0, 1.0 - decision), 6)
+    uncertainty_upper = round(max(1.0 - min(info, approval, timeline, evidence, 1.0 - collision), uncertainty_lower), 6)
+
+    validation_paths = [
+        {
+            "rule": "information_consistency",
+            "value": round(info, 6),
+            "status": _signal_status(info),
+        },
+        {
+            "rule": "approval_stability",
+            "value": round(approval, 6),
+            "status": _signal_status(approval),
+        },
+        {
+            "rule": "timeline_validity",
+            "value": round(timeline, 6),
+            "status": _signal_status(timeline),
+        },
+        {
+            "rule": "collision_criticality",
+            "value": round(collision, 6),
+            "status": _risk_status(collision),
+        },
+        {
+            "rule": "evidence_coverage",
+            "value": round(evidence, 6),
+            "status": _signal_status(evidence),
+        },
+        {
+            "rule": "audit_verification",
+            "value": 1.0 if audit_verified else 0.0,
+            "status": "PASS" if audit_verified else "FAIL",
+        },
+    ]
+
+    reasons = []
+    if not audit_verified:
+        runtime_state = _ELSA_RUNTIME_STATES["abstain"]
+        reasons.append("audit_verification_failed")
+    elif collision >= 0.7 or timeline < 0.35 or info < 0.35:
+        runtime_state = _ELSA_RUNTIME_STATES["abstain"]
+        if collision >= 0.7:
+            reasons.append("collision_temporally_critical")
+        if timeline < 0.35:
+            reasons.append("timeline_not_valid")
+        if info < 0.35:
+            reasons.append("information_inconsistent")
+    elif evidence < 0.45 or decision < 0.5:
+        runtime_state = _ELSA_RUNTIME_STATES["require_more_evidence"]
+        if evidence < 0.45:
+            reasons.append("evidence_incomplete")
+        if decision < 0.5:
+            reasons.append("decision_not_sufficiently_secured")
+    elif approval < 0.65 or timeline < 0.65 or collision > 0.4 or info < 0.65:
+        runtime_state = _ELSA_RUNTIME_STATES["defer"]
+        if approval < 0.65:
+            reasons.append("approval_not_stable")
+        if timeline < 0.65:
+            reasons.append("temporal_stabilization_pending")
+        if collision > 0.4:
+            reasons.append("collision_requires_deferral")
+        if info < 0.65:
+            reasons.append("consistency_requires_deferral")
+    else:
+        runtime_state = _ELSA_RUNTIME_STATES["execute"]
+        reasons.append("runtime_validated_for_execution")
+
+    audit_payload = {
+        "runtime_state": runtime_state,
+        "decision_confidence": round(decision, 6),
+        "temporal_stabilization": temporal_stabilization,
+        "epistemic_confidence": epistemic_confidence,
+        "signals": {
+            "information_consistency": round(info, 6),
+            "approval_stability": round(approval, 6),
+            "timeline_validity": round(timeline, 6),
+            "collision_criticality": round(collision, 6),
+            "evidence_coverage": round(evidence, 6),
+        },
+        "audit_verified": audit_verified,
+        "reasons": reasons,
+        "metadata": metadata or {},
+    }
+    audit_hash = hashlib.sha256(
+        json.dumps(audit_payload, sort_keys=True, ensure_ascii=False).encode("utf-8")
+    ).hexdigest()
+
+    result = {
+        **audit_payload,
+        "uncertainty_bounds": {"lower": uncertainty_lower, "upper": uncertainty_upper},
+        "structured_validation_paths": validation_paths,
+        "runtime_validation": {
+            "passed": sum(1 for path in validation_paths if path["status"] == "PASS"),
+            "warnings": sum(1 for path in validation_paths if path["status"] == "WARNING"),
+            "failed": sum(1 for path in validation_paths if path["status"] == "FAIL"),
+        },
+        "audit_hash": audit_hash,
+        "evaluated_at": now(),
+    }
+
+    try:
+        append_proof(
+            "ELSA_RUNTIME_DECISION",
+            {
+                "runtime_state": runtime_state,
+                "decision_confidence": round(decision, 6),
                 "audit_hash": audit_hash,
             },
         )

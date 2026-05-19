@@ -652,3 +652,57 @@ class TestWorkStepSupervision:
         line = orion_kernel.PROOFS.read_text(encoding="utf-8").strip()
         data = json.loads(line)
         assert data["kind"] == "WORK_STEP_SUPERVISION"
+
+
+class TestElsaRuntimeDecision:
+    """Tests für den deterministischen ELSA-Temporal-Kernel."""
+
+    def test_runtime_decision_execute_for_stable_context(self):
+        result = orion_kernel.evaluate_runtime_readiness(
+            information_consistency=0.95,
+            approval_stability=0.9,
+            timeline_validity=0.9,
+            collision_criticality=0.1,
+            evidence_coverage=0.9,
+        )
+
+        assert result["runtime_state"] == "EXECUTE"
+        assert result["runtime_validation"]["failed"] == 0
+        assert "runtime_validated_for_execution" in result["reasons"]
+
+    def test_runtime_decision_requires_more_evidence_when_coverage_low(self):
+        result = orion_kernel.evaluate_runtime_readiness(
+            information_consistency=0.7,
+            approval_stability=0.75,
+            timeline_validity=0.8,
+            collision_criticality=0.2,
+            evidence_coverage=0.3,
+        )
+
+        assert result["runtime_state"] == "REQUIRE_MORE_EVIDENCE"
+        assert "evidence_incomplete" in result["reasons"]
+
+    def test_runtime_decision_abstains_when_collision_is_critical(self):
+        result = orion_kernel.evaluate_runtime_readiness(
+            information_consistency=0.8,
+            approval_stability=0.7,
+            timeline_validity=0.8,
+            collision_criticality=0.85,
+            evidence_coverage=0.8,
+        )
+
+        assert result["runtime_state"] == "ABSTAIN"
+        assert "collision_temporally_critical" in result["reasons"]
+
+    def test_runtime_decision_appends_proof(self):
+        orion_kernel.evaluate_runtime_readiness(
+            information_consistency=0.8,
+            approval_stability=0.8,
+            timeline_validity=0.8,
+            collision_criticality=0.2,
+            evidence_coverage=0.8,
+        )
+
+        line = orion_kernel.PROOFS.read_text(encoding="utf-8").strip()
+        data = json.loads(line)
+        assert data["kind"] == "ELSA_RUNTIME_DECISION"

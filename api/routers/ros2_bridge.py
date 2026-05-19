@@ -58,35 +58,43 @@ async def publish_decision(
     - ros2_status: ROS2 node status
     - safe_to_execute: Whether command is safe to execute
     """
-    if state not in [s.value for s in RuntimeState]:
-        raise HTTPException(status_code=400, detail=f"Invalid runtime state: {state}")
-    
-    # Only publish commands from VERIFIED state
-    safe_to_execute = state == RuntimeState.VERIFIED.value
-    
-    message_id = f"cmd-{decision_id}-{int(datetime.now().timestamp() * 1000)}"
-    
-    _ros2_state["topics_published"].append({
-        "message_id": message_id,
-        "decision_id": decision_id,
-        "state": state,
-        "command": command,
-        "priority": priority,
-        "timestamp": datetime.now().isoformat()
-    })
-    
-    # Keep only recent messages
-    if len(_ros2_state["topics_published"]) > 100:
-        _ros2_state["topics_published"] = _ros2_state["topics_published"][-100:]
-    
-    return {
-        "message_id": message_id,
-        "published_at": datetime.now().isoformat(),
-        "ros2_status": _ros2_state["robot_state"],
-        "safe_to_execute": safe_to_execute,
-        "command": command,
-        "priority": priority
-    }
+    try:
+        if state not in [s.value for s in RuntimeState]:
+            raise HTTPException(status_code=400, detail="Invalid runtime state")
+        
+        # Only publish commands from VERIFIED state
+        safe_to_execute = state == RuntimeState.VERIFIED.value
+        
+        message_id = f"cmd-{decision_id}-{int(datetime.now().timestamp() * 1000)}"
+        
+        _ros2_state["topics_published"].append({
+            "message_id": message_id,
+            "decision_id": decision_id,
+            "state": state,
+            "command": command,
+            "priority": priority,
+            "timestamp": datetime.now().isoformat()
+        })
+        
+        # Keep only recent messages
+        if len(_ros2_state["topics_published"]) > 100:
+            _ros2_state["topics_published"] = _ros2_state["topics_published"][-100:]
+        
+        return {
+            "message_id": message_id,
+            "published_at": datetime.now().isoformat(),
+            "ros2_status": _ros2_state["robot_state"],
+            "safe_to_execute": safe_to_execute,
+            "command": command,
+            "priority": priority
+        }
+    except HTTPException:
+        raise
+    except Exception as e:
+        from orion_logging import get_logger
+        logger = get_logger(__name__)
+        logger.error(f"Publish decision error: {e}", exc_info=True)
+        raise HTTPException(status_code=500, detail="Failed to publish decision")
 
 
 @router.post("/update-sensor-data")

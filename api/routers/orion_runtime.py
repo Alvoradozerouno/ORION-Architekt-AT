@@ -53,16 +53,39 @@ async def process_decision(
     - processing_time_ms: Time to process decision
     - fpga_latency_ns: FPGA decision FSM latency in nanoseconds
     """
-    runtime = get_runtime()
-    
-    input_data = {
-        "confidence": confidence,
-        "sensor_data": sensor_data or {},
-        "timestamp": datetime.now().isoformat()
-    }
-    
-    result = runtime.process_decision(input_data, timeout_ms)
-    return result
+    try:
+        runtime = get_runtime()
+        
+        input_data = {
+            "confidence": confidence,
+            "sensor_data": sensor_data or {},
+            "timestamp": datetime.now().isoformat()
+        }
+        
+        result = runtime.process_decision(input_data, timeout_ms)
+        
+        # Ensure no error details are exposed
+        if "error" in result:
+            return {
+                "decision_id": result.get("decision_id", "unknown"),
+                "state": "FAILED",
+                "error": "Decision processing failed",
+                "safe_to_execute": False
+            }
+        
+        return result
+    except Exception as e:
+        # Log error internally but don't expose details to client
+        from orion_logging import get_logger
+        logger = get_logger(__name__)
+        logger.error(f"Decision processing error: {e}", exc_info=True)
+        
+        return {
+            "decision_id": "error-unknown",
+            "state": "FAILED",
+            "error": "Decision processing failed",
+            "safe_to_execute": False
+        }
 
 
 @router.get("/status")

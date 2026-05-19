@@ -30,6 +30,7 @@ from api.routers import (
     calculations,
     collaboration,
     compliance,
+    laws_registry,
     reports,
     tendering,
     validation,
@@ -100,6 +101,7 @@ app = FastAPI(
         },
         {"name": "compliance", "description": "OIB-RL & ÖNORM compliance checks"},
         {"name": "validation", "description": "Knowledge base validation"},
+        {"name": "laws-registry", "description": "🔍 Central Laws Registry - All Austrian laws in one place"},
         {"name": "bundesland", "description": "Bundesland-specific regulations"},
         {"name": "reports", "description": "Generate comprehensive reports"},
         {"name": "tendering", "description": "📝 ÖNORM A 2063 Tendering & Bid Management (UNIQUE)"},
@@ -131,6 +133,7 @@ Instrumentator().instrument(app).expose(app)
 app.include_router(calculations.router, prefix="/api/v1/calculations", tags=["calculations"])
 app.include_router(compliance.router, prefix="/api/v1/compliance", tags=["compliance"])
 app.include_router(validation.router, prefix="/api/v1/validation", tags=["validation"])
+app.include_router(laws_registry.router, tags=["laws-registry"])  # Uses own prefix /api/v1/laws
 app.include_router(bundesland.router, prefix="/api/v1/bundesland", tags=["bundesland"])
 app.include_router(reports.router, prefix="/api/v1/reports", tags=["reports"])
 app.include_router(tendering.router, tags=["tendering"])  # Uses own prefix

@@ -1,0 +1,295 @@
+[
+  {
+    "law_id": "OIB-RL-1-2023",
+    "name": "OIB-Richtlinie 1: Mechanische Festigkeit und Standsicherheit",
+    "type": "OIB-RL",
+    "number": 1,
+    "versions": [
+      {
+        "version_id": "2023-v1",
+        "version": "2023",
+        "valid_from": "2023-05-25",
+        "valid_to": null,
+        "source_url": "https://www.oib.or.at/",
+        "pdf_hash": null,
+        "published_at": "2023-05-25T00:00:00Z",
+        "deprecated": false,
+        "changes": ["Eurocode Anforderungen", "Erhöhte Anforderungen an Tragkonstruktionen"]
+      }
+    ],
+    "bundeslaender_abweichungen": {},
+    "related_standards": ["EN 1990", "EN 1991", "EN 1992", "EN 1993", "EN 1994", "EN 1995", "EN 1996", "EN 1997", "EN 1998"],
+    "compliance_checks": ["check_oib_rl_1_structural"],
+    "mandatory_for": ["buildings", "renovations"],
+    "ziviltechniker_required": true
+  },
+  {
+    "law_id": "OIB-RL-2-2023",
+    "name": "OIB-Richtlinie 2: Brandschutz",
+    "type": "OIB-RL",
+    "number": 2,
+    "versions": [
+      {
+        "version_id": "2023-v1",
+        "version": "2023",
+        "valid_from": "2023-05-25",
+        "valid_to": null,
+        "source_url": "https://www.oib.or.at/",
+        "pdf_hash": null,
+        "published_at": "2023-05-25T00:00:00Z",
+        "deprecated": false,
+        "changes": ["Erhöhte Anforderungen an Brandschutz", "Fluchtwegberechnung"]
+      }
+    ],
+    "bundeslaender_abweichungen": {},
+    "related_standards": ["EN 13501-1", "EN 1991-1-2"],
+    "compliance_checks": ["check_oib_rl_2_fire_safety"],
+    "mandatory_for": ["buildings", "renovations"],
+    "ziviltechniker_required": true
+  },
+  {
+    "law_id": "OIB-RL-3-2023",
+    "name": "OIB-Richtlinie 3: Hygiene, Gesundheit und Umweltschutz",
+    "type": "OIB-RL",
+    "number": 3,
+    "versions": [
+      {
+        "version_id": "2023-v1",
+        "version": "2023",
+        "valid_from": "2023-05-25",
+        "valid_to": null,
+        "source_url": "https://www.oib.or.at/",
+        "pdf_hash": null,
+        "published_at": "2023-05-25T00:00:00Z",
+        "deprecated": false,
+        "changes": ["Erhöhte Anforderungen an Hygiene", "Raumlufttechnik"]
+      }
+    ],
+    "bundeslaender_abweichungen": {},
+    "related_standards": ["EN 13779"],
+    "compliance_checks": ["check_oib_rl_3_hygiene"],
+    "mandatory_for": ["buildings", "renovations"],
+    "ziviltechniker_required": false
+  },
+  {
+    "law_id": "OIB-RL-4-2023",
+    "name": "OIB-Richtlinie 4: Nutzungssicherheit und Barrierefreiheit",
+    "type": "OIB-RL",
+    "number": 4,
+    "versions": [
+      {
+        "version_id": "2023-v1",
+        "version": "2023",
+        "valid_from": "2023-05-25",
+        "valid_to": null,
+        "source_url": "https://www.oib.or.at/",
+        "pdf_hash": null,
+        "published_at": "2023-05-25T00:00:00Z",
+        "deprecated": false,
+        "changes": ["Barrierefreiheit", "Sicherheitsgeländer", "Treppen"]
+      }
+    ],
+    "bundeslaender_abweichungen": {},
+    "related_standards": ["EN 1991", "EN 13200"],
+    "compliance_checks": ["check_oib_rl_4_safety"],
+    "mandatory_for": ["buildings", "renovations"],
+    "ziviltechniker_required": false
+  },
+  {
+    "law_id": "OIB-RL-5-2023",
+    "name": "OIB-Richtlinie 5: Schallschutz",
+    "type": "OIB-RL",
+    "number": 5,
+    "versions": [
+      {
+        "version_id": "2023-v1",
+        "version": "2023",
+        "valid_from": "2023-05-25",
+        "valid_to": null,
+        "source_url": "https://www.oib.or.at/",
+        "pdf_hash": null,
+        "published_at": "2023-05-25T00:00:00Z",
+        "deprecated": false,
+        "changes": ["Erhöhte Schallschutzanforderungen", "Bewertungsverfahren"]
+      }
+    ],
+    "bundeslaender_abweichungen": {},
+    "related_standards": ["EN ISO 140", "EN ISO 717"],
+    "compliance_checks": ["check_oib_rl_5_sound_protection"],
+    "mandatory_for": ["buildings", "renovations"],
+    "ziviltechniker_required": false
+  },
+  {
+    "law_id": "OIB-RL-6-2023",
+    "name": "OIB-Richtlinie 6: Energieeinsparung und Wärmeschutz",
+    "type": "OIB-RL",
+    "number": 6,
+    "versions": [
+      {
+        "version_id": "2023-v1",
+        "version": "2023",
+        "valid_from": "2023-05-25",
+        "valid_to": null,
+        "source_url": "https://www.oib.or.at/",
+        "pdf_hash": null,
+        "published_at": "2023-05-25T00:00:00Z",
+        "deprecated": false,
+        "changes": ["fGEE ≤ 0.75 für Neubauten", "HWB nach A/V-Formel", "Thermische Behaglichkeit"]
+      }
+    ],
+    "bundeslaender_abweichungen": {
+      "salzburg": "ACHTUNG: Salzburg wendet OIB-RL 6 NICHT an! Eigene Salzburger Wärmeschutzverordnung (WSchVO) ist relevant."
+    },
+    "related_standards": ["ÖNORM B 8110-1", "ÖNORM EN ISO 6946"],
+    "compliance_checks": ["check_oib_rl_6", "check_hwb_calculation", "check_fgee_calculation"],
+    "mandatory_for": ["buildings", "renovations"],
+    "ziviltechniker_required": true
+  },
+  {
+    "law_id": "OIB-RL-7-2023",
+    "name": "OIB-Richtlinie 7: Nachhaltige Nutzung der natürlichen Ressourcen",
+    "type": "OIB-RL",
+    "number": 7,
+    "versions": [
+      {
+        "version_id": "2023-v1",
+        "version": "2023",
+        "valid_from": "2023-01-01",
+        "valid_to": null,
+        "source_url": "https://www.oib.or.at/",
+        "pdf_hash": null,
+        "published_at": "2023-01-01T00:00:00Z",
+        "deprecated": false,
+        "changes": ["Grundlagendokument", "Ressourcenschonung", "Lebenszyklus"]
+      }
+    ],
+    "bundeslaender_abweichungen": {},
+    "related_standards": ["EN 15643", "EN ISO 21930"],
+    "compliance_checks": ["check_oib_rl_7_sustainability"],
+    "mandatory_for": ["buildings"],
+    "ziviltechniker_required": false
+  },
+  {
+    "law_id": "OENORM-B-1800-2013",
+    "name": "ÖNORM B 1800: Allgemeine Vorschriften",
+    "type": "ÖNORM",
+    "number": null,
+    "versions": [
+      {
+        "version_id": "2013-v1",
+        "version": "2013-03-15",
+        "valid_from": "2013-03-15",
+        "valid_to": null,
+        "source_url": "https://www.austrian-standards.at/",
+        "pdf_hash": null,
+        "published_at": "2013-03-15T00:00:00Z",
+        "deprecated": false,
+        "changes": []
+      }
+    ],
+    "bundeslaender_abweichungen": {},
+    "related_standards": [],
+    "compliance_checks": [],
+    "mandatory_for": ["buildings"],
+    "ziviltechniker_required": false
+  },
+  {
+    "law_id": "OENORM-B-1600-2022",
+    "name": "ÖNORM B 1600: Barrierefreie Nutzung von Gebäuden",
+    "type": "ÖNORM",
+    "number": null,
+    "versions": [
+      {
+        "version_id": "2022-v1",
+        "version": "2022-09-01",
+        "valid_from": "2022-09-01",
+        "valid_to": null,
+        "source_url": "https://www.austrian-standards.at/",
+        "pdf_hash": null,
+        "published_at": "2022-09-01T00:00:00Z",
+        "deprecated": false,
+        "changes": ["Aktualisierte Anforderungen", "Neue Symbole"]
+      }
+    ],
+    "bundeslaender_abweichungen": {},
+    "related_standards": [],
+    "compliance_checks": ["check_accessibility"],
+    "mandatory_for": ["public_buildings"],
+    "ziviltechniker_required": false
+  },
+  {
+    "law_id": "OENORM-B-8110-1-2020",
+    "name": "ÖNORM B 8110-1: Wärmeschutz im Hochbau - Anforderungen",
+    "type": "ÖNORM",
+    "number": null,
+    "versions": [
+      {
+        "version_id": "2020-v1",
+        "version": "2020-11-01",
+        "valid_from": "2020-11-01",
+        "valid_to": null,
+        "source_url": "https://www.austrian-standards.at/",
+        "pdf_hash": null,
+        "published_at": "2020-11-01T00:00:00Z",
+        "deprecated": false,
+        "changes": []
+      }
+    ],
+    "bundeslaender_abweichungen": {},
+    "related_standards": ["EN ISO 6946"],
+    "compliance_checks": ["check_thermal_protection"],
+    "mandatory_for": ["buildings"],
+    "ziviltechniker_required": false
+  },
+  {
+    "law_id": "OENORM-S-5280-2019",
+    "name": "ÖNORM S 5280: Radonschutzmaßnahmen",
+    "type": "ÖNORM",
+    "number": null,
+    "versions": [
+      {
+        "version_id": "2019-v1",
+        "version": "2019",
+        "valid_from": "2019-01-01",
+        "valid_to": null,
+        "source_url": "https://www.austrian-standards.at/",
+        "pdf_hash": null,
+        "published_at": "2019-01-01T00:00:00Z",
+        "deprecated": false,
+        "changes": []
+      }
+    ],
+    "bundeslaender_abweichungen": {
+      "niederoesterreich": "Radonvorsorgegebiete gemäß Raumordnung beachten",
+      "oberoesterreich": "Radonvorsorgegebiete in Mühlviertel"
+    },
+    "related_standards": [],
+    "compliance_checks": ["check_radon_protection"],
+    "mandatory_for": ["buildings", "renovations"],
+    "ziviltechniker_required": false
+  },
+  {
+    "law_id": "SALZBURG-WSCHVO-2024",
+    "name": "Salzburger Wärmeschutzverordnung (WSchVO)",
+    "type": "Landesverordnung",
+    "number": null,
+    "versions": [
+      {
+        "version_id": "2024-v1",
+        "version": "2024",
+        "valid_from": "2024-01-01",
+        "valid_to": null,
+        "source_url": "https://www.salzburg.gv.at/",
+        "pdf_hash": null,
+        "published_at": "2024-01-01T00:00:00Z",
+        "deprecated": false,
+        "changes": ["Aktualisierte Anforderungen", "Höhere fGEE-Anforderungen"]
+      }
+    ],
+    "bundeslaender_abweichungen": {},
+    "related_standards": [],
+    "compliance_checks": ["check_salzburg_wschvo"],
+    "mandatory_for": ["buildings", "renovations"],
+    "ziviltechniker_required": true
+  }
+]

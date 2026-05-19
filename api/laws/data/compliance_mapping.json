@@ -1,0 +1,144 @@
+[
+  {
+    "mapping_id": "COMPL-OIB-RL-1-2023",
+    "law_version": "OIB-RL-1-2023/2023-v1",
+    "checks": [
+      {
+        "check_id": "check_oib_rl_1_structural",
+        "name": "Statische Berechnung erforderlich",
+        "type": "mandatory",
+        "validation_function": "api.routers.compliance._check_oib_rl_1",
+        "audit_trail_event": "compliance_check/oib_rl_1_structural",
+        "result_fields": ["status", "details", "referenced_law_version"]
+      }
+    ]
+  },
+  {
+    "mapping_id": "COMPL-OIB-RL-2-2023",
+    "law_version": "OIB-RL-2-2023/2023-v1",
+    "checks": [
+      {
+        "check_id": "check_oib_rl_2_fire_safety",
+        "name": "Brandschutz Anforderungen",
+        "type": "mandatory",
+        "validation_function": "api.routers.compliance._check_oib_rl_2",
+        "audit_trail_event": "compliance_check/oib_rl_2_fire_safety",
+        "result_fields": ["status", "fire_resistance_class", "escape_route_width"]
+      }
+    ]
+  },
+  {
+    "mapping_id": "COMPL-OIB-RL-3-2023",
+    "law_version": "OIB-RL-3-2023/2023-v1",
+    "checks": [
+      {
+        "check_id": "check_oib_rl_3_hygiene",
+        "name": "Hygiene und Raumlufttechnik",
+        "type": "mandatory",
+        "validation_function": "api.routers.compliance._check_oib_rl_3",
+        "audit_trail_event": "compliance_check/oib_rl_3_hygiene",
+        "result_fields": ["status", "air_quality", "ventilation_system"]
+      }
+    ]
+  },
+  {
+    "mapping_id": "COMPL-OIB-RL-4-2023",
+    "law_version": "OIB-RL-4-2023/2023-v1",
+    "checks": [
+      {
+        "check_id": "check_oib_rl_4_safety",
+        "name": "Nutzungssicherheit Anforderungen",
+        "type": "mandatory",
+        "validation_function": "api.routers.compliance._check_oib_rl_4",
+        "audit_trail_event": "compliance_check/oib_rl_4_safety",
+        "result_fields": ["status", "handrail_height", "escape_width"]
+      }
+    ]
+  },
+  {
+    "mapping_id": "COMPL-OIB-RL-5-2023",
+    "law_version": "OIB-RL-5-2023/2023-v1",
+    "checks": [
+      {
+        "check_id": "check_oib_rl_5_sound_protection",
+        "name": "Schallschutz Anforderungen",
+        "type": "mandatory",
+        "validation_function": "api.routers.compliance._check_oib_rl_5",
+        "audit_trail_event": "compliance_check/oib_rl_5_sound_protection",
+        "result_fields": ["status", "sound_insulation_value", "airborne_sound"]
+      }
+    ]
+  },
+  {
+    "mapping_id": "COMPL-OIB-RL-6-2023",
+    "law_version": "OIB-RL-6-2023/2023-v1",
+    "checks": [
+      {
+        "check_id": "check_oib_rl_6",
+        "name": "OIB-RL 6 Energieeinsparung",
+        "type": "mandatory",
+        "validation_function": "api.routers.compliance._check_oib_rl_6",
+        "audit_trail_event": "compliance_check/oib_rl_6_energy",
+        "result_fields": ["status", "fgee_value", "hwb_value", "compliant"]
+      },
+      {
+        "check_id": "check_fgee_calculation",
+        "name": "fGEE Berechnung (≤ 0.75)",
+        "type": "mandatory",
+        "validation_function": "api.routers.compliance._check_fgee_value",
+        "audit_trail_event": "compliance_check/fgee_calculation",
+        "result_fields": ["fgee_result", "max_allowed", "pass_fail"]
+      },
+      {
+        "check_id": "check_hwb_calculation",
+        "name": "HWB Berechnung (Heizwärmebedarf)",
+        "type": "mandatory",
+        "validation_function": "api.routers.compliance._check_hwb_value",
+        "audit_trail_event": "compliance_check/hwb_calculation",
+        "result_fields": ["hwb_result", "limit_kwh_m2a", "pass_fail"]
+      }
+    ]
+  },
+  {
+    "mapping_id": "COMPL-OIB-RL-7-2023",
+    "law_version": "OIB-RL-7-2023/2023-v1",
+    "checks": [
+      {
+        "check_id": "check_oib_rl_7_sustainability",
+        "name": "Nachhaltigkeit Anforderungen",
+        "type": "recommended",
+        "validation_function": "api.routers.compliance._check_oib_rl_7",
+        "audit_trail_event": "compliance_check/oib_rl_7_sustainability",
+        "result_fields": ["status", "lifecycle_assessment", "material_efficiency"]
+      }
+    ]
+  },
+  {
+    "mapping_id": "COMPL-RADON-S5280",
+    "law_version": "OENORM-S-5280-2019/2019-v1",
+    "checks": [
+      {
+        "check_id": "check_radon_protection",
+        "name": "Radonschutzmaßnahmen",
+        "type": "mandatory",
+        "validation_function": "api.routers.compliance._check_radon_protection",
+        "audit_trail_event": "compliance_check/radon_protection",
+        "result_fields": ["status", "radon_zone", "protection_level"]
+      }
+    ]
+  },
+  {
+    "mapping_id": "COMPL-SALZBURG-WSCHVO",
+    "law_version": "SALZBURG-WSCHVO-2024/2024-v1",
+    "checks": [
+      {
+        "check_id": "check_salzburg_wschvo",
+        "name": "Salzburg Wärmeschutzverordnung",
+        "type": "mandatory",
+        "validation_function": "api.routers.compliance._check_salzburg_wschvo",
+        "audit_trail_event": "compliance_check/salzburg_wschvo",
+        "result_fields": ["status", "fgee_salzburg", "hwb_salzburg", "compliant"]
+      }
+    ]
+  }
+]

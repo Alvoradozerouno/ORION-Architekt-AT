@@ -17,6 +17,11 @@ from api.routers.compliance import ComplianceCheckRequest, check_oib_rl_complian
 
 router = APIRouter()
 
+TEXT_EXTRACTION_MAX_BYTES = 512 * 1024
+MIN_UTF8_TEXT_CHARS = 20
+DOCUMENT_CONFIDENCE_BASE_SCORES = {"PDF": 0.45, "DWG": 0.5, "DXF": 0.55}
+DOCUMENT_CONFIDENCE_PER_FIELD = 0.08
+
 
 class IFCAnalysisResult(BaseModel):
     """Result of IFC file analysis"""
@@ -776,10 +781,10 @@ def _extract_ifc_plan_data(file_path: str, bundesland: str, building_type: str) 
 def _extract_text_from_plan_file(file_path: str) -> str:
     """Extract searchable text from PDF/DWG/DXF files without external dependencies."""
     with open(file_path, "rb") as uploaded_file:
-        raw = uploaded_file.read(5 * 1024 * 1024)
+        raw = uploaded_file.read(TEXT_EXTRACTION_MAX_BYTES)
 
     decoded = raw.decode("utf-8", errors="ignore")
-    if len(decoded.strip()) < 20:
+    if len(decoded.strip()) < MIN_UTF8_TEXT_CHARS:
         decoded = raw.decode("latin1", errors="ignore")
 
     return decoded.replace("\x00", " ")
@@ -901,9 +906,14 @@ def _extract_int(text: str, patterns: List[str]) -> Optional[int]:
 
 
 def _calculate_document_confidence(source_type: str, extracted_fields: List[str]) -> float:
-    """Deterministic confidence score for heuristic document import."""
-    base_scores = {"PDF": 0.45, "DWG": 0.5, "DXF": 0.55}
-    confidence = base_scores.get(source_type, 0.4) + (0.08 * len(extracted_fields))
+    """Deterministic confidence score for heuristic document import.
+
+    IFC remains the verified path. Heuristic document imports start from a lower
+    source-specific base score and gain confidence per structured field found.
+    """
+    confidence = DOCUMENT_CONFIDENCE_BASE_SCORES.get(source_type, 0.4) + (
+        DOCUMENT_CONFIDENCE_PER_FIELD * len(extracted_fields)
+    )
     return round(min(confidence, 0.85), 2)
 
 

@@ -38,7 +38,7 @@ Wohnungen: 12
         assert data["plan_ready_for_api"] is True
         assert data["downstream_results"]["compliance"]["checked"] is True
         assert data["downstream_results"]["parking"]["checked"] is True
-        assert data["downstream_results"]["parking"]["result"]["required_stellplaetze"] == 14
+        assert data["downstream_results"]["parking"]["result"]["required_stellplaetze"] == int(12 * 1.2)
 
     def test_upload_dwg_plan_uses_defaults_and_runs_compliance(self):
         dwg_content = b"""AC1027

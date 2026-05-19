@@ -123,7 +123,7 @@ jobs:
             --cov-report=xml \
             --cov-report=html \
             --cov-report=term-missing \
-            # Temporary non-regression floor; current measured baseline is ~23% for this scope.
+            # Temporary non-regression floor with small CI variance buffer; baseline is ~23%.
             --cov-fail-under=22 \
             -v
 

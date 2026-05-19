@@ -50,7 +50,6 @@ setup(
         "Development Status :: 4 - Beta",
         "Intended Audience :: Developers",
         "Intended Audience :: Science/Research",
-        "License :: OSI Approved :: MIT License",
         "Operating System :: OS Independent",
         "Programming Language :: Python :: 3",
         "Programming Language :: Python :: 3.11",
@@ -60,6 +59,7 @@ setup(
     ],
     keywords="austrian-building-regulations oib-richtlinien oenorm building-compliance architecture construction",
     license="MIT",
+    license_files=[],
     include_package_data=True,
     zip_safe=False,
 )

@@ -13,11 +13,17 @@ router = APIRouter()
 
 
 class ComplianceCheckRequest(BaseModel):
-    """Compliance check request"""
+    """OIB-RL Compliance check request (JSON body)"""
 
-    bundesland: str
-    building_type: str
-    richtlinien: List[int] = Field(default=[1, 2, 3, 4, 5, 6])
+    bundesland: str = Field(..., description="Bundesland (z.B. 'wien', 'salzburg')")
+    building_type: str = Field(..., description="Gebäudetyp (z.B. 'wohngebaeude', 'buerogebaeude')")
+    bgf_m2: float = Field(..., gt=0, description="Brutto-Grundfläche in m²")
+    geschosse: int = Field(..., ge=1, description="Anzahl der Geschosse")
+    wohnungen: Optional[int] = Field(None, ge=1, description="Anzahl der Wohneinheiten (optional)")
+    richtlinien: List[int] = Field(
+        default=[1, 2, 3, 4, 5, 6, 7],
+        description="OIB-RL Nummern die geprüft werden sollen (1–7)",
+    )
 
 
 class ComplianceResult(BaseModel):
@@ -30,14 +36,7 @@ class ComplianceResult(BaseModel):
 
 
 @router.post("/oib-rl-check", response_model=List[ComplianceResult])
-async def check_oib_rl_compliance(
-    bundesland: str,
-    building_type: str,
-    bgf_m2: float,
-    geschosse: int,
-    wohnungen: Optional[int] = None,
-    richtlinien: List[int] = [1, 2, 3, 4, 5, 6, 7],
-):
+async def check_oib_rl_compliance(request: ComplianceCheckRequest):
     """
     ✅ **OIB-RL Compliance Check (OIB-RL 2023)**
 
@@ -55,6 +54,13 @@ async def check_oib_rl_compliance(
     befugten Ziviltechniker (Architekt oder Ingenieurkonsulent) zu unterschreiben und zu siegeln
     (Ziviltechnikergesetz 2019, ZTG 2019). Dieses System ist eine Planungshilfe, kein Ersatz.
     """
+    bundesland = request.bundesland
+    building_type = request.building_type
+    bgf_m2 = request.bgf_m2
+    geschosse = request.geschosse
+    wohnungen = request.wohnungen
+    richtlinien = request.richtlinien
+
     results = []
 
     if 1 in richtlinien:

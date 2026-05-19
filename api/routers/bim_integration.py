@@ -1310,7 +1310,7 @@ def _extract_project_name(plan_text: str) -> str:
 
 
 def _normalize_plan_text(plan_text: str) -> str:
-    """Normalize common German plan vocabulary for regex extraction."""
+    """Normalize OCR/CAD text only for deterministic regex matching, not for display/storage."""
     normalized = plan_text.lower()
     replacements = {
         "ä": "ae",

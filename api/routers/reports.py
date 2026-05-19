@@ -38,7 +38,7 @@ async def generate_comprehensive_report(request: ReportRequest):
     report = {
         "report_id": f"RPT-{datetime.now().strftime('%Y%m%d-%H%M%S')}",
         "generated_at": datetime.now().isoformat(),
-        "project": request.dict(),
+        "project": request.model_dump(),
         "executive_summary": {
             "overall_compliance": "compliant",
             "critical_issues": 0,

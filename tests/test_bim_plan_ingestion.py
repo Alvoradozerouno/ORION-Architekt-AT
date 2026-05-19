@@ -13,11 +13,18 @@ client = TestClient(app)
 class TestPlanIngestion:
     def test_upload_pdf_plan_runs_downstream_checks(self):
         pdf_content = b"""%PDF-1.4
+Projekt: Wohnpark Donaustadt
 Bundesland: Wien
 Gebaeudetyp: Wohngebaeude
 BGF: 1280 m2
 Geschosse: 4
 Wohnungen: 12
+Fenster: 24
+Tueren: 18
+Raeume: 16
+U-Wert Wand: 0.22
+U-Wert Dach: 0.14
+U-Wert Fenster: 0.85
 %%EOF
 """
         response = client.post(
@@ -40,13 +47,21 @@ Wohnungen: 12
         assert data["downstream_results"]["parking"]["checked"] is True
         assert data["downstream_results"]["parking"]["result"]["factor"] == 1.2
         assert data["downstream_results"]["parking"]["result"]["required_stellplaetze"] == 14
+        assert data["derived_metrics"]["project_name"] == "Wohnpark Donaustadt"
+        assert data["derived_metrics"]["fenster_anzahl"] == 24
+        assert data["derived_metrics"]["tueren_anzahl"] == 18
+        assert data["derived_metrics"]["raeume_anzahl"] == 16
+        assert data["derived_metrics"]["thermal_inputs"]["uwert_wand"] == 0.22
+        assert data["derived_metrics"]["heating_load"]["bundesland"] == "wien"
 
     def test_upload_dwg_plan_uses_defaults_and_runs_compliance(self):
         dwg_content = b"""AC1027
-PROJECT=Planstudie
+PROJECT=Planstudie Seestadt
+LAYER_WALL
 BGF 950
 Geschosse 3
 Office Building / Buerohaus
+Windows 30
 """
         response = client.post(
             "/api/v1/bim/upload-plan",
@@ -62,6 +77,38 @@ Office Building / Buerohaus
         assert data["plan_ready_for_api"] is True
         assert data["downstream_results"]["compliance"]["checked"] is True
         assert data["downstream_results"]["parking"]["checked"] is False
+        assert data["derived_metrics"]["project_name"] == "Planstudie Seestadt"
+        assert data["derived_metrics"]["fenster_anzahl"] == 30
+        assert data["derived_metrics"]["cad_layers_detected"] == ["cad_layer_metadata"]
+
+    def test_upload_plan_report_returns_report_and_heating_load(self):
+        pdf_content = b"""%PDF-1.4
+Projekt: Bauvorhaben Graz
+Bundesland: Steiermark
+Gebaeudetyp: Wohngebaeude
+BGF: 980 m2
+Geschosse: 3
+Wohnungen: 8
+Fenster: 14
+U-Wert Wand: 0.24
+U-Wert Dach: 0.16
+U-Wert Fenster: 0.35
+OCR scan layer
+%%EOF
+"""
+        response = client.post(
+            "/api/v1/bim/upload-plan-report",
+            files={"file": ("bauvorhaben.pdf", pdf_content, "application/pdf")},
+        )
+
+        assert response.status_code == 200
+        data = response.json()
+        assert data["ingestion"]["derived_metrics"]["project_name"] == "Bauvorhaben Graz"
+        assert data["ingestion"]["derived_metrics"]["heating_load"]["bundesland"] == "steiermark"
+        assert data["report"]["project"]["project_name"] == "Bauvorhaben Graz"
+        assert data["report"]["calculations"]["estimated_energy_class"] == "B"
+        assert data["report"]["calculations"]["heating_load"]["standard"] == "ÖNORM EN 12831"
+        assert data["report"]["epistemic_state"] == "ESTIMATED"
 
     def test_upload_plan_rejects_unsupported_extension(self):
         response = client.post(

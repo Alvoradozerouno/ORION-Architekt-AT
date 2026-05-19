@@ -12,8 +12,14 @@ from typing import Any, Dict, List, Optional
 from fastapi import APIRouter, Depends, File, HTTPException, UploadFile
 from pydantic import BaseModel, Field
 
-from api.routers.calculations import StellplatzRequest, berechne_stellplaetze
+from api.routers.calculations import (
+    HeizlastRequest,
+    StellplatzRequest,
+    berechne_heizlast,
+    berechne_stellplaetze,
+)
 from api.routers.compliance import ComplianceCheckRequest, check_oib_rl_compliance
+from api.routers.reports import ReportRequest, generate_comprehensive_report
 
 router = APIRouter()
 
@@ -23,6 +29,10 @@ DOCUMENT_CONFIDENCE_BASE_SCORES = {"PDF": 0.45, "DWG": 0.5, "DXF": 0.55}
 DOCUMENT_CONFIDENCE_PER_FIELD = 0.08
 PLAN_REQUIRED_FIELDS = ("bgf_m2", "geschosse", "wohnungen")
 PLAN_API_READY_FIELDS = ("bundesland", "building_type", "bgf_m2", "geschosse")
+PLAN_PROJECT_PATTERNS = [
+    re.compile(r"projekt(?:name)?\s*[:=]\s*([^\n\r]+)", re.IGNORECASE),
+    re.compile(r"project(?:name)?\s*[:=]\s*([^\n\r]+)", re.IGNORECASE),
+]
 BUILDING_TYPE_PATTERNS = {
     "mehrfamilienhaus": re.compile(r"mehrfamilienhaus|mfh", re.IGNORECASE),
     "wohngebaeude": re.compile(
@@ -30,6 +40,44 @@ BUILDING_TYPE_PATTERNS = {
     ),
     "einfamilienhaus": re.compile(r"einfamilienhaus|efh", re.IGNORECASE),
     "buerogebaeude": re.compile(r"buerogebaeude|buerobau|buerohaus|office", re.IGNORECASE),
+}
+PLAN_METRIC_PATTERNS = {
+    "fenster_anzahl": [
+        re.compile(r"fenster(?:anzahl)?[^0-9]{0,20}(\d+)", re.IGNORECASE),
+        re.compile(r"windows?[^0-9]{0,20}(\d+)", re.IGNORECASE),
+    ],
+    "tueren_anzahl": [
+        re.compile(r"tueren?(?:anzahl)?[^0-9]{0,20}(\d+)", re.IGNORECASE),
+        re.compile(r"doors?[^0-9]{0,20}(\d+)", re.IGNORECASE),
+    ],
+    "raeume_anzahl": [
+        re.compile(r"raeume?(?:anzahl)?[^0-9]{0,20}(\d+)", re.IGNORECASE),
+        re.compile(r"rooms?[^0-9]{0,20}(\d+)", re.IGNORECASE),
+    ],
+    "fassade_flaeche_m2": [
+        re.compile(r"fassade(?:nflaeche)?[^0-9]{0,20}(\d+(?:[.,]\d+)?)", re.IGNORECASE),
+        re.compile(r"facade area[^0-9]{0,20}(\d+(?:[.,]\d+)?)", re.IGNORECASE),
+    ],
+    "dach_flaeche_m2": [
+        re.compile(r"dach(?:flaeche)?[^0-9]{0,20}(\d+(?:[.,]\d+)?)", re.IGNORECASE),
+        re.compile(r"roof area[^0-9]{0,20}(\d+(?:[.,]\d+)?)", re.IGNORECASE),
+    ],
+    "fenster_flaeche_m2": [
+        re.compile(r"fensterflaeche[^0-9]{0,20}(\d+(?:[.,]\d+)?)", re.IGNORECASE),
+        re.compile(r"window area[^0-9]{0,20}(\d+(?:[.,]\d+)?)", re.IGNORECASE),
+    ],
+    "uwert_wand": [
+        re.compile(r"u[\-\s]?wert\s+wand[^0-9]{0,20}(\d+(?:[.,]\d+)?)", re.IGNORECASE),
+        re.compile(r"wall u[\-\s]?value[^0-9]{0,20}(\d+(?:[.,]\d+)?)", re.IGNORECASE),
+    ],
+    "uwert_dach": [
+        re.compile(r"u[\-\s]?wert\s+dach[^0-9]{0,20}(\d+(?:[.,]\d+)?)", re.IGNORECASE),
+        re.compile(r"roof u[\-\s]?value[^0-9]{0,20}(\d+(?:[.,]\d+)?)", re.IGNORECASE),
+    ],
+    "uwert_fenster": [
+        re.compile(r"u[\-\s]?wert\s+fenster[^0-9]{0,20}(\d+(?:[.,]\d+)?)", re.IGNORECASE),
+        re.compile(r"window u[\-\s]?value[^0-9]{0,20}(\d+(?:[.,]\d+)?)", re.IGNORECASE),
+    ],
 }
 PLAN_NUMBER_PATTERNS = {
     "bgf_m2": [
@@ -100,8 +148,16 @@ class PlanImportResult(BaseModel):
     plan_ready_for_api: bool
     confidence_score: float
     epistemic_state: str
+    derived_metrics: Dict[str, Any]
     downstream_results: Dict[str, Any]
     warnings: List[str]
+
+
+class PlanReportResult(BaseModel):
+    """Plan import result bundled with a generated planning report."""
+
+    ingestion: PlanImportResult
+    report: Dict[str, Any]
 
 
 @router.post("/upload-ifc", response_model=IFCAnalysisResult)
@@ -171,6 +227,43 @@ async def upload_plan_file(
         raise
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Plan import failed: {str(e)}")
+    finally:
+        _cleanup_temp_file(tmp_file_path)
+
+
+@router.post("/upload-plan-report", response_model=PlanReportResult)
+async def upload_plan_report(
+    file: UploadFile = File(...), bundesland: str = "wien", building_type: str = "mehrfamilienhaus"
+):
+    """
+    📑 **Plan Upload with Report**
+
+    Imports a plan document and generates a deterministic planning report from the
+    normalized plan data plus any extracted OCR/CAD metrics.
+    """
+    filename = os.path.basename(file.filename or "")
+    extension = os.path.splitext(filename)[1].lower()
+    supported_extensions = {".ifc", ".pdf", ".dwg", ".dxf"}
+
+    if extension not in supported_extensions:
+        raise HTTPException(
+            status_code=400,
+            detail=f"Unsupported file format '{extension or 'unknown'}'. Supported formats: IFC, PDF, DWG, DXF",
+        )
+
+    with tempfile.NamedTemporaryFile(delete=False, suffix=extension) as tmp_file:
+        content = await file.read()
+        tmp_file.write(content)
+        tmp_file_path = tmp_file.name
+
+    try:
+        ingestion = await _import_plan_file(tmp_file_path, filename, bundesland, building_type)
+        report = await _generate_plan_report(ingestion)
+        return PlanReportResult(ingestion=ingestion, report=report)
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Plan report generation failed: {str(e)}")
     finally:
         _cleanup_temp_file(tmp_file_path)
 
@@ -743,6 +836,7 @@ async def _import_plan_file(
         extracted_fields = [key for key, value in extracted_plan.items() if value is not None]
         defaulted_fields: List[str] = []
         missing_fields = [field for field in PLAN_REQUIRED_FIELDS if extracted_plan.get(field) is None]
+        derived_metrics = _derive_ifc_plan_metrics(extracted_plan)
         confidence_score = 0.95
         epistemic_state = "VERIFIED"
         ingestion_mode = "native_ifc"
@@ -752,6 +846,7 @@ async def _import_plan_file(
         extracted_plan, extracted_fields, defaulted_fields, missing_fields = _finalize_plan_fields(
             parsed_fields, bundesland, building_type
         )
+        derived_metrics = await _derive_document_plan_metrics(plan_text, extracted_plan)
         ingestion_mode = "heuristic_text_scan"
         try:
             confidence_score = _calculate_document_confidence(source_type, extracted_fields)
@@ -783,6 +878,7 @@ async def _import_plan_file(
         plan_ready_for_api=downstream_results["compliance"]["checked"],
         confidence_score=confidence_score,
         epistemic_state=epistemic_state,
+        derived_metrics=derived_metrics,
         downstream_results=downstream_results,
         warnings=warnings,
     )
@@ -802,6 +898,23 @@ def _extract_ifc_plan_data(file_path: str, bundesland: str, building_type: str) 
             "geometry_valid": ifc_data.geometry_valid,
             "building_elements": ifc_data.building_elements,
         },
+    }
+
+
+def _derive_ifc_plan_metrics(extracted_plan: Dict[str, Any]) -> Dict[str, Any]:
+    """Provide deterministic derived metrics for IFC imports."""
+    bgf = extracted_plan.get("bgf_m2") or 0
+    return {
+        "project_name": "IFC Import",
+        "fenster_anzahl": None,
+        "tueren_anzahl": None,
+        "raeume_anzahl": None,
+        "fassade_flaeche_m2": round(bgf * 2.4, 1) if bgf else None,
+        "dach_flaeche_m2": round(bgf * 0.9, 1) if bgf else None,
+        "fenster_flaeche_m2": round(bgf * 0.22, 1) if bgf else None,
+        "thermal_inputs": None,
+        "heating_load": None,
+        "cad_layers_detected": ["ifc_native_model"],
     }
 
 
@@ -852,6 +965,50 @@ def _parse_plan_text(plan_text: str) -> Dict[str, Any]:
     return parsed
 
 
+async def _derive_document_plan_metrics(
+    plan_text: str, extracted_plan: Dict[str, Any]
+) -> Dict[str, Any]:
+    """Extract deterministic OCR/CAD-style metrics and run optional thermal analysis."""
+    normalized_text = _normalize_plan_text(plan_text)
+    raw_thermal_inputs = {
+        "uwert_wand": _extract_number(normalized_text, PLAN_METRIC_PATTERNS["uwert_wand"]),
+        "uwert_dach": _extract_number(normalized_text, PLAN_METRIC_PATTERNS["uwert_dach"]),
+        "uwert_fenster": _extract_number(normalized_text, PLAN_METRIC_PATTERNS["uwert_fenster"]),
+    }
+    thermal_inputs = None if all(value is None for value in raw_thermal_inputs.values()) else raw_thermal_inputs
+
+    heating_load = None
+    thermal_inputs_complete = thermal_inputs and all(value is not None for value in thermal_inputs.values())
+    if thermal_inputs_complete and extracted_plan.get("bgf_m2") is not None:
+        heating_request = HeizlastRequest(
+            bgf_m2=extracted_plan["bgf_m2"],
+            uwert_wand=thermal_inputs["uwert_wand"],
+            uwert_dach=thermal_inputs["uwert_dach"],
+            uwert_fenster=thermal_inputs["uwert_fenster"],
+            bundesland=extracted_plan["bundesland"] or "wien",
+        )
+        heating_load = await berechne_heizlast(heating_request)
+
+    detected_layers = []
+    if "layer" in normalized_text:
+        detected_layers.append("cad_layer_metadata")
+    if any(token in normalized_text for token in ("%pdf", "ocr", "scan")):
+        detected_layers.append("ocr_text_markers")
+
+    return {
+        "project_name": _extract_project_name(plan_text),
+        "fenster_anzahl": _extract_int(normalized_text, PLAN_METRIC_PATTERNS["fenster_anzahl"]),
+        "tueren_anzahl": _extract_int(normalized_text, PLAN_METRIC_PATTERNS["tueren_anzahl"]),
+        "raeume_anzahl": _extract_int(normalized_text, PLAN_METRIC_PATTERNS["raeume_anzahl"]),
+        "fassade_flaeche_m2": _extract_number(normalized_text, PLAN_METRIC_PATTERNS["fassade_flaeche_m2"]),
+        "dach_flaeche_m2": _extract_number(normalized_text, PLAN_METRIC_PATTERNS["dach_flaeche_m2"]),
+        "fenster_flaeche_m2": _extract_number(normalized_text, PLAN_METRIC_PATTERNS["fenster_flaeche_m2"]),
+        "thermal_inputs": thermal_inputs,
+        "heating_load": heating_load,
+        "cad_layers_detected": detected_layers,
+    }
+
+
 def _finalize_plan_fields(
     parsed_fields: Dict[str, Any], bundesland: str, building_type: str
 ) -> tuple[Dict[str, Any], List[str], List[str], List[str]]:
@@ -873,6 +1030,15 @@ def _finalize_plan_fields(
         if finalized.get(field) is None
     ]
     return finalized, extracted_fields, defaulted_fields, missing_fields
+
+
+def _extract_project_name(plan_text: str) -> str:
+    """Extract project name from OCR/CAD text when present."""
+    for pattern in PLAN_PROJECT_PATTERNS:
+        match = pattern.search(plan_text)
+        if match:
+            return match.group(1).strip()
+    return "Planimport"
 
 
 def _normalize_plan_text(plan_text: str) -> str:
@@ -970,3 +1136,69 @@ async def _run_plan_downstream_checks(extracted_plan: Dict[str, Any]) -> Dict[st
         }
 
     return downstream_results
+
+
+async def _generate_plan_report(ingestion: PlanImportResult) -> Dict[str, Any]:
+    """Generate a comprehensive report for imported plan data."""
+    if not ingestion.plan_ready_for_api:
+        raise HTTPException(
+            status_code=400,
+            detail="Plan report requires normalized plan fields for compliance generation.",
+        )
+
+    report_request = ReportRequest(
+        project_name=ingestion.derived_metrics.get("project_name") or "Planimport",
+        bundesland=ingestion.extracted_plan["bundesland"],
+        building_type=ingestion.extracted_plan["building_type"],
+        bgf_m2=ingestion.extracted_plan["bgf_m2"],
+        geschosse=ingestion.extracted_plan["geschosse"],
+        wohnungen=ingestion.extracted_plan.get("wohnungen"),
+    )
+    report = await generate_comprehensive_report(report_request)
+    report["source_file"] = ingestion.file_name
+    report["epistemic_state"] = ingestion.epistemic_state
+    report["plan_metrics"] = ingestion.derived_metrics
+    report["downstream_results"] = ingestion.downstream_results
+
+    thermal_inputs = ingestion.derived_metrics.get("thermal_inputs")
+    if thermal_inputs:
+        report["calculations"]["thermal_inputs"] = thermal_inputs
+        report["calculations"]["estimated_energy_class"] = _estimate_energy_class_from_plan_metrics(
+            thermal_inputs
+        )
+
+    if ingestion.derived_metrics.get("heating_load"):
+        report["calculations"]["heating_load"] = ingestion.derived_metrics["heating_load"]
+
+    report["executive_summary"]["warnings"] = len(ingestion.warnings)
+    report["executive_summary"]["critical_issues"] = _count_plan_critical_issues(ingestion)
+    return report
+
+
+def _estimate_energy_class_from_plan_metrics(thermal_inputs: Dict[str, float]) -> str:
+    """Estimate energy class from available thermal inputs."""
+    values = [value for value in thermal_inputs.values() if value is not None]
+    if not values:
+        return "UNKNOWN"
+
+    average_uwert = sum(values) / len(values)
+    if average_uwert <= 0.15:
+        return "A+"
+    if average_uwert <= 0.20:
+        return "A"
+    if average_uwert <= 0.25:
+        return "B"
+    if average_uwert <= 0.35:
+        return "C"
+    return "D"
+
+
+def _count_plan_critical_issues(ingestion: PlanImportResult) -> int:
+    """Count critical issues from downstream compliance results."""
+    compliance_results = ingestion.downstream_results.get("compliance", {}).get("results", [])
+    critical_issues = 0
+    for compliance_result in compliance_results:
+        for check in compliance_result.get("checks", []):
+            if check.get("status") == "fail":
+                critical_issues += 1
+    return critical_issues

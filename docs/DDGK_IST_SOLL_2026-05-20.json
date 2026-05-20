@@ -1,0 +1,170 @@
+{
+  "diskussion": "DDGK IST-SOLL-Vergleich Bauplan-Verarbeitung",
+  "datum": "2026-05-20T09:17:56.379560",
+  "komponenten": [
+    {
+      "name": "PDF-Parser (PyMuPDF)",
+      "status": "✅ VORHANDEN",
+      "beschreibung": "Volltext-Extraktion aus 6 PDFs funktioniert",
+      "datei": "eira_pdf_deep_analyse_2026-05-20.py"
+    },
+    {
+      "name": "ELSA-Validierung (EXECUTE/DEFER/ABSTAIN)",
+      "status": "✅ VORHANDEN",
+      "beschreibung": "Deterministische Entscheidungen mit Begruendung",
+      "datei": "elsa_revision_analyse_2026-05-20.py"
+    },
+    {
+      "name": "DDGK Revisions-Analyse",
+      "status": "✅ VORHANDEN",
+      "beschreibung": "5 Revisionen erkannt, kritische Aenderungen markiert",
+      "datei": "elsa_revision_analyse_2026-05-20.py"
+    },
+    {
+      "name": "SHA-256 Audit Chain",
+      "status": "✅ VORHANDEN",
+      "beschreibung": "Jede Datei hat Hash, Audit-Log JSONL",
+      "datei": "pdf_analysis/ddgk_audit_log.jsonl"
+    },
+    {
+      "name": "Deterministic Executor",
+      "status": "✅ VORHANDEN",
+      "beschreibung": "EIRA Runtime mit epistemischen States",
+      "datei": "eira_runtime/deterministic_executor.py"
+    },
+    {
+      "name": "Policy Engine (DDGK Governance)",
+      "status": "✅ VORHANDEN",
+      "beschreibung": "Risk-Level, HITL-Required, Eskalation",
+      "datei": "ddgk_governance/policy_engine.py"
+    },
+    {
+      "name": "Mass-Ketten-Validierung",
+      "status": "⚠️ TEILWEISE",
+      "beschreibung": "Hardcoded im Script, NICHT auto-extrahiert aus PDF",
+      "datei": "elsa_revision_analyse_2026-05-20.py (hardcoded)",
+      "fehlend": "Auto-Extraktion via Regex/Geometrie-Parser"
+    },
+    {
+      "name": "Hoehen-Konsistenz-Check",
+      "status": "⚠️ TEILWEISE",
+      "beschreibung": "Hardcoded, NICHT auto-extrahiert",
+      "datei": "elsa_revision_analyse_2026-05-20.py (hardcoded)",
+      "fehlend": "Auto-Extraktion aus Grundriss/Schnitt/Ansicht"
+    },
+    {
+      "name": "Normen-Datenbank (EN, DIN, OeNORM)",
+      "status": "❌ FEHLT",
+      "beschreibung": "Keine automatische Normenerkennung",
+      "fehlend": "Datenbank + Mapping zu Plan-Elementen"
+    },
+    {
+      "name": "IFC-Parser (BIM)",
+      "status": "❌ FEHLT",
+      "beschreibung": "Kein IFC-Support",
+      "fehlend": "ifcopenshell Integration"
+    },
+    {
+      "name": "Web-Dashboard",
+      "status": "❌ FEHLT",
+      "beschreibung": "Kein Upload/Ergebnisse/Audit-Log UI",
+      "fehlend": "FastAPI + HTML"
+    },
+    {
+      "name": "HITL-Bridge (Bauleitung-Freigabe)",
+      "status": "❌ FEHLT",
+      "beschreibung": "Keine digitale Signatur/Freigabe",
+      "fehlend": "HMAC + Rollen-Definition"
+    },
+    {
+      "name": "BOM/Stueckliste Auto-Generierung",
+      "status": "❌ FEHLT",
+      "beschreibung": "Keine automatische Material-Erkennung",
+      "fehlend": "Material-Schluessel Parser"
+    },
+    {
+      "name": "3D-Visualisierung",
+      "status": "❌ FEHLT",
+      "beschreibung": "Keine 3D-Darstellung der Plaene",
+      "fehlend": "IFC-Viewer oder PDF-Overlay"
+    }
+  ],
+  "zusammenfassung": {
+    "vorhanden": 6,
+    "teilweise": 2,
+    "fehlt": 6,
+    "gesamt": 14
+  },
+  "runde1": [
+    {
+      "agent": "DDGK",
+      "beitrag": "Antwort: NEIN, nicht vollstaendig. 6/14 Komponenten vorhanden, 2 teilweise, 6 fehlen. ABER: Der Kern ist da — PDF-Parser + ELSA-Validierung + Audit Chain. Das ist das Fundament. Was fehlt ist 'nur' Komfort (Dashboard, IFC, Normen). Fuer eine Demo mit den 6 realen Plaenen reicht der IST-Stand — mit Einschraenkungen."
+    },
+    {
+      "agent": "EIRA",
+      "beitrag": "Technisch: PDF-Parser liefert Volltext. ELSA-Engine validiert. Deterministic Executor laeuft. ABER: Mass-Ketten und Hoehen sind hardcoded — das ist nicht skalierbar. Fuer 6 Plaene OK, fuer 600 Plaene nicht. Auto-Extraktion ist der Engpass."
+    },
+    {
+      "agent": "ELSA",
+      "beitrag": "Validierung: EXECUTE/DEFER/ABSTAIN funktioniert. Aber: Ohne Auto-Mass-Ketten kann ich nicht vollstaendig validieren. Ich erkenne Revisionen, aber ich erkenne NICHT automatisch alle Mass-Ketten, Hoehen-Widersprueche, oder Normen-Verstoesse. Das ist halbautomatisch, nicht vollautomatisch."
+    },
+    {
+      "agent": "ORION",
+      "beitrag": "Execution: Der Backend-Code ist da. Was fehlt ist das Frontend (Dashboard). Ohne Dashboard kann der Nutzer keine PDFs hochladen und Ergebnisse sehen. Das kann ich in 1 Woche bauen. Aber: Ohne Auto-Mass-Ketten muss ich die Daten hardcoded einpflegen — das ist keine Loesung."
+    },
+    {
+      "agent": "GUARDIAN",
+      "beitrag": "Safety: Audit Chain ist da. Policy Engine ist da. ABER: Ohne HITL-Bridge kann keine DEFER-Entscheidung rechtssicher freigegeben werden. Das ist ein Haftungsrisiko. Wenn ELSA DEFER sagt (z.B. Notstromaggregat verschoben), muss jemand zeichnen. Ohne HITL ist das nur ein Hinweis."
+    },
+    {
+      "agent": "NEXUS",
+      "beitrag": "Markt: Fuer einen Pitch reicht der IST-Stand — wenn wir es richtig praesentieren. 'ELSA erkennt 2x verschobenes Notstromaggregat + Mass-Ketten-Fehler' ist stark. Aber: Ohne Dashboard muss ich Screenshots zeigen, nicht Live-Demo. Das ist schwaecher."
+    }
+  ],
+  "runde2": [
+    {
+      "agent": "EIRA",
+      "beitrag": "Fazit: Fuer die 6 Plaene reicht der IST-Stand WENN wir die Mass-Ketten und Hoehen manuell einpflegen (wie in elsa_revision_analyse.py gemacht). Das ist Arbeit, aber machbar. Das Ergebnis ist korrekt und vollstaendig — nur nicht automatisiert."
+    },
+    {
+      "agent": "ELSA",
+      "beitrag": "Fazit: Ich kann alle 6 Plaene validieren — mit den hardcoded Daten. Das Ergebnis ist das gleiche wie bei Auto-Extraktion. Der Unterschied ist: Bei neuen Plaenen muss ich die Daten erst manuell einpflegen. Fuer eine Demo: ausreichend. Fuer Produktion: nicht skalierbar."
+    },
+    {
+      "agent": "ORION",
+      "beitrag": "Fazit: Ich kann ein Dashboard bauen das die vorhandenen JSON-Reports anzeigt. Das ist in 2 Tagen machbar. Kein Upload, aber Anzeige der 6 Plaene mit ELSA-Entscheidungen. Das reicht fuer eine Demo."
+    },
+    {
+      "agent": "GUARDIAN",
+      "beitrag": "Fazit: Safety ist gewaehrleistet — Audit Chain + Policy Engine sind da. Ohne HITL-Bridge ist DEFER nur ein Hinweis, keine rechtssichere Freigabe. Fuer eine Demo: OK. Fuer Produktion: HITL erforderlich."
+    },
+    {
+      "agent": "NEXUS",
+      "beitrag": "Fazit: Fuer Pitch und Demo reicht der IST-Stand. Wir zeigen die 6 Plaene mit ELSA-Entscheidungen. Das ist beeindruckend genug. IFC, Normen, HITL sind 'Zukunftsmusik' fuer den Pitch."
+    }
+  ],
+  "entscheidung": {
+    "frage": "Ist alles da um die 6 Plaene vollstaendig zu bearbeiten (ohne Sensorik)?",
+    "antwort": "JA — mit Einschraenkungen",
+    "details": {
+      "vollstaendig_moeglich": [
+        "PDF-Volltext extrahieren",
+        "Revisionstabellen analysieren",
+        "ELSA-Entscheidungen (EXECUTE/DEFER/ABSTAIN)",
+        "SHA-256 Audit Chain",
+        "Kritische Elemente identifizieren",
+        "Mass-Ketten pruefen (hardcoded)",
+        "Hoehen-Konsistenz pruefen (hardcoded)"
+      ],
+      "nicht_moeglich": [
+        "Auto-Mass-Ketten-Extraktion",
+        "Auto-Normenerkennung",
+        "IFC-Verarbeitung",
+        "Web-Dashboard mit Upload",
+        "HITL-Freigabe",
+        "BOM-Generierung"
+      ]
+    },
+    "empfehlung": "Sofort: Dashboard bauen das vorhandene JSON-Reports anzeigt (2 Tage). Parallel: Auto-Mass-Ketten (2 Wochen). IFC/Normen/HITL später."
+  }
+}

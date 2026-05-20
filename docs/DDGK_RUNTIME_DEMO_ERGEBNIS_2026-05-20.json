@@ -1,0 +1,21 @@
+{
+  "timestamp": "2026-05-20T14:02:16.016402",
+  "plan": "MFH_Sillgasse_Rev2.pdf",
+  "elsa_decision": "ABSTAIN",
+  "risk_level": "CRITICAL",
+  "risk_score": 18,
+  "mass_ketten_count": 11,
+  "normen_count": 6,
+  "critical_elements": [
+    "notstromaggregat",
+    "brandschutz",
+    "fundament",
+    "tragwerk",
+    "dach",
+    "erdung",
+    "stahl"
+  ],
+  "hitl_required": true,
+  "plan_sha256": "44cc2a82427ccfea7116c82ddebf2cca5f60b7820eab248a79651036a4ed8004",
+  "audit_hash": "44cc2a82427ccfea7116c82ddebf2cca5f60b7820eab248a79651036a4ed8004"
+}

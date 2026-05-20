@@ -86,8 +86,9 @@ def _classify_dimension(value, context):
     if any(k in ctx for k in ["volumen", "m3", "m\u00b3", "raum"]): return "volumen"
     if any(k in ctx for k in ["breite", "breit", "b ="]): return "breite"
     if any(k in ctx for k in ["laenge", "lang", "l =", "lfm"]): return "laenge"
-    if value > 100: return "hoehe"
-    if value > 20: return "laenge"
+    num_val = float(value) if isinstance(value, str) else value
+    if num_val > 100: return "hoehe"
+    if num_val > 20: return "laenge"
     return "unbekannt"
 
 def detect_normen(text):

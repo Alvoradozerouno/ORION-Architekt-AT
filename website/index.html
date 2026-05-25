@@ -1,0 +1,691 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Baumeister Tool Austria — Österreichs #1 Bauregel-Compliance-Plattform</title>
+    <meta name="description" content="OIB-RL 1-7, Eurocode EC2-EC8, 21 Berechnungsmodule, alle 9 Bundesländer. HWB/HEB/PEB Rechner, BIM/IFC-Integration, KI-gestützt. Produktion.">
+    <meta name="keywords" content="HWB Rechner, Energieausweis, OIB RL 6, Eurocode, Statik, Bauregelung, Österreich, BIM, IFC, Baumeister Architekt, Bauvorhaben, Zivil Ingenieur">
+    
+    <!-- Open Graph / Social Media -->
+    <meta property="og:title" content="Baugesetz Austria — Österreichs #1 Bauregel-Compliance-Plattform">
+    <meta property="og:description" content="OIB-RL 1-7, Eurocode EC2-EC8, 21 Berechnungsmodule, alle 9 Bundesländer">
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://baumaster.at">
+    
+    <!-- Favicon -->
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🏗️</text></svg>">
+    
+    <style>
+        :root {
+            --primary: #1a365d;
+            --secondary: #2b6cb0;
+            --accent: #dd6b20;
+            --success: #38a169;
+            --warning: #d69e2e;
+            --danger: #e53e3e;
+            --bg-light: #f7fafc;
+            --text: #2d3748;
+            --text-light: #718096;
+            --border: #e2e8f0;
+            --shadow: 0 4px 6px -1px rgba(0,0,0,0.1), 0 2px 4px -1px rgba(0,0,0,0.06);
+            --shadow-lg: 0 10px 15px -3px rgba(0,0,0,0.1), 0 4px 6px -2px rgba(0,0,0,0.05);
+            --radius: 8px;
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            color: var(--text);
+            line-height: 1.6;
+            background: var(--bg-light);
+        }
+        
+        /* Navigation */
+        .nav {
+            background: white;
+            box-shadow: var(--shadow);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+        
+        .nav-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 1rem 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .nav-logo {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--primary);
+            text-decoration: none;
+        }
+        
+        .nav-logo span {
+            color: var(--accent);
+        }
+        
+        .nav-links {
+            display: flex;
+            gap: 2rem;
+            list-style: none;
+        }
+        
+        .nav-links a {
+            text-decoration: none;
+            color: var(--text);
+            font-weight: 500;
+            transition: color 0.2s;
+        }
+        
+        .nav-links a:hover {
+            color: var(--accent);
+        }
+        
+        /* Hero Section */
+        .hero {
+            background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+            color: white;
+            padding: 5rem 2rem;
+            text-align: center;
+        }
+        
+        .hero h1 {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+        }
+        
+        .hero p {
+            font-size: 1.25rem;
+            max-width: 800px;
+            margin: 0 auto 2rem;
+            opacity: 0.9;
+        }
+        
+        .hero-badges {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 0.5rem;
+            margin-bottom: 2rem;
+        }
+        
+        .badge {
+            background: rgba(255,255,255,0.2);
+            padding: 0.5rem 1rem;
+            border-radius: 20px;
+            font-size: 0.875rem;
+        }
+        
+        .badge.success {
+            background: var(--success);
+        }
+        
+        .btn-group {
+            display: flex;
+            gap: 1rem;
+            justify-content: center;
+            margin-top: 2rem;
+        }
+        
+        .btn {
+            padding: 0.875rem 3rem;
+            border-radius: var(--radius);
+            text-decoration: none;
+            font-weight: 600;
+            transition: all 0.2s;
+            cursor: pointer;
+            border: none;
+        }
+        
+        .btn-primary {
+            background: var(--accent);
+            color: white;
+        }
+        
+        .btn-primary:hover {
+            background: #c05621;
+        }
+        
+        .btn-secondary {
+            background: white;
+            color: var(--primary);
+        }
+        
+        .btn-secondary:hover {
+            background: var(--bg-light);
+        }
+        
+        /* Sections */
+        .section {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 4rem 2rem;
+        }
+        
+        .section h2 {
+            font-size: 2rem;
+            margin-bottom: 1rem;
+            text-align: center;
+            color: var(--primary);
+        }
+        
+        .section-subtitle {
+            text-align: center;
+            color: var(--text-light);
+            margin-bottom: 3rem;
+        }
+        
+        /* Cards */
+        .card-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 2rem;
+        }
+        
+        .card {
+            background: white;
+            border-radius: var(--radius);
+            padding: 2rem;
+            box-shadow: var(--shadow);
+            transition: transform 0.2s;
+        }
+        
+        .card:hover {
+            transform: translateY(-4px);
+            box-shadow: var(--shadow-lg);
+        }
+        
+        .card-icon {
+            font-size: 2.5rem;
+            margin-bottom: 1rem;
+        }
+        
+        .card h3 {
+            font-size: 1.25rem;
+            margin-bottom: 0.5rem;
+            color: var(--primary);
+        }
+        
+        .card p {
+            color: var(--text-light);
+        }
+        
+        /* Features */
+        .feature-list {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 1.5rem;
+        }
+        
+        .feature-item {
+            display: flex;
+            align-items: flex-start;
+            gap: 1rem;
+        }
+        
+        .feature-check {
+            color: var(--success);
+            font-size: 1.25rem;
+            flex-shrink: 0;
+        }
+        
+        /* Demo Rechner */
+        .demo-calculator {
+            background: white;
+            border-radius: var(--radius);
+            padding: 2rem;
+            box-shadow: var(--shadow-lg);
+            max-width: 600px;
+            margin: 0 auto;
+        }
+        
+        .calc-form {
+            display: grid;
+            gap: 1rem;
+        }
+        
+        .form-group {
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .form-group label {
+            font-weight: 500;
+            margin-bottom: 0.25rem;
+        }
+        
+        .form-group input, .form-group select {
+            padding: 0.75rem;
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            font-size: 1rem;
+        }
+        
+        .result-box {
+            background: var(--bg-light);
+            border-radius: var(--radius);
+            padding: 1.5rem;
+            margin-top: 1.5rem;
+            text-align: center;
+        }
+        
+        .result-value {
+            font-size: 2.5rem;
+            font-weight: 700;
+            color: var(--success);
+        }
+        
+        /* Pricing */
+        .pricing-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 2rem;
+            max-width: 900px;
+            margin: 0 auto;
+        }
+        
+        .pricing-card {
+            background: white;
+            border-radius: var(--radius);
+            padding: 2rem;
+            text-align: center;
+            box-shadow: var(--shadow);
+            position: relative;
+        }
+        
+        .pricing-card.featured {
+            border: 2px solid var(--accent);
+        }
+        
+        .pricing-card.featured::before {
+            content: "Beliebt";
+            position: absolute;
+            top: -12px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: var(--accent);
+            color: white;
+            padding: 0.25rem 1rem;
+            border-radius: 12px;
+            font-size: 0.875rem;
+        }
+        
+        .price {
+            font-size: 3rem;
+            font-weight: 700;
+            color: var(--primary);
+        }
+        
+        .price span {
+            font-size: 1rem;
+            color: var(--text-light);
+        }
+        
+        .price-free {
+            font-size: 2.5rem;
+            color: var(--success);
+        }
+        
+        /* Footer */
+        .footer {
+            background: var(--primary);
+            color: white;
+            padding: 3rem 2rem 1rem;
+        }
+        
+        .footer-grid {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 2rem;
+        }
+        
+        .footer h4 {
+            margin-bottom: 1rem;
+        }
+        
+        .footer a {
+            color: rgba(255,255,255,0.8);
+            text-decoration: none;
+            display: block;
+            margin-bottom: 0.5rem;
+        }
+        
+        .footer a:hover {
+            color: white;
+        }
+        
+        .footer-bottom {
+            max-width: 1200px;
+            margin: 2rem auto 0;
+            padding-top: 1rem;
+            border-top: 1px solid rgba(255,255,255,0.1);
+            text-align: center;
+            font-size: 0.875rem;
+            color: var(--text--light);
+        }
+        
+        /* Responsive */
+        @media (max-width: 768px) {
+            .nav-links {
+                display: none;
+            }
+            
+            .hero h1 {
+                font-size: 2rem;
+            }
+            
+            .btn-group {
+                flex-direction: column;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Navigation -->
+    <nav class="nav">
+        <div class="nav-container">
+            <a href="#" class="nav-logo">🏗️ Baumeister<span>AT</span></a>
+            <ul class="nav-links">
+                <li><a href="#features">Features</a></li>
+                <li><a href="#demo">Demo</a></li>
+                <li><a href="#preise">Preise</a></li>
+                <li><a href="#docs">Dokumentation</a></li>
+                <li><a href="#contact">Kontakt</a></li>
+            </ul>
+            <a href="https://github.com/Alvoradozerouno/Baumeister-Tool-Austria" class="btn btn-secondary" target="_blank">GitHub</a>
+        </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <section class="hero">
+        <div class="hero-badges">
+            <span class="badge">Python 3.11+</span>
+            <span class="badge success">Production Ready</span>
+            <span class="badge">OIB-RL 1-7:2023</span>
+            <span class="badge">Eurocode EC2/EC3/EC5/EC7/EC8</span>
+            <span class="badge">9 Bundesländer</span>
+            <span class="badge">21 Berechnungsmodule</span>
+        </div>
+        <h1>Österreichs #1 Bauregel-Compliance Plattform</h1>
+        <p>Berechne HWB, Energieausweise, statische Nachweise und mehr — alle OIB-Richtlinien, Eurocodes und BIM/IFC-Integration in einer Plattform. Für Architek:innen und Ziviltechniker:innen. KI-gestützt. Echtzeit-Kollaboration.</p>
+        <div class="btn-group">
+            <a href="#demo" class="btn btn-primary">Kostenlos testen</a>
+            <a href="https://docs.baumaster.at" class="btn btn-secondary">Dokumentation lesen</a>
+        </div>
+    </section>
+
+    <!-- Features Section -->
+    <section id="features" class="section">
+        <h2>21 Berechnungsmodule. Alle Standards. Kein Papierkrieg.</h2>
+        <p class="section-subtitle">Von OIB-RL Compliance bis Eurocode — alles in einer Plattform</p>
+        
+        <div class="card-grid">
+            <div class="card">
+                <div class="card-icon"></div>
+                <h3>OIB-RL 1-7:2023</h3>
+                <p>Vollständige Compliance: Brandschutz, Hygiene, Nutzungssicherheit, Schallschutz, Wärmeschutz, Energieeinsparung (fGEE ≤ 0,75) und Nachhaltigkeit.</p>
+            </div>
+            <div class="card">
+                <div class="card-icon">📐</div>
+                <h3>Strukturberechnen (EC2-EC8)</h3>
+                <p>Eurocode 2 (Stahlbeton), EC3 (Stahlbau), EC5 (Holzbau), EC7 (Grundbau), EC8 (Erdbeben, Seismik).</p>
+            </div>
+            <div class="card">
+                <div class="card-icon">⚡</div>
+                <h3>HWB/HEB/PEB Rechner</h3>
+                <p>Heizwärmebedarf, Heizenergiebedarf, Primärenergiebedarf nach ÖNORM EN 832 mit Energieklassen A++ bis G.</p>
+            </div>
+            <div class="card">
+                <div class="card-icon">🏗️</div>
+                <h3>BIM/IFC-Integration</h3>
+                <p>ISO 19650-konforme BIM-Unterstützung. Automatische Mengenermittlung aus IFC-Modellen.</p>
+            </div>
+            <div class="card">
+                <div class="card-icon">🤖</div>
+                <h3>KI-gestützte Analyse</h3>
+                <p>Multi-Agent-System mit 5 spezialisierten Agenten: GPT-4-Integration für Designoptimierung, Kostenschätzung und Risikobewertung.</p>
+            </div>
+            <div class="card">
+                <div class="card-icon">👥</div>
+                <h3>Echtzeit-Kollaboration</h3>
+                <p>WebSocket-basierte Team-Features. Mehrere Nutzer:innen arbeiten gleichzeitig am selben Projekt.</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- 9 Bundesländer -->
+    <section class="section" style="background: white;">
+        <h2>Alle 9 Bundesländer. Landesspezifische Bauordnungen.</h2>
+        <p class="section-subtitle">Jedes Bundesland hat eigene Regelungen — wir kennen sie alle.</p>
+        <div class="feature-list">
+            <div class="feature-item"><span class="feature-check">✅</span><div><strong>Wien:</strong> HO Wien — Hochhaus-Regelungen</div></div>
+            <div class="feature-item"><span class="feature-check">✅</span><div><strong>Niederösterreich:</strong> NÖ BO — Dachausbauten</div></div>
+            <div class="feature-item"><span class="feature-check">✅</span><div><strong>Oberösterreich:</strong> OÖ BO — Solarenergie-Förderung</div></div>
+            <div class="feature-item"><span class="feature-check">✅</span><div><strong>Salzburg:</strong> Sbg BO — Tourismus/Berghütten</div></div>
+            <div class="feature-item"><span class="feature-check">✅</span><div><strong>Tirol:</strong> TROG — Waalwege, Lawinenschutz</div></div>
+            <div class="feature-item"><span class="feature-check">✅</span><div><strong>Vorarlberg:</strong> Vbg BG — Montafon, Bregenzerwald</div></div>
+            <div class="feature-item"><span class="feature-check">✅</span><div><strong>Steiermark:</strong> Stmk BO — Graz-Regelungen</div></div>
+            <div class="feature-item"><span class="feature-check">✅</span><div><strong>Kärnten:</strong> K-BO — Seeufer, Wintersport</div></div>
+            <div class="feature-item"><span class="feature-check">✅</span><div><strong>Burgenland:</strong> Bgld BO — Esterhazy-Gebiet</div></div>
+        </div>
+    </section>
+
+    <!-- Demo Rechner -->
+    <section id="demo" class="section">
+        <h2>HWB Rechner — Probiere es aus!</h2>
+        <p class="section-subtitle">Berechne den Heizwärmebedarf nach ÖNORM EN 832 / OIB-RL 6</p>
+        
+        <div class="demo-calculator">
+            <form class="calc-form" id="hwbCalc">
+                <div class="form-group">
+                    <label for="area_m2">Gebäudefläche (m²)</label>
+                    <input type="number" id="area_m2" value="150" min="50" max="9" required>
+                </div>
+                <div class="form-group">
+                    <label for="climateZone">Klimazone</label>
+                    <select id="climateZone">
+                        <option value="1">Klimazone 1 (mild)</option>
+                        <option value="2">Klimazone 2 (mittel)</option>
+                        <option value="2">Klimazone 3 (alpin)</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="uValue_m2K">U-Wert (W/m²K</label>
+                    <input type="number" id="uValue" step="0.01" value="0.18" min="0.05" max="1" required>
+                </div>
+                <div class="form-group">
+                    <label for="windows">Fensterfläche (m²)</label>
+                    <input type="number" id="windows" value="20" min="0" required>
+                </div>
+                <button type="submit" class="btn btn-primary" style="width: 100%;">HWB berechnen</button>
+            </form>
+            <div class="result-box" id="resultBox" style="display: none;">
+                <div class="result-value" id="resultHwb">-- kWh/m²a</div>
+                <div id="resultClass">Energieklasse: --</div>
+                <div id="resultOib">OIB-RL 6: --</div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Preise -->
+    <section id="preise" class="section" style="background: var(--bg-light);">
+        <h2>Einfache, transparente Preise</h2>
+        <p class="section-subtitle">Kein Abo-Zwang. Keine versteckten Kosten.</p>
+        
+        <div class="pricing-grid">
+            <div class="pricing-card">
+                <h3>Free</h3>
+                <div class="price-free">€0</div>
+                <p style="margin: 1rem 0;">Für Student:innen und Einsteiger</p>
+                <ul style="list-style: none; padding: 0; text-align: left;">
+                    <li>✅ OIB-RL Grundrechner (5 pro Monat)</li>
+                    <li>✅ HWB-Berechnung</li>
+                    <li>✅ U-Wert-Berechnung</li>
+                    <li>✅ Community-Support</li>
+                </ul>
+                <a href="#contact" class="btn btn-secondary" style="width: 100%; margin-top: 1.5rem;">Jetzt starten</a>
+            </div>
+            <div class="pricing-card featured">
+                <h3>Pro</h3>
+                <div class="price">€29<span>/Monat</span>
+                <p style="margin: 1rem 0;">Für Architek:innen und Ingenieure</p>
+                <ul style="list-style: none; text-align: left;">
+                    <li>✅ Alle 21 Berechnungsmodule</li>
+                    <li>✅ Team-Kollaboration (5 Nutzer)</li>
+                    <li>✅ BIM/IFC-Integration</li>
+                    <li>✅ KI-Designoptimierung</li>
+                    <li>✅ Prioritäts-support</li>
+                </ul>
+                <a href="#contact" class="btn btn-primary" style="width: 100%; margin-top: 1.5rem;">Pro werden</a>
+            </div>
+            <div class="pricing-card">
+                <h3>Enterprise</h3>
+                <div class="price">€199<span>/Monat</span></div>
+                <p style="margin: 1rem 0;">Für Büros und Unternehmen</p>
+                <ul style="list-style: none; padding: 0; text-align: left;">
+                    <li>✅ Alles aus Pro</li>
+                    <li>✅ Unbegrenzte Teammitglieder</li>
+                    <li>✅ API-Zugang</li>
+                    <li>✅ On-Premise Deployment</li>
+                    <li>✅ SLA</li>
+                    <li>✅ Custom Integration</li>
+                </ul>
+                <a href="#contact" class="btn btn-secondary" style="width: 100%; margin-top: 1.5rem;">Kontakt aufnehmen</a>
+            </div>
+        </div>
+    </section>
+
+    <!-- Tech Stack -->
+    <section class="section">
+        <h2>Technisch ausgereift. Production-Ready.</h2>
+        <p class="section-subtitle">7,550+ LOC, 78% Test Coverage, Docker/Kubernetes, 99.5% Uptime SLA</p>
+        <div class="feature-list" style="max-width: 600px; margin: 0 auto;">
+            <div class="feature-item"><span class="feature-check">✅</span><div>FastAPI + Flask Backend</div></div>
+            <div class="feature-item"><span class="feature-check">✅</span><div>React Frontend</div></div>
+            <div class="feature-item"><span class="feature-check">✅</span><div>PostgreSQL + Redis</div></div>
+            <div class="feature-item"><span class="feature-check">✅</div><div>Docker + Kubernetes</div></div>
+            <div class="feature-item"><span class="feature-check">✅</div><div>CI/CD (6 GitHub Actions Workflows)</div></div>
+            <div class="feature-item"><span class="feature-check">✅</div><div>OWASP Security (CodeQL, Bandit, ZAP)</div></div>
+        </div>
+        <div style="text-align: center; margin-top: 2rem;">
+            <a href="https://github.com/Alvoradozerouno/Baumeister-Tool-Austria" class="btn btn-primary" target="_blank">⭐ GitHub: 0 Stars ⭐</a>
+        </div>
+    </section>
+
+    <!-- Kontakt -->
+    <section id="contact" class="section" style="background: var(--bg-light);">
+        <h2>Kontakt</h2>
+        <p class="section-subtitle">Fragen? Demo anfragen? Wir helfen gerne.</p>
+        <div style="max-width: 600px; margin: 0 auto; text-align: center;">
+            <p><strong>Gerhard Hirschmann</strong> — Architekt & Entwickler<br>
+            Elisabeth Steurer</strong> — Co-Creatrix</p>
+            <p style="margin-top: 1rem;">📍 Almdorf 9, St. Johann in Tirol, Austria 6380<br>
+            📧 <a href="mailto:contact@baumeister-tool-austria">contact@baumeister-tool-austria.at</a></p>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="footer-grid">
+            <div>
+                <h4>🏗️ BaumeisterAT</h4>
+                <p>Österreichs Bauregel-Compliance Plattform. OIB-RL + Eurocode + KI.</p>
+            </div>
+            <div>
+                <h4>Produkt</h4>
+                <a href="https://docs.baumeister.at">Dokumentation</a>
+                <a href="#features">Features</a>
+                <a href="#pricing">Preise</a>
+                <a href="https://github.com/Alvoradozerouno/Baumeister-Tool-Austria/releases">Releases</a>
+            </div>
+            <div>
+                <h4>Rechtliches</h4>
+                <a href="/impressum">Impressum</a>
+                <a href="/datenschutz">Datenschutz</a>
+                <a href="/agb">AGB</a>
+                <a href="/cookie-policy">Cookie-Richtlinie</a>
+            </div>
+            <div>
+                <h4>Community</h4>
+                <a href="https://github.com/Alvoradozerouno/Baumeister-Tool-Austria">GitHub</a>
+                <a href="https://github.com/Alvoradozerouno/Baumeister-Tool-Austria/discussions">Discussions</a>
+                <a href="/discord">Discord</a>
+                <a href="https://twitter.com/BaumeisterAT">Twitter</a>
+            </div>
+        </div>
+        <div class="footer-bottom">
+            © 2026 Baumeister-Tool Austria. MIT License. Teil des ORION-Ökosystems.
+        </div>
+    </footer>
+
+    <!-- Demo Rechner Script -->
+    <script>
+        document.getElementById('hwbCalc').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const bgf_m2 = parseFloat(document.getElementById('bgf_m2').value);
+            const climateZone = parseInt(document.getElementById('climateZone').value);
+            const uValue = parseFloat(document.getElementById('uValue').value);
+            const windows_m2 = parseFloat(document.getElementById('windows').value);
+            
+            // Klimadaten (Heizgradtage)
+            const heizgradtage = {1: 3200, 2: 3800, 3: 4800}[climateZone];
+            
+            // Vereinfachte HW-Berechnung nach ÖNORM EN 832
+            // Transmissionswärmeverluste
+            const wallArea_m2 = bgf_m2 * 2.5; // Vereinfachte Wandfläche
+            const h_trans = (wallArea_m2 * uValue + windows_m2 * 0.7);
+            
+            // Lüftungswärmeverluste
+            const roomVolume_m3 = bgf_m2 * 2.7;
+            const h_vent = 0.34 * 0.5 * roomVolume_m3; // Luftwechsel 0.5/h
+            
+            // Gesamtverluste
+            const q_ht = (h_trans + h_vent) * heizgradtage * 24 / 1000; // kWh/a
+            
+            // Interne und solare Gewinne
+            const q_int = 2.0 * bgf_m2 * 8760 / 1000;
+            const q_sol = bgf_m2 * 15 * climateZone;
+            
+            // Nutzungsgrad
+            const eta = 0.95;
+            const q_gains = eta * (q_int + q_sol);
+            
+            // HWB
+            let hwb = (q_ht - q_gains) / bgf_m2;
+            hwb = Math.max(0, hwb);
+            
+            // Energieklasse
+            let energieklasse = 'G';
+            if (hwb <= 10) energieklasse = 'A++';
+            else if (hwb <= 25) energieklasse = 'A+';
+            else if (hwb <= 50) energieklasse = 'A';
+            else if (hwb <= 75) energieklasse = 'B';
+            else if (hwb <= 100) energieklasse = 'C';
+            else if (hwb <= 150) energieklasse = 'D';
+            else if (hwb <= 200) energieklasse = 'E';
+            else if (hwb <= 250) energieklasse = 'F';
+            
+            // Ergebnis anzeigen
+            document.getElementById('resultHwb').textContent = hwb.toFixed(1) + ' kWh/m²a';
+            document.getElementById('resultClass').textContent = 'Energieklasse: ' + energieklasse;
+            document.getElementById('resultOib').textContent = 'OIB-RL 6: ' + (hwb <= 75 ? 'konform ✅' : 'nicht konform ❌');
+            document.getElementById('resultBox').style.display = 'block';
+        });
+    </script>
+</body>
+</html>

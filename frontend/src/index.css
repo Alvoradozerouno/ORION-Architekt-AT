@@ -1,0 +1,94 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  body {
+    @apply bg-neutral-50 text-neutral-900 font-sans antialiased;
+  }
+  h1, h2, h3, h4, h5, h6 {
+    @apply font-semibold tracking-tight text-neutral-900;
+  }
+  h1 {
+    @apply text-3xl lg:text-4xl;
+  }
+  h2 {
+    @apply text-2xl lg:text-3xl;
+  }
+  h3 {
+    @apply text-xl lg:text-2xl;
+  }
+}
+
+@layer components {
+  .btn {
+    @apply inline-flex items-center justify-center gap-2 rounded-md px-4 py-2 text-sm font-medium transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50;
+  }
+  .btn-primary {
+    @apply bg-primary-700 text-white hover:bg-primary-800 shadow-sm;
+  }
+  .btn-secondary {
+    @apply bg-primary-600 text-white hover:bg-primary-700 shadow-sm;
+  }
+  .btn-accent {
+    @apply bg-accent-500 text-white hover:bg-accent-600 shadow-sm;
+  }
+  .btn-outline {
+    @apply border border-neutral-300 bg-white text-neutral-700 hover:bg-neutral-50;
+  }
+  .btn-ghost {
+    @apply text-neutral-700 hover:bg-neutral-100;
+  }
+  .btn-sm {
+    @apply h-8 px-3 text-xs;
+  }
+  .btn-lg {
+    @apply h-12 px-6 text-base;
+  }
+
+  .card {
+    @apply rounded-lg border border-neutral-200 bg-white shadow-sm;
+  }
+  .card-header {
+    @apply flex flex-col space-y-1.5 p-6;
+  }
+  .card-title {
+    @apply text-xl font-semibold leading-none tracking-tight;
+  }
+  .card-description {
+    @apply text-sm text-neutral-500;
+  }
+  .card-content {
+    @apply p-6 pt-0;
+  }
+  .card-footer {
+    @apply flex items-center p-6 pt-0;
+  }
+
+  .input {
+    @apply flex h-10 w-full rounded-md border border-neutral-300 bg-white px-3 py-2 text-sm placeholder:text-neutral-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 disabled:cursor-not-allowed disabled:opacity-50;
+  }
+
+  .label {
+    @apply text-sm font-medium leading-none text-neutral-700;
+  }
+
+  .badge {
+    @apply inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-semibold transition-colors;
+  }
+  .badge-default {
+    @apply bg-primary-700 text-white shadow;
+  }
+  .badge-success {
+    @apply bg-success-500 text-white;
+  }
+  .badge-warning {
+    @apply bg-warning-400 text-warning-900;
+  }
+  .badge-danger {
+    @apply bg-red-600 text-white;
+  }
+  .badge-accent {
+    @apply bg-accent-500 text-white;
+  }
+}

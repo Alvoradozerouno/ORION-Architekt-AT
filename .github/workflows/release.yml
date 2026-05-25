@@ -1,0 +1,68 @@
+name: Create Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+permissions:
+  contents: write
+  packages: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Generate Release Notes
+        id: release_notes
+        uses: softprops/action-gh-release@v1
+        with:
+          name: Release ${{ github.ref_name }}
+          body: |
+            ## Baumeister Tool Austria - ${{ github.ref_name }}
+            
+            ### Änderungen
+            Siehe [CHANGELOG.md](./CHANGELOG.md) für eine vollständige Liste der Änderungen.
+            
+            ### Installation
+            ```bash
+            git clone https://github.com/Alvoradozerouno/Baumeister-Tool-Austria.git
+            cd Baumeister-Tool-Austria
+            pip install -r requirements.txt
+            ```
+            
+            ### Docker
+            ```bash
+            docker pull ghcr.io/alvoradozerouno/baumaster-tool-austria:${{ github.ref_name }}
+            docker run -p 8000:8000 ghcr.io/alvoradozerouno/baumaster-tool-austria:${{ github.ref_name }}
+            ```
+          draft: false
+          prerelease: false
+
+  publish-pypi:
+    needs: release
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install build tools
+        run: |
+          pip install build twine
+
+      - name: Build package
+        run: python -m build
+
+      - name: Publish to PyPI
+        env:
+          TWINE_USERNAME: __token__
+          TWINE_PASSWORD: ${{ secrets.PYPI_API_TOKEN }}
+        run: twine upload dist/*

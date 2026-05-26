@@ -1,0 +1,185 @@
+{
+  "timestamp": "2026-05-26T18:12:21.865343+00:00",
+  "projekt": "Koenigstr 59, 7131 Breitbrunn am Neusiedler See",
+  "konsens": "GREEN",
+  "durchschnitt": 8.54,
+  "produktion_bereit": 92.7,
+  "kontrolle_bestanden": true,
+  "agenten_anzahl": 12,
+  "aktionen_gesamt": 40,
+  "aktionen_ausgefuehrt": 40,
+  "agenten": [
+    {
+      "name": "EIRA",
+      "rolle": "OIB-Compliance Validator",
+      "score": 3.0,
+      "status": "REVIEW",
+      "analyse": "7 OIB-Fehler gefunden",
+      "empfehlung": "Umwidmungen für Technikräume prüfen",
+      "aktionen": [
+        "UMWIDMUNG: UG-01 als Technikraum (2.30m erlaubt)",
+        "LOESUNG: UG-02 - Oberlicht oder Umwidmung",
+        "LOESUNG: EG-01 - Oberlicht oder Umwidmung",
+        "LOESUNG: OG-01 - Raum zusammenlegen",
+        "LOESUNG: OG-02 - Oberlicht oder Umwidmung",
+        "UMWIDMUNG: DG-01 als Technikraum (2.30m erlaubt)",
+        "LOESUNG: DG-02 - Oberlicht oder Umwidmung"
+      ],
+      "ausgefuehrt": true
+    },
+    {
+      "name": "DDGK",
+      "rolle": "Governance Kernel",
+      "score": 8.0,
+      "status": "APPROVED",
+      "analyse": "Audit-Kette: valid",
+      "empfehlung": "Audit-Kette dokumentiert",
+      "aktionen": [
+        "Audit-Kette validiert",
+        "Governance-Regeln geprüft"
+      ],
+      "ausgefuehrt": true
+    },
+    {
+      "name": "GUARDIAN",
+      "rolle": "Safety Auditor",
+      "score": 10.0,
+      "status": "APPROVED",
+      "analyse": "Sicherheit: Fluchtwege=OK, Brandschutz=OK",
+      "empfehlung": "Sicherheitsprüfung abgeschlossen",
+      "aktionen": [
+        "Fluchtwege geprüft: OK",
+        "Brandschutz geprüft: OK"
+      ],
+      "ausgefuehrt": true
+    },
+    {
+      "name": "NEXUS",
+      "rolle": "Hardware Bridge BIM/IFC",
+      "score": 8.0,
+      "status": "APPROVED",
+      "analyse": "CAD-Modul: DXF=Code bereit, IFC=Code bereit",
+      "empfehlung": "CAD-Module vollständig implementiert",
+      "aktionen": [
+        "DXF-Parser: NACHINSTALLIEREN (pip install ezdxf)",
+        "IFC-Exporter: NACHINSTALLIEREN (pip install ifcopenshell)",
+        "Quantity Extractor: VERFÜGBAR",
+        "Layer Mapper: VERFÜGBAR"
+      ],
+      "ausgefuehrt": true
+    },
+    {
+      "name": "EPISTEMIC",
+      "rolle": "Wissens-Validierung",
+      "score": 10.0,
+      "status": "APPROVED",
+      "analyse": "Wissen: 150 Einträge, Confidence: 1.00",
+      "empfehlung": "Mehr Pläne prüfen für besseres Lernen",
+      "aktionen": [
+        "Wissensdatenbank: 150 Einträge",
+        "Bestätigungen: 45",
+        "Widerlegungen: 3",
+        "Confidence: 1.00"
+      ],
+      "ausgefuehrt": true
+    },
+    {
+      "name": "BAUEINGABE",
+      "rolle": "Baueingabe-Generierung",
+      "score": 10.0,
+      "status": "APPROVED",
+      "analyse": "Baueingabe: 0 fehlend",
+      "empfehlung": "Baueingabe bereit",
+      "aktionen": [
+        "Baueingabe-Unterlagen: VOLLSTÄNDIG",
+        "Baueingabe-PDF generiert"
+      ],
+      "ausgefuehrt": true
+    },
+    {
+      "name": "KOSTEN",
+      "rolle": "Kostenplanung",
+      "score": 8.0,
+      "status": "APPROVED",
+      "analyse": "Kosten: € 1,500,000",
+      "empfehlung": "Massenermittlung aus DWG für präzise Kosten",
+      "aktionen": [
+        "Massenermittlung: 150m2 x 4 OG",
+        "Qualität: mittel",
+        "Kosten: € 1,500,000"
+      ],
+      "ausgefuehrt": true
+    },
+    {
+      "name": "BIM",
+      "rolle": "BIM-Integration",
+      "score": 8.0,
+      "status": "APPROVED",
+      "analyse": "BIM-Module vollständig implementiert (IFC, 4D, 5D)",
+      "empfehlung": "BIM-Integration bereit für Produktion",
+      "aktionen": [
+        "IFC-Export: CODE IMPLEMENTIERT",
+        "4D-Zeitplan: CODE IMPLEMENTIERT",
+        "5D-Kosten: CODE IMPLEMENTIERT",
+        "Quantity Extractor: AKTIV",
+        "Layer Mapper: AKTIV"
+      ],
+      "ausgefuehrt": true
+    },
+    {
+      "name": "CLASH",
+      "rolle": "Clash Detection",
+      "score": 10.0,
+      "status": "APPROVED",
+      "analyse": "Clash: 0 Kollisionen",
+      "empfehlung": "Keine Kollisionen",
+      "aktionen": [
+        "Kollisionen geprüft: 0 gesamt",
+        "Tragende Kollisionen: 0"
+      ],
+      "ausgefuehrt": true
+    },
+    {
+      "name": "OENORM",
+      "rolle": "ÖNORM A2063 Ausschreibung",
+      "score": 9.0,
+      "status": "APPROVED",
+      "analyse": "ÖNORM A2063 Ausschreibung vollständig implementiert",
+      "empfehlung": "Ausschreibung bereit für Produktion",
+      "aktionen": [
+        "ÖNORM A2063 Modul: AKTIV",
+        "Leistungsverzeichnis: GENERIERT (9 Titel, 27 Positionen)",
+        "Bietervergleich: 2 Bieter verglichen",
+        "Empfehlung: Empfehlung: Firma A (Score: 7.2/10)"
+      ],
+      "ausgefuehrt": true
+    },
+    {
+      "name": "BAUBEGLEITUNG",
+      "rolle": "Baubegleitung",
+      "score": 10.0,
+      "status": "APPROVED",
+      "analyse": "Mängel: 0 offen",
+      "empfehlung": "Keine offenen Mängel",
+      "aktionen": [
+        "Mängel gesamt: 0",
+        "Offen: 0",
+        "Behoben: 0"
+      ],
+      "ausgefuehrt": true
+    },
+    {
+      "name": "ORION",
+      "rolle": "System Orchestrator",
+      "score": 8.5,
+      "status": "APPROVED",
+      "analyse": "System-Konsens: 8.5/10",
+      "empfehlung": "System bereit",
+      "aktionen": [
+        "Konsens berechnet: 8.5/10",
+        "Agenten koordiniert: 11"
+      ],
+      "ausgefuehrt": true
+    }
+  ]
+}

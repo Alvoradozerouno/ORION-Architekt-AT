@@ -1,0 +1,647 @@
+{
+  "normen_pruefung": {
+    "erfuellt": 62,
+    "gesamt": 62,
+    "details": [
+      {
+        "norm": "OIB-RL 1",
+        "id": "OIB1-01",
+        "name": "Tragwerksplanung",
+        "status": "GRUEN",
+        "gesetzlich": true,
+        "grenzwert": "γ_G=1.35, γ_Q=1.5"
+      },
+      {
+        "norm": "OIB-RL 1",
+        "id": "OIB1-02",
+        "name": "Fundamentbemessung",
+        "status": "GRUEN",
+        "gesetzlich": true,
+        "grenzwert": "s_max < 2cm"
+      },
+      {
+        "norm": "OIB-RL 1",
+        "id": "OIB1-03",
+        "name": "Erdbeben",
+        "status": "GRUEN",
+        "gesetzlich": true,
+        "grenzwert": "a_gR = 0.1g"
+      },
+      {
+        "norm": "OIB-RL 1",
+        "id": "OIB1-04",
+        "name": "Windlast",
+        "status": "GRUEN",
+        "gesetzlich": true,
+        "grenzwert": "q = 0.65 kN/m²"
+      },
+      {
+        "norm": "OIB-RL 1",
+        "id": "OIB1-05",
+        "name": "Schneelast",
+        "status": "GRUEN",
+        "gesetzlich": true,
+        "grenzwert": "s_k = 0.75 kN/m²"
+      },
+      {
+        "norm": "OIB-RL 1",
+        "id": "OIB1-06",
+        "name": "Nutzlast",
+        "status": "GRUEN",
+        "gesetzlich": true,
+        "grenzwert": "q_k = 1.5 kN/m²"
+      },
+      {
+        "norm": "OIB-RL 1",
+        "id": "OIB1-07",
+        "name": "Standsicherheit",
+        "status": "GRUEN",
+        "gesetzlich": true,
+        "grenzwert": "μ ≥ 1.5"
+      },
+      {
+        "norm": "OIB-RL 2",
+        "id": "OIB2-01",
+        "name": "Feuerwiderstand",
+        "status": "GRUEN",
+        "gesetzlich": true,
+        "grenzwert": "30 Minuten"
+      },
+      {
+        "norm": "OIB-RL 2",
+        "id": "OIB2-02",
+        "name": "Fluchtwege",
+        "status": "GRUEN",
+        "gesetzlich": true,
+        "grenzwert": "40m / 1.0m"
+      },
+      {
+        "norm": "OIB-RL 2",
+        "id": "OIB2-03",
+        "name": "Brandabschnitte",
+        "status": "GRUEN",
+        "gesetzlich": true,
+        "grenzwert": "1200m²"
+      },
+      {
+        "norm": "OIB-RL 2",
+        "id": "OIB2-04",
+        "name": "Baustoffklassen",
+        "status": "GRUEN",
+        "gesetzlich": true,
+        "grenzwert": "A2"
+      },
+      {
+        "norm": "OIB-RL 2",
+        "id": "OIB2-05",
+        "name": "Rauchableitung",
+        "status": "GRUEN",
+        "gesetzlich": true,
+        "grenzwert": "≥ 1% der Grundfläche"
+      },
+      {
+        "norm": "OIB-RL 2",
+        "id": "OIB2-06",
+        "name": "Löschwasser",
+        "status": "GRUEN",
+        "gesetzlich": true,
+        "grenzwert": "150m"
+      },
+      {
+        "norm": "OIB-RL 3",
+        "id": "OIB3-01",
+        "name": "Trinkwasserhygiene",
+        "status": "GRUEN",
+        "gesetzlich": true,
+        "grenzwert": "B 5011"
+      },
+      {
+        "norm": "OIB-RL 3",
+        "id": "OIB3-02",
+        "name": "Lüftung",
+        "status": "GRUEN",
+        "gesetzlich": true,
+        "grenzwert": "0.5/h"
+      },
+      {
+        "norm": "OIB-RL 3",
+        "id": "OIB3-03",
+        "name": "Schadstofffreiheit",
+        "status": "GRUEN",
+        "gesetzlich": true,
+        "grenzwert": "0.1ppm"
+      },
+      {
+        "norm": "OIB-RL 3",
+        "id": "OIB3-04",
+        "name": "Tageslicht",
+        "status": "GRUEN",
+        "gesetzlich": true,
+        "grenzwert": "10%"
+      },
+      {
+        "norm": "OIB-RL 3",
+        "id": "OIB3-05",
+        "name": "Radonschutz",
+        "status": "GRUEN",
+        "gesetzlich": true,
+        "grenzwert": "300 Bq/m³"
+      },
+      {
+        "norm": "OIB-RL 4",
+        "id": "OIB4-01",
+        "name": "Absturzsicherung",
+        "status": "GRUEN",
+        "gesetzlich": true,
+        "grenzwert": "1.0m"
+      },
+      {
+        "norm": "OIB-RL 4",
+        "id": "OIB4-02",
+        "name": "Rutschsicherheit",
+        "status": "GRUEN",
+        "gesetzlich": true,
+        "grenzwert": "R9"
+      },
+      {
+        "norm": "OIB-RL 4",
+        "id": "OIB4-03",
+        "name": "Barrierefreiheit",
+        "status": "GRUEN",
+        "gesetzlich": true,
+        "grenzwert": "B 1600"
+      },
+      {
+        "norm": "OIB-RL 4",
+        "id": "OIB4-04",
+        "name": "Glasbruchschutz",
+        "status": "GRUEN",
+        "gesetzlich": true,
+        "grenzwert": "ESG/VSG"
+      },
+      {
+        "norm": "OIB-RL 4",
+        "id": "OIB4-05",
+        "name": "Treppen",
+        "status": "GRUEN",
+        "gesetzlich": true,
+        "grenzwert": "19cm / 26cm"
+      },
+      {
+        "norm": "OIB-RL 5",
+        "id": "OIB5-01",
+        "name": "Luftschall",
+        "status": "GRUEN",
+        "gesetzlich": true,
+        "grenzwert": "55 dB"
+      },
+      {
+        "norm": "OIB-RL 5",
+        "id": "OIB5-02",
+        "name": "Trittschall",
+        "status": "GRUEN",
+        "gesetzlich": true,
+        "grenzwert": "53 dB"
+      },
+      {
+        "norm": "OIB-RL 5",
+        "id": "OIB5-03",
+        "name": "Haustechnik",
+        "status": "GRUEN",
+        "gesetzlich": true,
+        "grenzwert": "35 dB"
+      },
+      {
+        "norm": "OIB-RL 5",
+        "id": "OIB5-04",
+        "name": "Außenlärm",
+        "status": "GRUEN",
+        "gesetzlich": true,
+        "grenzwert": "40 dB"
+      },
+      {
+        "norm": "OIB-RL 6",
+        "id": "OIB6-01",
+        "name": "HWB",
+        "status": "GRUEN",
+        "gesetzlich": true,
+        "grenzwert": "75 kWh/m²a"
+      },
+      {
+        "norm": "OIB-RL 6",
+        "id": "OIB6-02",
+        "name": "fGEE",
+        "status": "GRUEN",
+        "gesetzlich": true,
+        "grenzwert": "0.75"
+      },
+      {
+        "norm": "OIB-RL 6",
+        "id": "OIB6-03",
+        "name": "PEB",
+        "status": "GRUEN",
+        "gesetzlich": true,
+        "grenzwert": "120 kWh/m²a"
+      },
+      {
+        "norm": "OIB-RL 6",
+        "id": "OIB6-04",
+        "name": "U-Wand",
+        "status": "GRUEN",
+        "gesetzlich": true,
+        "grenzwert": "0.28 W/m²K"
+      },
+      {
+        "norm": "OIB-RL 6",
+        "id": "OIB6-05",
+        "name": "U-Fenster",
+        "status": "GRUEN",
+        "gesetzlich": true,
+        "grenzwert": "1.1 W/m²K"
+      },
+      {
+        "norm": "OIB-RL 6",
+        "id": "OIB6-06",
+        "name": "U-Dach",
+        "status": "GRUEN",
+        "gesetzlich": true,
+        "grenzwert": "0.15 W/m²K"
+      },
+      {
+        "norm": "OIB-RL 6",
+        "id": "OIB6-07",
+        "name": "Luftdichtheit",
+        "status": "GRUEN",
+        "gesetzlich": true,
+        "grenzwert": "0.6/h"
+      },
+      {
+        "norm": "OIB-RL 7",
+        "id": "OIB7-01",
+        "name": "Lebenszyklusanalyse",
+        "status": "GRUEN",
+        "gesetzlich": false,
+        "grenzwert": "dokumentiert"
+      },
+      {
+        "norm": "OIB-RL 7",
+        "id": "OIB7-02",
+        "name": "Rückbaufreundlichkeit",
+        "status": "GRUEN",
+        "gesetzlich": false,
+        "grenzwert": "trennbar"
+      },
+      {
+        "norm": "OIB-RL 7",
+        "id": "OIB7-03",
+        "name": "Recyclingfähigkeit",
+        "status": "GRUEN",
+        "gesetzlich": false,
+        "grenzwert": "50%"
+      },
+      {
+        "norm": "OIB-RL 7",
+        "id": "OIB7-04",
+        "name": "Ressourceneffizienz",
+        "status": "GRUEN",
+        "gesetzlich": false,
+        "grenzwert": "80%"
+      },
+      {
+        "norm": "EC0",
+        "id": "EC0-01",
+        "name": "Teilsicherheitsbeiwerte",
+        "status": "GRUEN",
+        "gesetzlich": true,
+        "grenzwert": "EC0"
+      },
+      {
+        "norm": "EC0",
+        "id": "EC0-02",
+        "name": "Kombinationsregeln",
+        "status": "GRUEN",
+        "gesetzlich": true,
+        "grenzwert": "EC0"
+      },
+      {
+        "norm": "EC1",
+        "id": "EC1-01",
+        "name": "Windlast",
+        "status": "GRUEN",
+        "gesetzlich": true,
+        "grenzwert": "0.65 kN/m²"
+      },
+      {
+        "norm": "EC1",
+        "id": "EC1-02",
+        "name": "Schneelast",
+        "status": "GRUEN",
+        "gesetzlich": true,
+        "grenzwert": "0.75 kN/m²"
+      },
+      {
+        "norm": "EC1",
+        "id": "EC1-03",
+        "name": "Nutzlast",
+        "status": "GRUEN",
+        "gesetzlich": true,
+        "grenzwert": "1.5 kN/m²"
+      },
+      {
+        "norm": "EC2",
+        "id": "EC2-01",
+        "name": "Biegebemessung",
+        "status": "GRUEN",
+        "gesetzlich": true,
+        "grenzwert": "1.0"
+      },
+      {
+        "norm": "EC2",
+        "id": "EC2-02",
+        "name": "Schubbemessung",
+        "status": "GRUEN",
+        "gesetzlich": true,
+        "grenzwert": "1.0"
+      },
+      {
+        "norm": "EC2",
+        "id": "EC2-03",
+        "name": "Rissbreite",
+        "status": "GRUEN",
+        "gesetzlich": true,
+        "grenzwert": "0.3mm"
+      },
+      {
+        "norm": "EC3",
+        "id": "EC3-01",
+        "name": "Stahlbauteile",
+        "status": "GRUEN",
+        "gesetzlich": true,
+        "grenzwert": "EC3"
+      },
+      {
+        "norm": "EC5",
+        "id": "EC5-01",
+        "name": "Holzbauteile",
+        "status": "GRUEN",
+        "gesetzlich": true,
+        "grenzwert": "EC5"
+      },
+      {
+        "norm": "EC7",
+        "id": "EC7-01",
+        "name": "Fundament",
+        "status": "GRUEN",
+        "gesetzlich": true,
+        "grenzwert": "EC7"
+      },
+      {
+        "norm": "EC8",
+        "id": "EC8-01",
+        "name": "Erdbeben",
+        "status": "GRUEN",
+        "gesetzlich": true,
+        "grenzwert": "a_gR = 0.1g"
+      },
+      {
+        "norm": "ÖNORM B 5011",
+        "id": "B5011-01",
+        "name": "Wassertemperatur",
+        "status": "GRUEN",
+        "gesetzlich": true,
+        "grenzwert": "25°C"
+      },
+      {
+        "norm": "ÖNORM B 5011",
+        "id": "B5011-02",
+        "name": "Zirkulation",
+        "status": "GRUEN",
+        "gesetzlich": true,
+        "grenzwert": "ja"
+      },
+      {
+        "norm": "ÖNORM B 8115",
+        "id": "B8115-01",
+        "name": "Luftschall",
+        "status": "GRUEN",
+        "gesetzlich": true,
+        "grenzwert": "55 dB"
+      },
+      {
+        "norm": "ÖNORM B 8115",
+        "id": "B8115-02",
+        "name": "Trittschall",
+        "status": "GRUEN",
+        "gesetzlich": true,
+        "grenzwert": "53 dB"
+      },
+      {
+        "norm": "ÖNORM B 1600",
+        "id": "B1600-01",
+        "name": "Türbreite",
+        "status": "GRUEN",
+        "gesetzlich": true,
+        "grenzwert": "90cm"
+      },
+      {
+        "norm": "ÖNORM B 1600",
+        "id": "B1600-02",
+        "name": "Rampe",
+        "status": "GRUEN",
+        "gesetzlich": true,
+        "grenzwert": "6%"
+      },
+      {
+        "norm": "EN ISO 6946",
+        "id": "ISO6946-01",
+        "name": "U-Wert Berechnung",
+        "status": "GRUEN",
+        "gesetzlich": true,
+        "grenzwert": "ISO 6946"
+      },
+      {
+        "norm": "EN 12831",
+        "id": "EN12831-01",
+        "name": "Heizlastberechnung",
+        "status": "GRUEN",
+        "gesetzlich": true,
+        "grenzwert": "EN 12831"
+      },
+      {
+        "norm": "EN 17037",
+        "id": "EN17037-01",
+        "name": "Tageslichtversorgung",
+        "status": "GRUEN",
+        "gesetzlich": true,
+        "grenzwert": "10%"
+      },
+      {
+        "norm": "Bgld BO",
+        "id": "BO-01",
+        "name": "Abstandsflächen",
+        "status": "GRUEN",
+        "gesetzlich": true,
+        "grenzwert": "3.5m"
+      },
+      {
+        "norm": "Bgld BO",
+        "id": "BO-02",
+        "name": "Stellplätze",
+        "status": "GRUEN",
+        "gesetzlich": true,
+        "grenzwert": "4"
+      },
+      {
+        "norm": "Bgld BO",
+        "id": "BO-03",
+        "name": "Grünflächen",
+        "status": "GRUEN",
+        "gesetzlich": true,
+        "grenzwert": "30%"
+      }
+    ],
+    "status": "gruen",
+    "gesetzlich_erfuellt": 58,
+    "gesetzlich_gesamt": 58
+  },
+  "versteckte_fehler": {
+    "gefunden": 0,
+    "gesamt": 18,
+    "details": [
+      {
+        "kategorie": "tragwerk",
+        "id": "VF-TR-01",
+        "name": "Überdimensionierung",
+        "status": "NICHT GEFUNDEN",
+        "beschreibung": "Bauteile überdimensioniert (>20% Reserve)"
+      },
+      {
+        "kategorie": "tragwerk",
+        "id": "VF-TR-02",
+        "name": "Unterdimensionierung",
+        "status": "NICHT GEFUNDEN",
+        "beschreibung": "Bauteile unterdimensioniert (<60% Reserve)"
+      },
+      {
+        "kategorie": "tragwerk",
+        "id": "VF-TR-03",
+        "name": "Fehlende Aussteifung",
+        "status": "NICHT GEFUNDEN",
+        "beschreibung": "Keine Schubwände im Treppenhaus"
+      },
+      {
+        "kategorie": "tragwerk",
+        "id": "VF-TR-04",
+        "name": "Setzungsrisiko",
+        "status": "NICHT GEFUNDEN",
+        "beschreibung": "Ungleiche Setzung > 1cm"
+      },
+      {
+        "kategorie": "brandschutz",
+        "id": "VF-BS-01",
+        "name": "Fehlende RWA",
+        "status": "NICHT GEFUNDEN",
+        "beschreibung": "Keine Rauch-Wärme-Ableitung"
+      },
+      {
+        "kategorie": "brandschutz",
+        "id": "VF-BS-02",
+        "name": "Fluchtweg zu lang",
+        "status": "NICHT GEFUNDEN",
+        "beschreibung": "Fluchtweg > 40m"
+      },
+      {
+        "kategorie": "brandschutz",
+        "id": "VF-BS-03",
+        "name": "Brandwand fehlt",
+        "status": "NICHT GEFUNDEN",
+        "beschreibung": "Keine Brandwand zwischen Einheiten"
+      },
+      {
+        "kategorie": "brandschutz",
+        "id": "VF-BS-04",
+        "name": "Leitungsdurchbrüche",
+        "status": "NICHT GEFUNDEN",
+        "beschreibung": "Ungeschützte Durchbrüche"
+      },
+      {
+        "kategorie": "energie",
+        "id": "VF-EN-01",
+        "name": "Wärmebrücken",
+        "status": "NICHT GEFUNDEN",
+        "beschreibung": "Ungeplante Wärmebrücken"
+      },
+      {
+        "kategorie": "energie",
+        "id": "VF-EN-02",
+        "name": "Luftundichtheit",
+        "status": "NICHT GEFUNDEN",
+        "beschreibung": "n50 > 0.6/h"
+      },
+      {
+        "kategorie": "energie",
+        "id": "VF-EN-03",
+        "name": "Kondensationsrisiko",
+        "status": "NICHT GEFUNDEN",
+        "beschreibung": "Tauwasserbildung möglich"
+      },
+      {
+        "kategorie": "energie",
+        "id": "VF-EN-04",
+        "name": "Sommerlicher Wärmeschutz",
+        "status": "NICHT GEFUNDEN",
+        "beschreibung": "Übertemperaturgradstunden > 1200 Kh/a"
+      },
+      {
+        "kategorie": "schallschutz",
+        "id": "VF-SS-01",
+        "name": " flankierende Übertragung",
+        "status": "NICHT GEFUNDEN",
+        "beschreibung": "Flankenübertragung nicht berücksichtigt"
+      },
+      {
+        "kategorie": "schallschutz",
+        "id": "VF-SS-02",
+        "name": "Haustechnik-Lärm",
+        "status": "NICHT GEFUNDEN",
+        "beschreibung": "Lüftung > 35 dB"
+      },
+      {
+        "kategorie": "barrierefreiheit",
+        "id": "VF-BF-01",
+        "name": "Stufenloser Zugang fehlt",
+        "status": "NICHT GEFUNDEN",
+        "beschreibung": "Kein Aufzug/Rampe"
+      },
+      {
+        "kategorie": "barrierefreiheit",
+        "id": "VF-BF-02",
+        "name": "Tür zu schmal",
+        "status": "NICHT GEFUNDEN",
+        "beschreibung": "Türbreite < 90cm"
+      },
+      {
+        "kategorie": "hygiene",
+        "id": "VF-HY-01",
+        "name": "Legionellenrisiko",
+        "status": "NICHT GEFUNDEN",
+        "beschreibung": "Warmwasser < 60°C"
+      },
+      {
+        "kategorie": "hygiene",
+        "id": "VF-HY-02",
+        "name": "Unzureichende Lüftung",
+        "status": "NICHT GEFUNDEN",
+        "beschreibung": "Luftwechsel < 0.5/h"
+      }
+    ],
+    "status": "gruen"
+  },
+  "epistemisch": {
+    "system_valid": true,
+    "contradictions": 0,
+    "agent_count": 9,
+    "global_knowledge": 62
+  },
+  "dauer_sec": 0.004130125045776367
+}

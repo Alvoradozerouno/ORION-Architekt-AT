@@ -1,0 +1,278 @@
+{
+  "aufgaben_verteilung": {
+    "energie": {
+      "agent": "Energieberater",
+      "aufgaben": [
+        {
+          "id": "EN-01",
+          "name": "Dämmung-Upgrade",
+          "beschreibung": "WDWS 20cm statt 16cm",
+          "hwb_einsparung": 15,
+          "aufwand": "gering",
+          "kosten": 8000,
+          "impact": 9.5
+        },
+        {
+          "id": "EN-02",
+          "name": "Fenster-Upgrade",
+          "beschreibung": "3-fach Verglasung",
+          "hwb_einsparung": 10,
+          "aufwand": "gering",
+          "kosten": 12000,
+          "impact": 9.0
+        },
+        {
+          "id": "EN-03",
+          "name": "PV-Anlage",
+          "beschreibung": "Photovoltaik auf Dach",
+          "fgee_einsparung": 15,
+          "aufwand": "mittel",
+          "kosten": 15000,
+          "impact": 9.0
+        },
+        {
+          "id": "EN-04",
+          "name": "Lueftungsanlage mit WR",
+          "beschreibung": "WR >= 85%",
+          "hwb_einsparung": 25,
+          "aufwand": "mittel",
+          "kosten": 18000,
+          "impact": 10.0
+        }
+      ],
+      "anzahl": 4,
+      "aufwand_gesamt": 6
+    },
+    "brandschutz": {
+      "agent": "Brandschuetzer",
+      "aufgaben": [
+        {
+          "id": "BS-01",
+          "name": "RWA-Anlage",
+          "beschreibung": "Rauch-Waerme-Ableitung",
+          "aufwand": "mittel",
+          "kosten": 10000,
+          "impact": 9.0
+        },
+        {
+          "id": "BS-03",
+          "name": "Elektro-Leitungsschott",
+          "beschreibung": "Brandschutzschott",
+          "aufwand": "gering",
+          "kosten": 3000,
+          "impact": 8.5
+        }
+      ],
+      "anzahl": 2,
+      "aufwand_gesamt": 3
+    },
+    "schallschutz": {
+      "agent": "Schallschuetzer",
+      "aufgaben": [
+        {
+          "id": "SS-01",
+          "name": "Trittschalldaemmung",
+          "beschreibung": "Schwimmender Estrich",
+          "aufwand": "gering",
+          "kosten": 5000,
+          "impact": 9.0
+        }
+      ],
+      "anzahl": 1,
+      "aufwand_gesamt": 1
+    },
+    "barrierefreiheit": {
+      "agent": "Barrierefreiheitsexperte",
+      "aufgaben": [
+        {
+          "id": "BF-02",
+          "name": "Stufenloser Eingang",
+          "beschreibung": "Rampe max 6%",
+          "aufwand": "gering",
+          "kosten": 4000,
+          "impact": 9.0
+        }
+      ],
+      "anzahl": 1,
+      "aufwand_gesamt": 1
+    },
+    "kosten": {
+      "agent": "Kostenplaner",
+      "aufgaben": [
+        {
+          "id": "KO-01",
+          "name": "Standardisierung",
+          "beschreibung": "Einheitliche Raummodule",
+          "kosten_einsparung": 10,
+          "aufwand": "gering",
+          "impact": 9.5
+        },
+        {
+          "id": "KO-03",
+          "name": "Material-Optimierung",
+          "beschreibung": "BIM Mengenermittlung",
+          "kosten_einsparung": 4,
+          "aufwand": "gering",
+          "impact": 9.5
+        }
+      ],
+      "anzahl": 2,
+      "aufwand_gesamt": 2
+    },
+    "tragwerk": {
+      "agent": "Statiker",
+      "aufgaben": [
+        {
+          "id": "TR-01",
+          "name": "Fundament-Optimierung",
+          "beschreibung": "Plattengruendung statt Streifenfundament",
+          "einsparung": "5-10%",
+          "aufwand": "mittel",
+          "impact": 9.0
+        }
+      ],
+      "anzahl": 1,
+      "aufwand_gesamt": 2
+    },
+    "nachhaltigkeit": {
+      "agent": "Nachhaltigkeitsgutachter",
+      "aufgaben": [
+        {
+          "id": "NH-01",
+          "name": "Recycling-Beton",
+          "beschreibung": "Recycling-Beton verwenden",
+          "einsparung": "5% Materialkosten",
+          "aufwand": "gering",
+          "impact": 8.5
+        }
+      ],
+      "anzahl": 1,
+      "aufwand_gesamt": 1
+    }
+  },
+  "agenten_ergebnisse": {
+    "energie": [
+      {
+        "id": "EN-01",
+        "name": "Dämmung-Upgrade",
+        "status": "GRUEN",
+        "confidence": 0.95,
+        "aufwand": "gering",
+        "kosten": 8000
+      },
+      {
+        "id": "EN-02",
+        "name": "Fenster-Upgrade",
+        "status": "GRUEN",
+        "confidence": 0.9,
+        "aufwand": "gering",
+        "kosten": 12000
+      },
+      {
+        "id": "EN-03",
+        "name": "PV-Anlage",
+        "status": "GRUEN",
+        "confidence": 0.9,
+        "aufwand": "mittel",
+        "kosten": 15000
+      },
+      {
+        "id": "EN-04",
+        "name": "Lueftungsanlage mit WR",
+        "status": "GRUEN",
+        "confidence": 1.0,
+        "aufwand": "mittel",
+        "kosten": 18000
+      }
+    ],
+    "brandschutz": [
+      {
+        "id": "BS-01",
+        "name": "RWA-Anlage",
+        "status": "GRUEN",
+        "confidence": 0.9,
+        "aufwand": "mittel",
+        "kosten": 10000
+      },
+      {
+        "id": "BS-03",
+        "name": "Elektro-Leitungsschott",
+        "status": "GRUEN",
+        "confidence": 0.85,
+        "aufwand": "gering",
+        "kosten": 3000
+      }
+    ],
+    "schallschutz": [
+      {
+        "id": "SS-01",
+        "name": "Trittschalldaemmung",
+        "status": "GRUEN",
+        "confidence": 0.9,
+        "aufwand": "gering",
+        "kosten": 5000
+      }
+    ],
+    "barrierefreiheit": [
+      {
+        "id": "BF-02",
+        "name": "Stufenloser Eingang",
+        "status": "GRUEN",
+        "confidence": 0.9,
+        "aufwand": "gering",
+        "kosten": 4000
+      }
+    ],
+    "kosten": [
+      {
+        "id": "KO-01",
+        "name": "Standardisierung",
+        "status": "GRUEN",
+        "confidence": 0.95,
+        "aufwand": "gering",
+        "kosten": 0
+      },
+      {
+        "id": "KO-03",
+        "name": "Material-Optimierung",
+        "status": "GRUEN",
+        "confidence": 0.95,
+        "aufwand": "gering",
+        "kosten": 0
+      }
+    ],
+    "tragwerk": [
+      {
+        "id": "TR-01",
+        "name": "Fundament-Optimierung",
+        "status": "GRUEN",
+        "confidence": 0.9,
+        "aufwand": "mittel",
+        "kosten": 0
+      }
+    ],
+    "nachhaltigkeit": [
+      {
+        "id": "NH-01",
+        "name": "Recycling-Beton",
+        "status": "GRUEN",
+        "confidence": 0.85,
+        "aufwand": "gering",
+        "kosten": 0
+      }
+    ]
+  },
+  "konsens": {
+    "konsens": 0.9125,
+    "anzahl_aufgaben": 12,
+    "status": "GRUEN"
+  },
+  "epistemisch": {
+    "system_valid": true,
+    "contradictions": 0,
+    "agent_count": 9,
+    "global_knowledge": 12,
+    "konsens": 0.9125
+  },
+  "dauer_sec": 0.003301382064819336
+}

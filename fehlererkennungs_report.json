@@ -1,0 +1,370 @@
+{
+  "UG": {
+    "geschoss": "UG",
+    "bemassungsfehler": 3,
+    "planfehler": 4,
+    "planungsfehler": 2,
+    "abweichungen": 3,
+    "gesamt": 12,
+    "fehler": [
+      {
+        "klasse": "bemaßung",
+        "id": "BEM_FEHLEND_FENSTER_BREITE",
+        "typ": "fehlend",
+        "beschreibung": "Bemaßung 'fenster_breite' fehlt im Plan",
+        "schwere": "HOCH",
+        "confidence": 0.95
+      },
+      {
+        "klasse": "bemaßung",
+        "id": "BEM_FEHLEND_TUER_BREITE",
+        "typ": "fehlend",
+        "beschreibung": "Bemaßung 'tuer_breite' fehlt im Plan",
+        "schwere": "HOCH",
+        "confidence": 0.95
+      },
+      {
+        "klasse": "bemaßung",
+        "id": "BEM_WIDERSPRUCH_AUSSENWAND_LAENGE",
+        "typ": "widerspruechlich",
+        "beschreibung": "Widerspruechliche Bemaßung fuer 'aussenwand_laenge': 10000mm vs 10050mm",
+        "schwere": "KRITISCH",
+        "confidence": 0.98
+      },
+      {
+        "klasse": "plan",
+        "id": "PLAN_RAUM_KELLER_HOEHE",
+        "typ": "raum_geometrie",
+        "beschreibung": "Raum 'keller' zu niedrig: 2.4m < 2.50m",
+        "schwere": "HOCH",
+        "confidence": 0.95
+      },
+      {
+        "klasse": "plan",
+        "id": "PLAN_RAUM_KELLER_TAGESLICHT",
+        "typ": "raum_geometrie",
+        "beschreibung": "Raum 'keller' ungenuegend Tageslicht: 5% < 10%",
+        "schwere": "MITTEL",
+        "confidence": 0.93
+      },
+      {
+        "klasse": "plan",
+        "id": "PLAN_RAUM_HEIZUNGSRAUM_FLAECHE",
+        "typ": "raum_geometrie",
+        "beschreibung": "Raum 'heizungsraum' zu klein: 8.0m2 < 10m2 (Mindestaufenthaltsraum)",
+        "schwere": "HOCH",
+        "confidence": 0.96
+      },
+      {
+        "klasse": "plan",
+        "id": "PLAN_RAUM_HEIZUNGSRAUM_HOEHE",
+        "typ": "raum_geometrie",
+        "beschreibung": "Raum 'heizungsraum' zu niedrig: 2.2m < 2.50m",
+        "schwere": "HOCH",
+        "confidence": 0.95
+      },
+      {
+        "klasse": "planung",
+        "id": "PLANUNG_VOLL_MATERIALANGABEN",
+        "typ": "vollstaendigkeit",
+        "beschreibung": "Materialangaben fehlt im Plan",
+        "schwere": "HOCH",
+        "confidence": 0.95
+      },
+      {
+        "klasse": "planung",
+        "id": "PLANUNG_KONSISTENZ_FLAECHE",
+        "typ": "konsistenz",
+        "beschreibung": "Flaeche Grundriss (80.0m2) != Schnitt (85.0m2)",
+        "schwere": "HOCH",
+        "confidence": 0.96
+      },
+      {
+        "klasse": "last",
+        "id": "ABW_LAST_SCHNEE",
+        "typ": "last",
+        "beschreibung": "Schneelast falsch: 0.8 kN/m2 vs 1.12 kN/m2 (burgenland)",
+        "schwere": "KRITISCH",
+        "confidence": 0.97
+      },
+      {
+        "klasse": "energetik",
+        "id": "ABW_ENERGETIK_U_WAND",
+        "typ": "energetik",
+        "beschreibung": "U-Wand zu hoch: 0.25 W/m2K > 0.22 W/m2K",
+        "schwere": "HOCH",
+        "confidence": 0.95
+      },
+      {
+        "klasse": "energetik",
+        "id": "ABW_ENERGETIK_U_DACH",
+        "typ": "energetik",
+        "beschreibung": "U-Dach zu hoch: 0.18 W/m2K > 0.15 W/m2K",
+        "schwere": "HOCH",
+        "confidence": 0.95
+      }
+    ]
+  },
+  "EG": {
+    "geschoss": "EG",
+    "bemassungsfehler": 0,
+    "planfehler": 6,
+    "planungsfehler": 1,
+    "abweichungen": 1,
+    "gesamt": 8,
+    "fehler": [
+      {
+        "klasse": "plan",
+        "id": "PLAN_RAUM_FLUR_TAGESLICHT",
+        "typ": "raum_geometrie",
+        "beschreibung": "Raum 'flur' ungenuegend Tageslicht: 5% < 10%",
+        "schwere": "MITTEL",
+        "confidence": 0.93
+      },
+      {
+        "klasse": "plan",
+        "id": "PLAN_FLUCHTWEG_HAUPTFLUCHTWEG_BREITE",
+        "typ": "normen_verstoss",
+        "beschreibung": "Fluchtweg zu schmal: 1.0m < 1.20m",
+        "schwere": "KRITISCH",
+        "confidence": 0.98
+      },
+      {
+        "klasse": "plan",
+        "id": "PLAN_FLUCHTWEG_NEBENFLUCHTWEG_LAENGE",
+        "typ": "normen_verstoss",
+        "beschreibung": "Fluchtweg zu lang: 30m > 25m",
+        "schwere": "KRITISCH",
+        "confidence": 0.97
+      },
+      {
+        "klasse": "plan",
+        "id": "PLAN_TREPPE_HAUPTTREPPE_STUFENHOEHE",
+        "typ": "normen_verstoss",
+        "beschreibung": "Treppenstufe zu hoch: 20cm > 19cm",
+        "schwere": "HOCH",
+        "confidence": 0.96
+      },
+      {
+        "klasse": "plan",
+        "id": "PLAN_TREPPE_HAUPTTREPPE_STUFENTIEFE",
+        "typ": "normen_verstoss",
+        "beschreibung": "Treppenstufe zu schmal: 25cm < 26cm",
+        "schwere": "HOCH",
+        "confidence": 0.95
+      },
+      {
+        "klasse": "plan",
+        "id": "PLAN_KOLLISION_ROHR_BRANDWAND",
+        "typ": "kollision",
+        "beschreibung": "Rohr durch Brandwand - Brandschutzschott erforderlich",
+        "schwere": "KRITISCH",
+        "confidence": 0.94
+      },
+      {
+        "klasse": "planung",
+        "id": "PLANUNG_VOLL_MATERIALANGABEN",
+        "typ": "vollstaendigkeit",
+        "beschreibung": "Materialangaben fehlt im Plan",
+        "schwere": "HOCH",
+        "confidence": 0.95
+      },
+      {
+        "klasse": "bundesland",
+        "id": "ABW_BL_BURGENLAND_ABSTAND",
+        "typ": "bundesland",
+        "beschreibung": "Abstandsflaeche unterschritten: 3.0m < 3.5m",
+        "schwere": "HOCH",
+        "confidence": 0.96
+      }
+    ]
+  },
+  "OG": {
+    "geschoss": "OG",
+    "bemassungsfehler": 0,
+    "planfehler": 3,
+    "planungsfehler": 2,
+    "abweichungen": 1,
+    "gesamt": 6,
+    "fehler": [
+      {
+        "klasse": "plan",
+        "id": "PLAN_RAUM_KINDERZIMMER_FLAECHE",
+        "typ": "raum_geometrie",
+        "beschreibung": "Raum 'kinderzimmer' zu klein: 8.0m2 < 10m2 (Mindestaufenthaltsraum)",
+        "schwere": "HOCH",
+        "confidence": 0.96
+      },
+      {
+        "klasse": "plan",
+        "id": "PLAN_RAUM_BAD_FLAECHE",
+        "typ": "raum_geometrie",
+        "beschreibung": "Raum 'bad' zu klein: 6.5m2 < 10m2 (Mindestaufenthaltsraum)",
+        "schwere": "HOCH",
+        "confidence": 0.96
+      },
+      {
+        "klasse": "plan",
+        "id": "PLAN_RAUM_BAD_TAGESLICHT",
+        "typ": "raum_geometrie",
+        "beschreibung": "Raum 'bad' ungenuegend Tageslicht: 5% < 10%",
+        "schwere": "MITTEL",
+        "confidence": 0.93
+      },
+      {
+        "klasse": "planung",
+        "id": "PLANUNG_VOLL_SCHNITTE",
+        "typ": "vollstaendigkeit",
+        "beschreibung": "Schnitte fehlt im Plan",
+        "schwere": "HOCH",
+        "confidence": 0.95
+      },
+      {
+        "klasse": "planung",
+        "id": "PLANUNG_VOLL_MATERIALANGABEN",
+        "typ": "vollstaendigkeit",
+        "beschreibung": "Materialangaben fehlt im Plan",
+        "schwere": "HOCH",
+        "confidence": 0.95
+      },
+      {
+        "klasse": "koordinaten",
+        "id": "ABW_KOORDINATEN_RECHTSWERT",
+        "typ": "koordinaten",
+        "beschreibung": "Rechtswert unplausibel: 800000 (Oesterreich: 300000-700000)",
+        "schwere": "HOCH",
+        "confidence": 0.98
+      }
+    ]
+  },
+  "DG": {
+    "geschoss": "DG",
+    "bemassungsfehler": 4,
+    "planfehler": 5,
+    "planungsfehler": 3,
+    "abweichungen": 3,
+    "gesamt": 15,
+    "fehler": [
+      {
+        "klasse": "bemaßung",
+        "id": "BEM_FEHLEND_RAUM_HOEHE",
+        "typ": "fehlend",
+        "beschreibung": "Bemaßung 'raum_hoehe' fehlt im Plan",
+        "schwere": "HOCH",
+        "confidence": 0.95
+      },
+      {
+        "klasse": "bemaßung",
+        "id": "BEM_FEHLEND_FENSTER_BREITE",
+        "typ": "fehlend",
+        "beschreibung": "Bemaßung 'fenster_breite' fehlt im Plan",
+        "schwere": "HOCH",
+        "confidence": 0.95
+      },
+      {
+        "klasse": "bemaßung",
+        "id": "BEM_FEHLEND_TUER_BREITE",
+        "typ": "fehlend",
+        "beschreibung": "Bemaßung 'tuer_breite' fehlt im Plan",
+        "schwere": "HOCH",
+        "confidence": 0.95
+      },
+      {
+        "klasse": "bemaßung",
+        "id": "BEM_MASSSTAB_DACH_NEIGUNG",
+        "typ": "massstab",
+        "beschreibung": "Massstab-Fehler: gezeichnet=70mm x 50 = 3500mm, bemasst=35mm",
+        "schwere": "HOCH",
+        "confidence": 0.94
+      },
+      {
+        "klasse": "plan",
+        "id": "PLAN_RAUM_GALERIE_HOEHE",
+        "typ": "raum_geometrie",
+        "beschreibung": "Raum 'galerie' zu niedrig: 2.3m < 2.50m",
+        "schwere": "HOCH",
+        "confidence": 0.95
+      },
+      {
+        "klasse": "plan",
+        "id": "PLAN_RAUM_GALERIE_TAGESLICHT",
+        "typ": "raum_geometrie",
+        "beschreibung": "Raum 'galerie' ungenuegend Tageslicht: 8% < 10%",
+        "schwere": "MITTEL",
+        "confidence": 0.93
+      },
+      {
+        "klasse": "plan",
+        "id": "PLAN_RAUM_ABSTELL_FLAECHE",
+        "typ": "raum_geometrie",
+        "beschreibung": "Raum 'abstell' zu klein: 5.0m2 < 10m2 (Mindestaufenthaltsraum)",
+        "schwere": "HOCH",
+        "confidence": 0.96
+      },
+      {
+        "klasse": "plan",
+        "id": "PLAN_RAUM_ABSTELL_HOEHE",
+        "typ": "raum_geometrie",
+        "beschreibung": "Raum 'abstell' zu niedrig: 2.0m < 2.50m",
+        "schwere": "HOCH",
+        "confidence": 0.95
+      },
+      {
+        "klasse": "plan",
+        "id": "PLAN_FLUCHTWEG_DACHFLUCHTWEG_BREITE",
+        "typ": "normen_verstoss",
+        "beschreibung": "Fluchtweg zu schmal: 0.9m < 1.20m",
+        "schwere": "KRITISCH",
+        "confidence": 0.98
+      },
+      {
+        "klasse": "planung",
+        "id": "PLANUNG_VOLL_ANSICHTEN",
+        "typ": "vollstaendigkeit",
+        "beschreibung": "Ansichten fehlt im Plan",
+        "schwere": "HOCH",
+        "confidence": 0.95
+      },
+      {
+        "klasse": "planung",
+        "id": "PLANUNG_VOLL_MATERIALANGABEN",
+        "typ": "vollstaendigkeit",
+        "beschreibung": "Materialangaben fehlt im Plan",
+        "schwere": "HOCH",
+        "confidence": 0.95
+      },
+      {
+        "klasse": "planung",
+        "id": "PLANUNG_AUSFUEHRUNG_HOLZ",
+        "typ": "ausfuehrung",
+        "beschreibung": "Material 'holz' ohne Spezifikation",
+        "schwere": "MITTEL",
+        "confidence": 0.9
+      },
+      {
+        "klasse": "oib",
+        "id": "ABW_OIB_HWB",
+        "typ": "oib",
+        "beschreibung": "HWB ueberschritten: 80.0 kWh/m2a > 75 kWh/m2a",
+        "schwere": "HOCH",
+        "confidence": 0.97
+      },
+      {
+        "klasse": "oib",
+        "id": "ABW_OIB_FGEE",
+        "typ": "oib",
+        "beschreibung": "fGEE ueberschritten: 0.8 > 0.75",
+        "schwere": "HOCH",
+        "confidence": 0.95
+      },
+      {
+        "klasse": "last",
+        "id": "ABW_LAST_WIND",
+        "typ": "last",
+        "beschreibung": "Windlast falsch: 0.85 kN/m2 vs 0.65 kN/m2",
+        "schwere": "HOCH",
+        "confidence": 0.94
+      }
+    ]
+  }
+}

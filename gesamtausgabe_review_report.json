@@ -1,0 +1,315 @@
+{
+  "system_kern": {
+    "bundeslaender": 9,
+    "oib_richtlinien": 6,
+    "bautypen": 18,
+    "regionalfaktoren": 9,
+    "foerderungen_bund": 4
+  },
+  "compliance": {
+    "richtlinien": {
+      "OIB-RL 1": {
+        "erfuellt": 7,
+        "gesamt": 7,
+        "rate": 1.0
+      },
+      "OIB-RL 2": {
+        "erfuellt": 6,
+        "gesamt": 6,
+        "rate": 1.0
+      },
+      "OIB-RL 3": {
+        "erfuellt": 5,
+        "gesamt": 5,
+        "rate": 1.0
+      },
+      "OIB-RL 4": {
+        "erfuellt": 5,
+        "gesamt": 5,
+        "rate": 1.0
+      },
+      "OIB-RL 5": {
+        "erfuellt": 4,
+        "gesamt": 4,
+        "rate": 1.0
+      },
+      "OIB-RL 6": {
+        "erfuellt": 7,
+        "gesamt": 7,
+        "rate": 1.0
+      },
+      "OIB-RL 7": {
+        "erfuellt": 4,
+        "gesamt": 4,
+        "rate": 1.0
+      }
+    },
+    "gesamt_erfuellt": 38,
+    "gesamt_pruefungen": 38
+  },
+  "fehlererkennung": {
+    "fehler_typen": [
+      {
+        "id": "FI-01",
+        "name": "Unterdimensionierte Fundamentplatte",
+        "kategorie": "Tragwerk",
+        "schwere": "KRITISCH"
+      },
+      {
+        "id": "FI-02",
+        "name": "Fehlende Brandwand",
+        "kategorie": "Brandschutz",
+        "schwere": "KRITISCH"
+      },
+      {
+        "id": "FI-03",
+        "name": "Waermebruecke Balkonanschluss",
+        "kategorie": "Energie",
+        "schwere": "HOCH"
+      },
+      {
+        "id": "FI-04",
+        "name": "Falsche Schneelastzone",
+        "kategorie": "Tragwerk",
+        "schwere": "KRITISCH"
+      },
+      {
+        "id": "FI-05",
+        "name": "Unzulaessige Baustoffe",
+        "kategorie": "Brandschutz",
+        "schwere": "HOCH"
+      },
+      {
+        "id": "FI-06",
+        "name": "Fehlende Absturzsicherung",
+        "kategorie": "Sicherheit",
+        "schwere": "KRITISCH"
+      },
+      {
+        "id": "FI-07",
+        "name": "Ungenuegende Daemmung",
+        "kategorie": "Energie",
+        "schwere": "HOCH"
+      },
+      {
+        "id": "FI-08",
+        "name": "Falsche Windlastzone",
+        "kategorie": "Tragwerk",
+        "schwere": "MITTEL"
+      },
+      {
+        "id": "FI-09",
+        "name": "Fehlende Barrierefreiheit",
+        "kategorie": "Nutzung",
+        "schwere": "MITTEL"
+      },
+      {
+        "id": "FI-10",
+        "name": "Ungenuegender Schallschutz",
+        "kategorie": "Schallschutz",
+        "schwere": "HOCH"
+      }
+    ],
+    "erkannte_fehler": 10,
+    "injizierte_fehler": 10,
+    "erkennungs_rate": 1.0
+  },
+  "verbesserungen": {
+    "vorschlaege": [
+      {
+        "id": "EN-01",
+        "name": "Daemmung-Upgrade",
+        "kategorie": "Energie",
+        "prioritaet": "hoch",
+        "confidence": 1.0,
+        "einsparung": "20% HWB"
+      },
+      {
+        "id": "KO-01",
+        "name": "Standardisierung",
+        "kategorie": "Kosten",
+        "prioritaet": "hoch",
+        "confidence": 0.98,
+        "einsparung": "8-12%"
+      },
+      {
+        "id": "EN-03",
+        "name": "PV-Anlage",
+        "kategorie": "Energie",
+        "prioritaet": "hoch",
+        "confidence": 0.98,
+        "einsparung": "15% fGEE"
+      },
+      {
+        "id": "KO-03",
+        "name": "Material-Optimierung",
+        "kategorie": "Kosten",
+        "prioritaet": "hoch",
+        "confidence": 0.97,
+        "einsparung": "3-5%"
+      },
+      {
+        "id": "EN-04",
+        "name": "Lueftungsanlage mit WR",
+        "kategorie": "Energie",
+        "prioritaet": "hoch",
+        "confidence": 0.97,
+        "einsparung": "25% HWB"
+      },
+      {
+        "id": "BF-02",
+        "name": "Stufenloser Eingang",
+        "kategorie": "Barrierefreiheit",
+        "prioritaet": "hoch",
+        "confidence": 0.95,
+        "einsparung": "0%"
+      },
+      {
+        "id": "BS-03",
+        "name": "Elektro-Leitungsschott",
+        "kategorie": "Brandschutz",
+        "prioritaet": "hoch",
+        "confidence": 0.95,
+        "einsparung": "0%"
+      },
+      {
+        "id": "SS-01",
+        "name": "Trittschalldaemmung",
+        "kategorie": "Schallschutz",
+        "prioritaet": "hoch",
+        "confidence": 0.95,
+        "einsparung": "0%"
+      },
+      {
+        "id": "BA-01",
+        "name": "Phasenplanung",
+        "kategorie": "Bauablauf",
+        "prioritaet": "hoch",
+        "confidence": 0.93,
+        "einsparung": "15% Bauzeit"
+      },
+      {
+        "id": "TR-03",
+        "name": "Erdbeben-Verstaerkung",
+        "kategorie": "Tragwerk",
+        "prioritaet": "hoch",
+        "confidence": 0.9,
+        "einsparung": "0%"
+      },
+      {
+        "id": "BS-01",
+        "name": "RWA-Anlage",
+        "kategorie": "Brandschutz",
+        "prioritaet": "hoch",
+        "confidence": 0.9,
+        "einsparung": "0%"
+      },
+      {
+        "id": "TR-01",
+        "name": "Fundament-Optimierung",
+        "kategorie": "Tragwerk",
+        "prioritaet": "hoch",
+        "confidence": 0.89,
+        "einsparung": "5-10%"
+      },
+      {
+        "id": "EN-02",
+        "name": "Fenster-Upgrade",
+        "kategorie": "Energie",
+        "prioritaet": "mittel",
+        "confidence": 0.84,
+        "einsparung": "10% HWB"
+      },
+      {
+        "id": "NH-01",
+        "name": "Recycling-Beton",
+        "kategorie": "Nachhaltigkeit",
+        "prioritaet": "mittel",
+        "confidence": 0.83,
+        "einsparung": "5% Materialkosten"
+      },
+      {
+        "id": "TR-02",
+        "name": "Stahlbeton-Verstaerkung",
+        "kategorie": "Tragwerk",
+        "prioritaet": "mittel",
+        "confidence": 0.83,
+        "einsparung": "2-3%"
+      }
+    ],
+    "top_empfehlungen": 12
+  },
+  "swarm": {
+    "iterationen": 3,
+    "partikel": 15,
+    "beste_loesung": "UV-EN-01",
+    "fitness_werte": [
+      9.37,
+      9.17,
+      8.94
+    ]
+  },
+  "des_features": {
+    "features": [
+      {
+        "name": "Wissensgraph",
+        "status": "GRUEN",
+        "details": "Abhaengigkeiten, Confidence-Propagation, Zyklenerkennung"
+      },
+      {
+        "name": "Automatische Inferenz",
+        "status": "GRUEN",
+        "details": "OIB-Compliance-Regeln, iterative Anwendung"
+      },
+      {
+        "name": "Swarm-Konsens",
+        "status": "GRUEN",
+        "details": "Gewichteter Konsens, Agenten-Expertise"
+      },
+      {
+        "name": "Konfliktloesung",
+        "status": "GRUEN",
+        "details": "Quellen-Gewichtung, Evidenz-Staerke"
+      },
+      {
+        "name": "Wissensdegradation",
+        "status": "GRUEN",
+        "details": "Halbwertszeit 30 Tage, exponentieller Zerfall"
+      },
+      {
+        "name": "Zyklenerkennung",
+        "status": "GRUEN",
+        "details": "DFS-basiert, Endlosschleifen-Vermeidung"
+      }
+    ],
+    "alle_gruen": true
+  },
+  "epistemisch": {
+    "system_valide": true,
+    "widersprueche": 0,
+    "agenten": 5,
+    "globales_wissen": 9,
+    "konsens_state": "unknown",
+    "konsens_strength": 1.0
+  },
+  "bundeslaender": {
+    "bundeslaender": 9,
+    "oib_richtlinien": 6,
+    "abweichungen": 19,
+    "foerderungen": 24,
+    "schneelastzonen": 5,
+    "windlastzonen": 3
+  },
+  "kosten": {
+    "bautypen": 18,
+    "regionalfaktoren": 9,
+    "beispiel_kosten": {}
+  },
+  "gesamt": {
+    "compliance_rate": 1.0,
+    "fehlererkennungs_rate": 1.0,
+    "system_valide": true,
+    "gesamt_bewertung": "SEHR GUT"
+  },
+  "dauer_sec": 0.0015323162078857422
+}

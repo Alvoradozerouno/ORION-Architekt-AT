@@ -1,0 +1,198 @@
+{
+  "anzahl_fehler": 10,
+  "agenten_erkennung": {
+    "erkannt": 10,
+    "gesamt": 10,
+    "details": [
+      {
+        "fehler_id": "FS-01",
+        "name": "Stahlbeton-Decke zu duenn",
+        "erkannt": true,
+        "confidence": 0.95,
+        "agenten": [
+          "Statiker",
+          "Hauptgutachter"
+        ],
+        "schwere": "KRITISCH"
+      },
+      {
+        "fehler_id": "FS-02",
+        "name": "Stahlstütze unterdimensioniert",
+        "erkannt": true,
+        "confidence": 0.95,
+        "agenten": [
+          "Statiker",
+          "Hauptgutachter"
+        ],
+        "schwere": "KRITISCH"
+      },
+      {
+        "fehler_id": "FS-03",
+        "name": "Fundament ohne Frostschutz",
+        "erkannt": true,
+        "confidence": 0.95,
+        "agenten": [
+          "Statiker",
+          "Hauptgutachter"
+        ],
+        "schwere": "HOCH"
+      },
+      {
+        "fehler_id": "FS-04",
+        "name": "Fluchtweg zu lang",
+        "erkannt": true,
+        "confidence": 0.95,
+        "agenten": [
+          "Brandschuetzer",
+          "Architekt",
+          "Hauptgutachter"
+        ],
+        "schwere": "KRITISCH"
+      },
+      {
+        "fehler_id": "FS-05",
+        "name": "Brandwand durchbrochen",
+        "erkannt": true,
+        "confidence": 0.95,
+        "agenten": [
+          "Brandschuetzer",
+          "Architekt",
+          "Hauptgutachter"
+        ],
+        "schwere": "KRITISCH"
+      },
+      {
+        "fehler_id": "FS-06",
+        "name": "U-Wand zu hoch",
+        "erkannt": true,
+        "confidence": 0.85,
+        "agenten": [
+          "Energieberater",
+          "Hauptgutachter"
+        ],
+        "schwere": "HOCH"
+      },
+      {
+        "fehler_id": "FS-07",
+        "name": "Luftdichtheit nicht gewährleistet",
+        "erkannt": true,
+        "confidence": 0.85,
+        "agenten": [
+          "Energieberater",
+          "Hauptgutachter"
+        ],
+        "schwere": "HOCH"
+      },
+      {
+        "fehler_id": "FS-08",
+        "name": "Trittschall zu hoch",
+        "erkannt": true,
+        "confidence": 0.85,
+        "agenten": [
+          "Schallschuetzer",
+          "Hauptgutachter"
+        ],
+        "schwere": "MITTEL"
+      },
+      {
+        "fehler_id": "FS-09",
+        "name": "Türbreite zu schmal",
+        "erkannt": true,
+        "confidence": 0.85,
+        "agenten": [
+          "Barrierefreiheitsexperte",
+          "Hauptgutachter"
+        ],
+        "schwere": "MITTEL"
+      },
+      {
+        "fehler_id": "FS-10",
+        "name": "Lüftung unzureichend",
+        "erkannt": true,
+        "confidence": 0.85,
+        "agenten": [
+          "Nachhaltigkeitsgutachter",
+          "Hauptgutachter"
+        ],
+        "schwere": "HOCH"
+      }
+    ],
+    "konsens": 0.9
+  },
+  "epistemisch": {
+    "system_valid": true,
+    "contradictions": 0,
+    "agent_count": 9,
+    "global_knowledge": 10
+  },
+  "system_reaktion": {
+    "status": "FEHLER GEFUNDEN",
+    "kritisch": 4,
+    "hoch": 4,
+    "mittel": 2,
+    "baugenehmigung": "NICHT MÖGLICH",
+    "empfehlungen": [
+      {
+        "id": "FS-01",
+        "name": "Stahlbeton-Decke zu duenn",
+        "empfehlung": "Deckendicke auf 18cm erhöhen",
+        "kosten": "30.000-50.000 EUR"
+      },
+      {
+        "id": "FS-02",
+        "name": "Stahlstütze unterdimensioniert",
+        "empfehlung": "Stahlstütze auf HEA200 erhöhen",
+        "kosten": "15.000-25.000 EUR"
+      },
+      {
+        "id": "FS-03",
+        "name": "Fundament ohne Frostschutz",
+        "empfehlung": "Fundament auf 80cm unter GOK absenken",
+        "kosten": "20.000-35.000 EUR"
+      },
+      {
+        "id": "FS-04",
+        "name": "Fluchtweg zu lang",
+        "empfehlung": "Zweiten Fluchtweg einplanen",
+        "kosten": "25.000-40.000 EUR"
+      },
+      {
+        "id": "FS-05",
+        "name": "Brandwand durchbrochen",
+        "empfehlung": "Brandschutzschott einbauen",
+        "kosten": "5.000-10.000 EUR"
+      },
+      {
+        "id": "FS-06",
+        "name": "U-Wand zu hoch",
+        "empfehlung": "Dämmung auf 20cm erhöhen",
+        "kosten": "8.000-15.000 EUR"
+      },
+      {
+        "id": "FS-07",
+        "name": "Luftdichtheit nicht gewährleistet",
+        "empfehlung": "Luftdichtheitsschicht planen, Blower-Door-Test",
+        "kosten": "5.000-10.000 EUR"
+      },
+      {
+        "id": "FS-08",
+        "name": "Trittschall zu hoch",
+        "empfehlung": "Trittschalldämmung hinzufügen",
+        "kosten": "3.000-6.000 EUR"
+      },
+      {
+        "id": "FS-09",
+        "name": "Türbreite zu schmal",
+        "empfehlung": "Türbreite auf 80cm erhöhen",
+        "kosten": "2.000-4.000 EUR"
+      },
+      {
+        "id": "FS-10",
+        "name": "Lüftung unzureichend",
+        "empfehlung": "Lüftungsanlage mit ≥ 0.6/h planen",
+        "kosten": "10.000-18.000 EUR"
+      }
+    ]
+  },
+  "dauer_sec": 0.0004200935363769531
+}

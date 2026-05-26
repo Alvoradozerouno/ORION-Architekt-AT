@@ -1,0 +1,51 @@
+{
+  "ergebnisse": {
+    "wissensgraph": {
+      "knoten": 3,
+      "kanten": 2,
+      "dependencies": 0,
+      "ancestors": 2,
+      "effective_confidence": 0.8096,
+      "status": "GRUEN"
+    },
+    "inferenz": {
+      "regeln": 1,
+      "praemissen": 102,
+      "neue_propositionen": 100,
+      "status": "GRUEN"
+    },
+    "swarm_konsens": {
+      "agenten": 5,
+      "consensus_state": "certain",
+      "consensus_strength": 0.9537205081669692,
+      "is_consensus": true,
+      "status": "GRUEN"
+    },
+    "konfliktloesung": {
+      "input": 2,
+      "output": 1,
+      "best_confidence": 1.0,
+      "status": "GRUEN"
+    },
+    "temporal": {
+      "current_confidence": 0.9999999999970034,
+      "old_confidence": 0.49999999999550515,
+      "degradation_factor": 0.49999999999700345,
+      "status": "GRUEN"
+    },
+    "zyklen": {
+      "knoten": 3,
+      "kanten": 3,
+      "zyklen": 1,
+      "status": "GRUEN"
+    },
+    "epistemisch": {
+      "system_valid": true,
+      "contradictions": 0,
+      "agent_count": 5,
+      "global_knowledge": 0,
+      "status": "GRUEN"
+    }
+  },
+  "dauer_sec": 0.007215976715087891
+}

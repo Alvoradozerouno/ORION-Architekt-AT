@@ -72,6 +72,39 @@ class EpistemicProposition:
 
 
 @dataclass
+class InferenceRule:
+    """Eine deterministische Inferenzregel."""
+    name: str
+    premise_ids: List[str]
+    conclusion_template: str
+    confidence_factor: float = 0.9
+
+    def apply(self, premises: List[EpistemicProposition]) -> Optional[EpistemicProposition]:
+        """Wendet die Regel auf die Prämissen an."""
+        if len(premises) != len(self.premise_ids):
+            return None
+
+        # Berechne kombinierte Konfidenz
+        combined_confidence = 1.0
+        for p in premises:
+            combined_confidence *= p.confidence
+        combined_confidence *= self.confidence_factor
+
+        # Erstelle Schlussfolgerung
+        content = self.conclusion_template.format(
+            *[p.content for p in premises]
+        )
+
+        return EpistemicProposition(
+            content=content,
+            source=f"inference:{self.name}",
+            confidence=combined_confidence,
+            dependencies=[p.id for p in premises],
+            evidence=[f"Derived via {self.name} from {[p.id for p in premises]}"]
+        )
+
+
+@dataclass
 class EpistemicAgent:
     """Ein epistemischer Agent mit Wissenszuständen."""
     name: str
@@ -173,39 +206,6 @@ class EpistemicAgent:
         }
 
 
-@dataclass
-class InferenceRule:
-    """Eine deterministische Inferenzregel."""
-    name: str
-    premise_ids: List[str]
-    conclusion_template: str
-    confidence_factor: float = 0.9
-
-    def apply(self, premises: List[EpistemicProposition]) -> Optional[EpistemicProposition]:
-        """Wendet die Regel auf die Prämissen an."""
-        if len(premises) != len(self.premise_ids):
-            return None
-
-        # Berechne kombinierte Konfidenz
-        combined_confidence = 1.0
-        for p in premises:
-            combined_confidence *= p.confidence
-        combined_confidence *= self.confidence_factor
-
-        # Erstelle Schlussfolgerung
-        content = self.conclusion_template.format(
-            *[p.content for p in premises]
-        )
-
-        return EpistemicProposition(
-            content=content,
-            source=f"inference:{self.name}",
-            confidence=combined_confidence,
-            dependencies=[p.id for p in premises],
-            evidence=[f"Derived via {self.name} from {[p.id for p in premises]}"]
-        )
-
-
 class EpistemicValidator:
     """Validiert epistemische Ansprüche deterministisch."""
 
@@ -277,6 +277,248 @@ class EpistemicValidator:
         return distance / len(all_ids)
 
 
+class KnowledgeGraph:
+    """Wissensgraph mit Abhängigkeiten zwischen Propositionen."""
+
+    def __init__(self):
+        self.nodes: Dict[str, EpistemicProposition] = {}
+        self.edges: Dict[str, List[str]] = {}  # parent -> children
+
+    def add_node(self, prop: EpistemicProposition) -> None:
+        self.nodes[prop.id] = prop
+        if prop.id not in self.edges:
+            self.edges[prop.id] = []
+
+    def add_edge(self, parent_id: str, child_id: str) -> None:
+        if parent_id not in self.edges:
+            self.edges[parent_id] = []
+        self.edges[parent_id].append(child_id)
+
+    def get_dependencies(self, prop_id: str) -> List[str]:
+        return self.edges.get(prop_id, [])
+
+    def get_all_ancestors(self, prop_id: str, visited: Optional[Set[str]] = None) -> Set[str]:
+        if visited is None:
+            visited = set()
+        for parent_id, children in self.edges.items():
+            if prop_id in children and parent_id not in visited:
+                visited.add(parent_id)
+                self.get_all_ancestors(parent_id, visited)
+        return visited
+
+    def propagate_confidence(self, prop_id: str) -> float:
+        """Berechnet die effektive Konfidenz basierend auf Abhängigkeiten."""
+        prop = self.nodes.get(prop_id)
+        if not prop:
+            return 0.0
+
+        ancestors = self.get_all_ancestors(prop_id)
+        min_ancestor_confidence = 1.0
+        for ancestor_id in ancestors:
+            ancestor = self.nodes.get(ancestor_id)
+            if ancestor:
+                min_ancestor_confidence = min(min_ancestor_confidence, ancestor.confidence)
+
+        return prop.confidence * min_ancestor_confidence
+
+    def detect_cycles(self) -> List[List[str]]:
+        cycles = []
+        visited = set()
+        rec_stack = set()
+
+        def dfs(node_id: str, path: List[str]):
+            visited.add(node_id)
+            rec_stack.add(node_id)
+            path.append(node_id)
+
+            for child_id in self.edges.get(node_id, []):
+                if child_id not in visited:
+                    dfs(child_id, path)
+                elif child_id in rec_stack:
+                    cycle_start = path.index(child_id)
+                    cycles.append(path[cycle_start:] + [child_id])
+
+            rec_stack.discard(node_id)
+
+        for node_id in self.nodes:
+            if node_id not in visited:
+                dfs(node_id, [])
+
+        return cycles
+
+
+class ConflictResolver:
+    """Automatische Konfliktlösung zwischen widersprüchlichen Propositionen."""
+
+    @staticmethod
+    def resolve_conflicts(propositions: List[EpistemicProposition]) -> List[EpistemicProposition]:
+        """Löst Konflikte durch Quellen-Gewichtung und Evidenz-Stärke."""
+        if not propositions:
+            return []
+
+        # Gruppiere nach Inhalt
+        by_content: Dict[str, List[EpistemicProposition]] = {}
+        for prop in propositions:
+            if prop.content not in by_content:
+                by_content[prop.content] = []
+            by_content[prop.content].append(prop)
+
+        resolved = []
+        for content, props in by_content.items():
+            if len(props) == 1:
+                resolved.append(props[0])
+            else:
+                # Wähle die Proposition mit höchster Konfidenz und stärkster Evidenz
+                best = max(props, key=lambda p: p.confidence * (1 + len(p.evidence) * 0.1))
+                resolved.append(best)
+
+        return resolved
+
+
+class TemporalKnowledgeManager:
+    """Verwaltet zeitbasierte Wissensdegradation."""
+
+    def __init__(self, half_life_hours: float = 720.0):  # 30 Tage
+        self.half_life_hours = half_life_hours
+
+    def degrade_confidence(self, prop: EpistemicProposition, current_time: Optional[float] = None) -> float:
+        """Berechnet degradierte Konfidenz basierend auf Alter."""
+        if current_time is None:
+            current_time = time.time()
+
+        age_hours = (current_time - prop.timestamp) / 3600.0
+        decay_factor = 0.5 ** (age_hours / self.half_life_hours)
+
+        return prop.confidence * decay_factor
+
+    def refresh_knowledge(self, prop: EpistemicProposition, new_confidence: float) -> EpistemicProposition:
+        """Aktualisiert Wissen mit neuer Konfidenz."""
+        return EpistemicProposition(
+            content=prop.content,
+            source=prop.source,
+            timestamp=time.time(),
+            confidence=new_confidence,
+            evidence=prop.evidence,
+            dependencies=prop.dependencies,
+            metadata=prop.metadata,
+        )
+
+
+class SwarmConsensusEngine:
+    """Swarm-Intelligenz für epistemische Konsensbildung."""
+
+    @staticmethod
+    def compute_weighted_consensus(
+        agents: Dict[str, EpistemicAgent],
+        proposition_id: str,
+        weights: Optional[Dict[str, float]] = None
+    ) -> Dict[str, Any]:
+        """Berechnet gewichteten Konsens basierend auf Agenten-Expertise."""
+        if weights is None:
+            weights = {name: 1.0 for name in agents}
+
+        states = {}
+        weighted_votes: Dict[str, float] = {}
+
+        for name, agent in agents.items():
+            state = agent.get_state(proposition_id)
+            states[name] = state.value
+
+            state_key = state.value
+            weight = weights.get(name, 1.0) * agent.validation_threshold
+            weighted_votes[state_key] = weighted_votes.get(state_key, 0.0) + weight
+
+        total_weight = sum(weights.get(name, 1.0) * agent.validation_threshold for name in agents)
+        if total_weight == 0:
+            total_weight = 1.0
+
+        consensus_state = max(weighted_votes, key=weighted_votes.get) if weighted_votes else "unknown"
+        consensus_strength = weighted_votes.get(consensus_state, 0.0) / total_weight
+
+        return {
+            "proposition_id": proposition_id,
+            "states": states,
+            "weighted_votes": weighted_votes,
+            "consensus_state": consensus_state,
+            "consensus_strength": consensus_strength,
+            "is_consensus": consensus_strength >= 0.7,
+            "participating_agents": len(agents),
+        }
+
+
+class InferenceEngine:
+    """Automatische Inferenz mit Regel-Anwendung."""
+
+    def __init__(self):
+        self.rules: List[InferenceRule] = []
+        self.inference_log: List[Dict[str, Any]] = []
+
+    def add_rule(self, rule: InferenceRule) -> None:
+        self.rules.append(rule)
+
+    def apply_all_rules(
+        self,
+        knowledge_base: Dict[str, EpistemicProposition]
+    ) -> List[EpistemicProposition]:
+        """Wendet alle Inferenzregeln an und leitet neue Propositionen ab."""
+        new_props = []
+        changed = True
+        iterations = 0
+        max_iterations = 100
+
+        while changed and iterations < max_iterations:
+            changed = False
+            iterations += 1
+
+            for rule in self.rules:
+                premises = [knowledge_base.get(pid) for pid in rule.premise_ids]
+                premises = [p for p in premises if p is not None]
+
+                if len(premises) == len(rule.premise_ids):
+                    conclusion = rule.apply(premises)
+                    if conclusion and conclusion.id not in knowledge_base:
+                        knowledge_base[conclusion.id] = conclusion
+                        new_props.append(conclusion)
+                        changed = True
+                        self.inference_log.append({
+                            "rule": rule.name,
+                            "premises": [p.id for p in premises],
+                            "conclusion": conclusion.id,
+                            "confidence": conclusion.confidence,
+                        })
+
+        return new_props
+
+    def get_built_in_rules(self) -> List[InferenceRule]:
+        """Erstellt eingebaute Regeln für Bau-Compliance."""
+        return [
+            InferenceRule(
+                name="OIB-RL6-Compliance",
+                premise_ids=["oib_rl6_hwb_limit", "building_hwb_value"],
+                conclusion_template="Gebäude erfüllt OIB-RL 6: HWB {{0}} ≤ 75 kWh/m²a",
+                confidence_factor=0.95,
+            ),
+            InferenceRule(
+                name="Brandschutz-Compliance",
+                premise_ids=["oib_rl2_fire", "building_fire_rating"],
+                conclusion_template="Gebäude erfüllt OIB-RL 2: Feuerwiderstand {{0}}",
+                confidence_factor=0.95,
+            ),
+            InferenceRule(
+                name="Schallschutz-Compliance",
+                premise_ids=["oib_rl5_sound", "building_sound_rating"],
+                conclusion_template="Gebäude erfüllt OIB-RL 5: Schalldämmung {{0}}",
+                confidence_factor=0.90,
+            ),
+            InferenceRule(
+                name="Gesamt-Compliance",
+                premise_ids=["oib_rl6_compliant", "oib_rl2_compliant", "oib_rl5_compliant"],
+                conclusion_template="Gebäude ist OIB-konform: {{0}}, {{1}}, {{2}}",
+                confidence_factor=0.85,
+            ),
+        ]
+
+
 class DeterministicEpistemicSystem:
     """
     Das deterministische epistemische System.
@@ -291,6 +533,17 @@ class DeterministicEpistemicSystem:
         self.validator = EpistemicValidator()
         self.global_knowledge: Dict[str, EpistemicProposition] = {}
         self.system_log: List[Dict[str, Any]] = []
+
+        # Neue Best-Practice-Komponenten
+        self.knowledge_graph = KnowledgeGraph()
+        self.conflict_resolver = ConflictResolver()
+        self.temporal_manager = TemporalKnowledgeManager()
+        self.swarm_engine = SwarmConsensusEngine()
+        self.inference_engine = InferenceEngine()
+
+        # Eingebaute Regeln hinzufügen
+        for rule in self.inference_engine.get_built_in_rules():
+            self.inference_engine.add_rule(rule)
 
     def create_agent(self, name: str, validation_threshold: float = 0.8) -> EpistemicAgent:
         """Erstellt einen neuen epistemischen Agenten."""

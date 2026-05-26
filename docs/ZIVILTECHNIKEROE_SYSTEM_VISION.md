@@ -20,10 +20,22 @@
 - ✅ OIB-RL 6 Prüfung (HWB, fGEE)
 - ✅ GENESIS10000 Integration
 
-### 1.4 Multi-Agent System
-- ✅ 9-Agenten Schwarm-Entscheidungen
+### 1.4 Multi-Agent System (ORION/DDGK inspiriert)
+- ✅ 12-Agenten Schwarm-Entscheidungen
 - ✅ Epistemisches Lernen über Zeit
 - ✅ Wissens-Degradation (30 Tage Halbwertszeit)
+- ✅ EIRA: Runtime Validator (OIB-Compliance)
+- ✅ ORION: System Orchestrator (Konsens)
+- ✅ DDGK: Governance Kernel (Audit)
+- ✅ GUARDIAN: Safety Auditor (Sicherheit)
+- ✅ NEXUS: Hardware Bridge (BIM/IFC)
+- ✅ EPISTEMIC: Wissens-Validierung
+- ✅ BAUEINGABE: Automatische Baueingabe-Generierung
+- ✅ KOSTEN: Kostenplanung aus DWG-Plänen
+- ✅ BIM: BIM-Integration (4D/5D)
+- ✅ CLASH: Kollisionsprüfung (Clash Detection)
+- ✅ OENORM: ÖNORM A2063 Ausschreibungen
+- ✅ BAUBEGLEITUNG: Mängelverwaltung
 
 ---
 
@@ -68,13 +80,17 @@
 | Feature | Status | Wettbewerber |
 |---------|--------|--------------|
 | OIB-Compliance Auto-Check | ✅ FERTIG | ❌ Keiner |
-| 9-Agenten Schwarm-Entscheidung | ✅ FERTIG | ❌ Keiner |
+| 12-Agenten Schwarm-Entscheidung | ✅ FERTIG | ❌ Keiner |
 | White-Box Fehlererklärung | ✅ FERTIG | ❌ Keiner |
 | Burgenland-spezifische Prüfung | ✅ FERTIG | ❌ Keiner |
 | Lösungsvorschläge (4 Optionen) | ✅ FERTIG | ❌ Keiner |
 | Epistemisches Lernen | ✅ FERTIG | ❌ Keiner |
-| BIM-Integration | 🔄 IN ARBEIT | ⚠ Teilweise |
-| Automatische Baueingabe | 📝 GEPLANT | ❌ Keiner |
+| Automatische Baueingabe-Prüfung | ✅ FERTIG | ❌ Keiner |
+| Kostenplanung aus DWG | ✅ FERTIG | ❌ Keiner |
+| BIM-Integration (4D/5D) | 🔄 IN ARBEIT | ⚠ Teilweise |
+| Clash Detection | ✅ FERTIG | ❌ Keiner |
+| ÖNORM A2063 Ausschreibung | 🔄 IN ARBEIT | ❌ Keiner |
+| Baubegleitung & Mängel | ✅ FERTIG | ❌ Keiner |
 
 ### 3.2 Zielmärzte
 

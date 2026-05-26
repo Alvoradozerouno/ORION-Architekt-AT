@@ -1,0 +1,117 @@
+{
+  "timestamp": "2026-05-26T17:17:19.073341",
+  "konsens": "YELLOW",
+  "durchschnitt_score": 6.92,
+  "produktion_bereit": 69.6,
+  "anzahl_agenten": 12,
+  "agenten": [
+    {
+      "name": "EIRA",
+      "rolle": "Runtime Validator | OIB-Compliance",
+      "score": 3.0,
+      "position": "7 OIB-Fehler",
+      "analyse": "OIB-Compliance: 7 Fehler",
+      "empfehlung": "OIB-Fehler beheben",
+      "umsetzbar": false
+    },
+    {
+      "name": "ORION",
+      "rolle": "System Orchestrator | Konsens",
+      "score": 0.0,
+      "position": "REVIEW",
+      "analyse": "Konsens-Score: 0.0/10",
+      "empfehlung": "Review erforderlich",
+      "umsetzbar": false
+    },
+    {
+      "name": "DDGK",
+      "rolle": "Governance Kernel | Audit",
+      "score": 8.0,
+      "position": "APPROVED",
+      "analyse": "Audit-Kette: valid",
+      "empfehlung": "Audit-Kette prüfen",
+      "umsetzbar": true
+    },
+    {
+      "name": "GUARDIAN",
+      "rolle": "Safety Auditor | Sicherheit",
+      "score": 10.0,
+      "position": "APPROVED",
+      "analyse": "Sicherheit: Fluchtwege=OK, Brandschutz=OK",
+      "empfehlung": "Sicherheitsmängel beheben",
+      "umsetzbar": true
+    },
+    {
+      "name": "NEXUS",
+      "rolle": "Hardware Bridge | BIM/IFC",
+      "score": 4.0,
+      "position": "HARDWARE REVIEW",
+      "analyse": "BIM-Export: IFC=nein, DWG=nein",
+      "empfehlung": "DWG-Parser aktivieren",
+      "umsetzbar": true
+    },
+    {
+      "name": "EPISTEMIC",
+      "rolle": "Wissens-Validierung | Lernen",
+      "score": 10.0,
+      "position": "APPROVED",
+      "analyse": "Wissen: 150 Einträge, 45 bestätigt, 3 widerlegt",
+      "empfehlung": "Mehr Pläne prüfen für besseres Lernen",
+      "umsetzbar": true
+    },
+    {
+      "name": "BAUEINGABE",
+      "rolle": "Automatische Baueingabe-Generierung",
+      "score": 10.0,
+      "position": "APPROVED",
+      "analyse": "Baueingabe-Unterlagen: 0 fehlend",
+      "empfehlung": "Baueingabe bereit",
+      "umsetzbar": true
+    },
+    {
+      "name": "KOSTEN",
+      "rolle": "Kostenplanung aus DWG-Plänen",
+      "score": 8.0,
+      "position": "APPROVED",
+      "analyse": "Kosten: ~€ 1,500,000 (150m2 x 4 OG x mittel)",
+      "empfehlung": "Massenermittlung aus DWG für präzise Kosten",
+      "umsetzbar": true
+    },
+    {
+      "name": "BIM",
+      "rolle": "BIM-Integration (4D/5D)",
+      "score": 5.0,
+      "position": "IN ARBEIT",
+      "analyse": "BIM: IFC=nein, 4D=nein, 5D=nein",
+      "empfehlung": "IFC-Export aus DWG aktivieren",
+      "umsetzbar": true
+    },
+    {
+      "name": "CLASH",
+      "rolle": "Kollisionsprüfung (Clash Detection)",
+      "score": 10.0,
+      "position": "APPROVED",
+      "analyse": "Kollisionen: 0 gesamt, 0 tragend, 0 Installation",
+      "empfehlung": "Tragende Kollisionen sofort beheben",
+      "umsetzbar": true
+    },
+    {
+      "name": "OENORM",
+      "rolle": "ÖNORM A2063 Ausschreibungen",
+      "score": 5.0,
+      "position": "IN ARBEIT",
+      "analyse": "ÖNORM: LV=nein, Ausschreibung=nein",
+      "empfehlung": "ÖNORM A2063 konforme Ausschreibung erstellen",
+      "umsetzbar": true
+    },
+    {
+      "name": "BAUBEGLEITUNG",
+      "rolle": "Baubegleitung & Mängelverwaltung",
+      "score": 10.0,
+      "position": "APPROVED",
+      "analyse": "Mängel: 0 gesamt, 0 offen, 0 behoben",
+      "empfehlung": "Offene Mängel priorisieren",
+      "umsetzbar": true
+    }
+  ]
+}
